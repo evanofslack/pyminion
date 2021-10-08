@@ -1,4 +1,4 @@
-from models.cards import Treasure, Victory
+from app.models.cards import Treasure, Victory
 
 # Treasures
 copper = Treasure(name="Copper", cost=0, money=1)
