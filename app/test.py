@@ -1,9 +1,19 @@
-from base_cards import copper
-from models.cards import Pile
+from models.cards import Deck, Card, Treasure, Victory
+from base_set.base_cards import copper, silver, gold, estate, duchy, province
 
+NUM_COPPER = 7
+NUM_ESTATE = 3
 
-copper_pile = Pile(cards=[copper for x in range(40)])
+start_cards = [copper for x in range(NUM_COPPER)] + [
+        estate for x in range(NUM_ESTATE)
+    ]
 
+deck = Deck(cards=start_cards)
 
-for card in copper_pile.cards:
-    print(card.name)
+for card in deck.cards:
+    print (card)
+
+deck.shuffle()
+
+for card in deck.cards:
+    print (card)
