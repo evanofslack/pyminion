@@ -53,15 +53,6 @@ def test_draw_one_deck(deck: Deck):
     assert type(drawn_card) is Victory
 
 
-# def test_draw_multiple_deck(deck: Deck):
-#     drawn_cards = deck.draw(num_cards=3)
-#     assert len(drawn_cards) == 3
-#     for card in drawn_cards:
-#         assert type(card) is Victory
-#     drawn_cards = deck.draw(num_cards=1)
-#     assert type(drawn_cards[0]) is Treasure
-
-
 # def test_shuffle_deck(deck: Deck):
 #     deck.shuffle()
 #     shuffle 100 times and get assert amount of combos is greater than x%

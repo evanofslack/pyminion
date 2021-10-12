@@ -1,6 +1,5 @@
 from typing import List
-
-from player import Player
+from cards import Player
 
 
 class Game:
