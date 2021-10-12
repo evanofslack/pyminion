@@ -6,11 +6,12 @@ from app.base_set.base_cards import copper, silver, gold, estate, duchy, provinc
 NUM_COPPER = 7
 NUM_ESTATE = 3
 
+
 @pytest.fixture
 def discard():
     discard = DiscardPile()
     return discard
-    
+
 
 def test_discard_creates_empty_list():
     discard = DiscardPile()
@@ -21,6 +22,7 @@ def test_discard_creates_empty_list():
     discard = DiscardPile()
     assert not discard.cards
 
+
 def test_add_card_to_discard(discard: DiscardPile):
     assert not discard.cards
     discard.add(copper)
@@ -28,6 +30,3 @@ def test_add_card_to_discard(discard: DiscardPile):
     assert type(discard.cards[0]) is Treasure
     discard.add(estate)
     assert len(discard.cards) == 2
-
-
-
