@@ -1,4 +1,4 @@
-from app.models.cards import Treasure, Victory
+from app.models.cards import Treasure, Victory, Smithy
 
 # Treasures
 copper = Treasure(name="Copper", cost=0, money=1)
@@ -9,3 +9,6 @@ gold = Treasure(name="Gold", cost=6, money=3)
 estate = Victory(name="Estate", cost=2, victory_points=1)
 duchy = Victory(name="Duchy", cost=5, victory_points=3)
 province = Victory(name="Province", cost=8, victory_points=6)
+
+# Actions
+smithy = Smithy()
