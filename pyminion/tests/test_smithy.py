@@ -1,8 +1,9 @@
 import pytest
 
-from pyminion.models.cards import Deck, DiscardPile, Player, Hand, Playmat, Turn, Smithy
+from pyminion.models.base import Deck, DiscardPile, Player, Hand, Playmat, Turn
+from pyminion.models.cards import Smithy
 from pyminion.base_set.base_cards import copper, estate, smithy
-from pyminion.error import InsufficientActions
+from pyminion.exceptions import InsufficientActions
 
 
 NUM_COPPER = 7

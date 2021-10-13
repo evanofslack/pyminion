@@ -1,34 +1,5 @@
-import pytest
-
-from pyminion.models.cards import Deck, DiscardPile, Player, Hand, Playmat, Turn
-from pyminion.base_set.base_cards import copper, silver, gold, estate, duchy, province
-
-NUM_COPPER = 7
-NUM_ESTATE = 3
-
-
-@pytest.fixture
-def deck():
-    start_cards = [copper for x in range(NUM_COPPER)] + [
-        estate for x in range(NUM_ESTATE)
-    ]
-    deck = Deck(cards=start_cards)
-    return deck
-
-
-@pytest.fixture
-def player(deck):
-    discard = DiscardPile()
-    hand = Hand()
-    playmat = Playmat()
-    player = Player(deck=deck, discard=discard, hand=hand, playmat=playmat)
-    return player
-
-
-@pytest.fixture
-def turn(player):
-    turn = Turn(player=player)
-    return turn
+from pyminion.models.base import Player, Turn
+from pyminion.base_set.base_cards import copper
 
 
 def test_create_turn(player: Player):
