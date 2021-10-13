@@ -1,4 +1,4 @@
-from app.models.cards import Treasure, Victory, Smithy
+from pyminion.models.cards import Treasure, Victory, Smithy
 
 # Treasures
 copper = Treasure(name="Copper", cost=0, money=1)

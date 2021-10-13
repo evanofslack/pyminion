@@ -1,5 +1,5 @@
 from typing import List
-from pyminion.models.cards import Player
+from pyminion.models.base import Player
 
 
 class Game:
