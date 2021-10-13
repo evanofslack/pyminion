@@ -1,19 +1,18 @@
-import pytest
-
-from app.models.cards import Deck, Card, DiscardPile, Treasure, Victory, AbstractDeck
-from app.base_set.base_cards import copper, silver, gold, estate, duchy, province
+from pyminion.models.base import AbstractDeck, Deck, DiscardPile
+from pyminion.models.cards import Treasure, Victory
+from pyminion.base_set.base_cards import copper, estate
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
 
 
-@pytest.fixture
-def deck():
-    start_cards = [copper for x in range(NUM_COPPER)] + [
-        estate for x in range(NUM_ESTATE)
-    ]
-    deck = Deck(cards=start_cards)
-    return deck
+# @pytest.fixture
+# def deck():
+#     start_cards = [copper for x in range(NUM_COPPER)] + [
+#         estate for x in range(NUM_ESTATE)
+#     ]
+#     deck = Deck(cards=start_cards)
+#     return deck
 
 
 def test_abstract_deck_creates_empty_list():
