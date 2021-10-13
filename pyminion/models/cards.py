@@ -1,7 +1,7 @@
 from typing import List
 import random
 
-from app.exceptions import InsufficientActions, InsufficientMoney, InsufficientBuys
+from pyminion.error import InsufficientActions, InsufficientMoney, InsufficientBuys
 
 
 class Card:

@@ -1,7 +1,7 @@
 import pytest
 
-from app.models.cards import Deck, DiscardPile, Player, Hand, Playmat, Turn
-from app.base_set.base_cards import copper, silver, gold, estate, duchy, province
+from pyminion.models.cards import Deck, DiscardPile, Player, Hand, Playmat, Turn
+from pyminion.base_set.base_cards import copper, silver, gold, estate, duchy, province
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
