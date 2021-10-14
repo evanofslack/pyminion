@@ -37,7 +37,7 @@ class Action(Card):
         """
         if turn.actions < 1:
             raise InsufficientActions(
-                f"{turn.player.name}: Not enough actions to play {self.name}"
+                f"{turn.player.player_id}: Not enough actions to play {self.name}"
             )
 
         turn.player.playmat.add(self)
