@@ -1,6 +1,6 @@
 # Pyminion
 
-A python implementation of Dominion, the deck building card game.
+A python implementation of Dominion, a deck building card game.
 
 This library is currently under development. Coming soon to a pip near you.
 
