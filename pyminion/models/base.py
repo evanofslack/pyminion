@@ -91,6 +91,11 @@ class Trash(AbstractDeck):
 
 
 class Player:
+    """
+    Collection of card piles associated with each player
+
+    """
+
     def __init__(
         self,
         deck: Deck,
@@ -107,6 +112,11 @@ class Player:
 
 
 class Turn:
+    """
+    Player's state during a turn
+
+    """
+
     def __init__(self, player: Player, actions: int = 1, money: int = 0, buys: int = 1):
         self.player = player
         self.actions = actions
@@ -136,6 +146,11 @@ class Turn:
 
 
 class Supply:
+    """
+    Collection of card piles that make up the game's supply
+
+    """
+
     def __init__(self, piles: List[Pile] = None):
         if piles:
             self.piles = piles
