@@ -23,11 +23,15 @@ class AbstractDeck:
     def __len__(self):
         return len(self.cards)
 
+    def __repr__(self):
+        return f"{type(self).__name__} {[card.name for card in self.cards]}"
+
     def add(self, card: Card):
         self.cards.append(card)
 
-    def remove(self, card: Card):
+    def remove(self, card: Card) -> Card:
         self.cards.remove(card)
+        return card
 
 
 class Deck(AbstractDeck):
@@ -58,6 +62,12 @@ class Hand(AbstractDeck):
 class Pile(AbstractDeck):
     def __init__(self, cards: List[Card] = None):
         super().__init__(cards)
+        if cards and len(set(cards)) == 1:
+            self.name = cards[0].name
+        elif cards:
+            self.name = "Mixed"
+        else:
+            self.name == None
 
 
 class Playmat(AbstractDeck):
@@ -93,6 +103,10 @@ class Turn:
         self.money = money
         self.buys = buys
 
+    def draw_five(self):
+        for i in range(5):  # draw 5 cards from deck and add to hand
+            self.player.hand.add(self.player.deck.draw())
+
     def buy(self, card: Card):
         if card.cost > self.money:
             raise InsufficientMoney(
@@ -109,3 +123,14 @@ class Turn:
 
     def clean_up(self):
         pass
+
+
+class Supply:
+    def __init__(self, piles: List[Pile] = None):
+        if piles:
+            self.piles = piles
+        else:
+            self.piles = []
+
+    def __len__(self):
+        return len(self.piles)
