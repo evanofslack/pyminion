@@ -1,10 +1,15 @@
 from typing import List
 import random
 
-from pyminion.exceptions import InsufficientActions, InsufficientMoney, InsufficientBuys
+from pyminion.exceptions import InsufficientMoney, InsufficientBuys
 
 
 class Card:
+    """
+    Base class representing a dominion card
+
+    """
+
     def __init__(self, name: str, cost: int):
         self.name = name
         self.cost = cost
@@ -14,6 +19,11 @@ class Card:
 
 
 class AbstractDeck:
+    """
+    Base class representing a generic list of dominion cards
+
+    """
+
     def __init__(self, cards: List[Card] = None):
         if cards:
             self.cards = cards
@@ -26,7 +36,7 @@ class AbstractDeck:
     def __repr__(self):
         return f"{type(self).__name__} {[card.name for card in self.cards]}"
 
-    def add(self, card: Card):
+    def add(self, card: Card) -> Card:
         self.cards.append(card)
 
     def remove(self, card: Card) -> Card:
@@ -38,7 +48,7 @@ class Deck(AbstractDeck):
     def __init__(self, cards: List[Card]):
         super().__init__(cards)
 
-    def draw(self):
+    def draw(self) -> Card:
         drawn_card = self.cards.pop()
         return drawn_card
 
@@ -87,13 +97,13 @@ class Player:
         discard: DiscardPile,
         hand: Hand,
         playmat: Playmat,
-        name: str = "TestPlayer",
+        player_id: str = None,
     ):
         self.deck = deck
         self.discard = discard
         self.hand = hand
         self.playmat = playmat
-        self.name = name
+        self.player_id = player_id
 
 
 class Turn:
@@ -110,11 +120,11 @@ class Turn:
     def buy(self, card: Card):
         if card.cost > self.money:
             raise InsufficientMoney(
-                f"{self.player.name}: Not enough money to buy {card.name}"
+                f"{self.player.player_id}: Not enough money to buy {card.name}"
             )
         if self.buys < 1:
             raise InsufficientBuys(
-                f"{self.player.name}: Not enough buys to buy {card.name}"
+                f"{self.player.player_id}: Not enough buys to buy {card.name}"
             )
         self.money -= card.cost
         self.buys -= 1

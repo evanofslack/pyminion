@@ -45,7 +45,7 @@ def test_play_multiple_copper(turn: Turn):
         turn.player.hand.add(copper)
     assert len(turn.player.hand) == 9
 
-    i = 0
+    i = 0  # Pythonic way to pop in loop?
     while i < len(turn.player.hand):
         if turn.player.hand.cards[i] == copper:
             turn.player.hand.cards[i].play(turn)
