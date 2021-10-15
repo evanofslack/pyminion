@@ -22,7 +22,7 @@ def test_abstract_deck_creates_empty_list():
 
 def test_abstract_deck_length():
     abs_deck = AbstractDeck(cards=[copper, copper, estate])
-    assert len(abs_deck) is 3
+    assert len(abs_deck) == 3
 
 
 def test_abstract_deck_add():
@@ -41,8 +41,8 @@ def test_create_deck():
     ]
     deck = Deck(cards=start_cards)
     assert len(deck.cards) == 10
-    assert deck.cards.count(copper) is 7
-    assert deck.cards.count(estate) is 3
+    assert deck.cards.count(copper) == 7
+    assert deck.cards.count(estate) == 3
     assert type(deck.cards[0]) is Treasure
     assert type(deck.cards[9]) is Victory
 
