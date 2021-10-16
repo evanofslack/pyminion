@@ -8,7 +8,7 @@ from pyminion.models.base import (
     Playmat,
     Turn,
 )
-from pyminion.base_set.base_cards import start_cards, core_supply
+from pyminion.base_set.base_cards import start_cards, core_supply, silver
 
 
 player_1 = Player(
@@ -33,3 +33,5 @@ if __name__ == "__main__":
     print(player_1.deck)
     player_1.autoplay_treasures(turn)
     print(turn.money)
+    player_1.buy(card=silver, turn=turn, supply=supply)
+    print(player_1.discard)

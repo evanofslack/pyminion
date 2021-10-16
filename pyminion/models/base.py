@@ -1,7 +1,12 @@
 from typing import List
 import random
 
-from pyminion.exceptions import InsufficientMoney, InsufficientBuys
+from pyminion.exceptions import (
+    InsufficientMoney,
+    InsufficientBuys,
+    PileNotFound,
+    EmptyPile,
+)
 
 
 class Card:
@@ -79,6 +84,12 @@ class Pile(AbstractDeck):
         else:
             self.name == None
 
+    def remove(self, card: Card) -> Card:
+        if len(self.cards) < 1:
+            raise EmptyPile
+        self.cards.remove(card)
+        return card
+
 
 class Playmat(AbstractDeck):
     def __init__(self, cards: List[Card] = None):
@@ -138,10 +149,7 @@ class Player:
         turn.money -= card.cost
         turn.buys -= 1
         self.discard.add(card)
-
-        # supply.remove(card)
-        # raise EmptyPile
-        # raise NotInSupplys
+        supply.gain_card(card)
 
 
 class Supply:
@@ -158,6 +166,24 @@ class Supply:
 
     def __len__(self):
         return len(self.piles)
+
+    def gain_card(self, card: Card) -> Card:
+        print(card.name)
+        for pile in self.piles:
+            print(pile.name)
+            if card.name == pile.name:
+                try:
+                    return pile.remove(card)
+                except EmptyPile:
+                    print("Pile is empty, you cannot gain that card")
+                    pass
+
+        raise PileNotFound
+
+    def return_card(self, card: Card):
+        for pile in self.piles:
+            if card.name == pile.name:
+                pile.add(card)
 
 
 class Game:
