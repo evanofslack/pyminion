@@ -17,3 +17,17 @@ class InsufficientBuys(Exception):
     Player does not have enough buys to purchase card
 
     """
+
+
+class EmptyPile(Exception):
+    """
+    The pile does is empty
+
+    """
+
+
+class PileNotFound(Exception):
+    """
+    The pile does not exist
+
+    """
