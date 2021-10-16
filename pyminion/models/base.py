@@ -110,39 +110,38 @@ class Player:
         self.playmat = playmat
         self.player_id = player_id
 
-
-class Turn:
-    """
-    Player's state during a turn
-
-    """
-
-    def __init__(self, player: Player, actions: int = 1, money: int = 0, buys: int = 1):
-        self.player = player
-        self.actions = actions
-        self.money = money
-        self.buys = buys
-
     def draw_five(self):
         for i in range(5):  # draw 5 cards from deck and add to hand
-            self.player.hand.add(self.player.deck.draw())
+            self.hand.add(self.deck.draw())
 
-    def buy(self, card: Card):
-        if card.cost > self.money:
+    def autoplay_treasures(self, turn: "Turn"):
+        i = 0  # Pythonic way to pop in loop?
+        while i < len(self.hand):
+            if self.hand.cards[i].name == "Copper":
+                self.hand.cards[i].play(turn)
+            else:
+                i += 1
+
+        for card in self.hand.cards:
+            if card.name == "Copper":
+                card.play(turn)
+
+    def buy(self, card: Card, turn: "Turn", supply: "Supply"):
+        if card.cost > turn.money:
             raise InsufficientMoney(
-                f"{self.player.player_id}: Not enough money to buy {card.name}"
+                f"{turn.player.player_id}: Not enough money to buy {card.name}"
             )
-        if self.buys < 1:
+        if turn.buys < 1:
             raise InsufficientBuys(
-                f"{self.player.player_id}: Not enough buys to buy {card.name}"
+                f"{turn.player.player_id}: Not enough buys to buy {card.name}"
             )
-        self.money -= card.cost
-        self.buys -= 1
-        self.player.discard.add(card)
-        # game.pile[card].draw
+        turn.money -= card.cost
+        turn.buys -= 1
+        self.discard.add(card)
 
-    def clean_up(self):
-        pass
+        # supply.remove(card)
+        # raise EmptyPile
+        # raise NotInSupplys
 
 
 class Supply:
@@ -159,3 +158,33 @@ class Supply:
 
     def __len__(self):
         return len(self.piles)
+
+
+class Game:
+    def __init__(self, players: List[Player], supply: Supply):
+        self.players = players
+        self.supply = supply
+
+
+class Turn:
+    """
+    Control state during a player's turn
+
+    """
+
+    def __init__(
+        self,
+        player: Player,
+        game: Game = None,
+        actions: int = 1,
+        money: int = 0,
+        buys: int = 1,
+    ):
+        self.player = player
+        self.game = game
+        self.actions = actions
+        self.money = money
+        self.buys = buys
+
+    def clean_up(self):
+        pass
