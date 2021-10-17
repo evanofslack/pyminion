@@ -1,5 +1,8 @@
-from pyminion.models.base import Supply, Pile
+from pyminion.models.base import Supply, Pile, Card
 from pyminion.base_set.base_cards import estate, duchy, province, copper, silver, gold
+from pyminion.exceptions import PileNotFound
+
+import pytest
 
 
 def test_create_supply():
@@ -10,18 +13,25 @@ def test_create_supply():
     coppers = Pile([copper for x in range(8)])
     silvers = Pile([silver for x in range(8)])
     golds = Pile([gold for x in range(8)])
-
     supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
-
     assert len(supply) == 6
 
 
-def test_gain_from_pile(supply: Supply):
-    assert len(supply.piles[3]) == 8
+def test_gain_card(supply: Supply):
+    assert len(supply.piles[0]) == 8
+    card = supply.gain_card(estate)
+    assert card == estate
+    assert len(supply.piles[0]) == 7
 
-    for pile in supply.piles:
-        if pile.name == "Copper":
-            card = pile.remove(copper)
 
-    assert len(supply.piles[3]) == 7
-    assert card == copper
+def test_gain_empty_pile_is_None(supply: Supply):
+    for x in range(8):
+        supply.gain_card(estate)
+    assert len(supply.piles[0]) == 0
+    assert supply.gain_card(estate) == None
+
+
+def test_pile_not_found(supply: Supply):
+    fake_card = Card(name="fake", cost=0)
+    with pytest.raises(PileNotFound):
+        supply.gain_card(fake_card)
