@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import random
 
 from pyminion.exceptions import (
@@ -129,13 +129,9 @@ class Player:
         i = 0  # Pythonic way to pop in loop?
         while i < len(self.hand):
             if self.hand.cards[i].name == "Copper":
-                self.hand.cards[i].play(turn)
+                self.hand.cards[i].play(turn, self)
             else:
                 i += 1
-
-        for card in self.hand.cards:
-            if card.name == "Copper":
-                card.play(turn)
 
     def buy(self, card: Card, turn: "Turn", supply: "Supply"):
         if card.cost > turn.money:
@@ -167,16 +163,14 @@ class Supply:
     def __len__(self):
         return len(self.piles)
 
-    def gain_card(self, card: Card) -> Card:
-        print(card.name)
+    def gain_card(self, card: Card) -> Optional[Card]:
         for pile in self.piles:
-            print(pile.name)
             if card.name == pile.name:
                 try:
                     return pile.remove(card)
                 except EmptyPile:
                     print("Pile is empty, you cannot gain that card")
-                    pass
+                    return None
 
         raise PileNotFound
 
@@ -201,13 +195,11 @@ class Turn:
     def __init__(
         self,
         player: Player,
-        game: Game = None,
         actions: int = 1,
         money: int = 0,
         buys: int = 1,
     ):
         self.player = player
-        self.game = game
         self.actions = actions
         self.money = money
         self.buys = buys
