@@ -48,6 +48,10 @@ class AbstractDeck:
         self.cards.remove(card)
         return card
 
+    def move_to(self, destination: "AbstractDeck"):
+        destination.cards += self.cards
+        self.cards = []
+
 
 class Deck(AbstractDeck):
     def __init__(self, cards: List[Card]):
@@ -60,8 +64,9 @@ class Deck(AbstractDeck):
     def shuffle(self):
         random.shuffle(self.cards)
 
-    def combine(self, cards: List[Card]):
-        self.cards += cards
+    def move_to(self, destination: AbstractDeck):
+        destination.cards += self.cards
+        self.cards = []
 
 
 class DiscardPile(AbstractDeck):
@@ -120,6 +125,14 @@ class Player:
         self.hand = hand
         self.playmat = playmat
         self.player_id = player_id
+        self.shuffles: int = 0
+
+    def draw(self) -> Optional[Card]:
+        if len(self.discard) == 0 and len(self.deck) == 0:
+            return None
+        elif len(self.deck) == 0:
+            pass
+        # TODO
 
     def draw_five(self):
         for i in range(5):  # draw 5 cards from deck and add to hand
@@ -146,6 +159,15 @@ class Player:
         turn.buys -= 1
         self.discard.add(card)
         supply.gain_card(card)
+
+    def cleanup(self):
+        self.discard.cards += self.hand.cards
+        self.discard.cards += self.playmat.cards
+        self.hand.cards = []
+        self.playmat.cards = []
+
+        # def combine(self, cards: List[Card]):
+        # self.cards += cards
 
 
 class Supply:
