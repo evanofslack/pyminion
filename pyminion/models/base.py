@@ -127,16 +127,21 @@ class Player:
         self.player_id = player_id
         self.shuffles: int = 0
 
-    def draw(self) -> Optional[Card]:
+    def draw(self):
+        # Both deck and discard empty
         if len(self.discard) == 0 and len(self.deck) == 0:
             return None
+        # If deck is empty, shuffle in the discard pile
         elif len(self.deck) == 0:
-            pass
-        # TODO
+            self.discard.move_to(self.deck)
+            self.deck.shuffle()
+            self.hand.add(self.deck.draw())
+        else:
+            self.hand.add(self.deck.draw())
 
     def draw_five(self):
         for i in range(5):  # draw 5 cards from deck and add to hand
-            self.hand.add(self.deck.draw())
+            self.draw()
 
     def autoplay_treasures(self, turn: "Turn"):
         i = 0  # Pythonic way to pop in loop?
@@ -166,8 +171,11 @@ class Player:
         self.hand.cards = []
         self.playmat.cards = []
 
-        # def combine(self, cards: List[Card]):
-        # self.cards += cards
+    def trash(self, target_card: Card, game: "Game"):
+        for card in self.hand.cards:
+            if card == target_card:
+                game.trash.add(self.hand.remove(card))
+                break
 
 
 class Supply:
@@ -203,9 +211,10 @@ class Supply:
 
 
 class Game:
-    def __init__(self, players: List[Player], supply: Supply):
+    def __init__(self, players: List[Player], supply: Supply, trash: Trash):
         self.players = players
         self.supply = supply
+        self.trash = trash
 
 
 class Turn:
@@ -225,6 +234,3 @@ class Turn:
         self.actions = actions
         self.money = money
         self.buys = buys
-
-    def clean_up(self):
-        pass

@@ -7,8 +7,9 @@ from pyminion.models.base import (
     Hand,
     Playmat,
     Turn,
+    Trash,
 )
-from pyminion.base_set.base_cards import start_cards, core_supply, estate, duchy
+from pyminion.base_set.base_cards import start_cards, core_supply, estate, silver
 
 
 player_1 = Player(
@@ -21,7 +22,7 @@ player_1 = Player(
 
 supply = Supply(piles=core_supply)
 
-game = Game(players=[player_1], supply=supply)
+game = Game(players=[player_1], supply=supply, trash=Trash())
 
 if __name__ == "__main__":
 
@@ -29,12 +30,35 @@ if __name__ == "__main__":
 
     player_1.deck.shuffle()
     player_1.draw_five()
-    print(player_1.hand)
-    print(player_1.deck)
     player_1.autoplay_treasures(turn)
-    print(turn.money)
+    if turn.money > 2:
+        player_1.buy(card=silver, turn=turn, supply=supply)
 
-    print(supply.piles[3])
-    player_1.buy(card=estate, turn=turn, supply=supply)
+    player_1.cleanup()
+    print(player_1.hand)
+    print(player_1.playmat)
     print(player_1.discard)
-    print(supply.piles[3])
+
+    turn = Turn(player=player_1)
+
+    player_1.draw_five()
+    player_1.autoplay_treasures(turn)
+    if turn.money > 2:
+        player_1.buy(card=silver, turn=turn, supply=supply)
+
+    player_1.cleanup()
+    print(player_1.hand)
+    print(player_1.playmat)
+    print(player_1.discard)
+
+    turn = Turn(player=player_1)
+
+    player_1.draw_five()
+    player_1.autoplay_treasures(turn)
+    if turn.money > 2:
+        player_1.buy(card=silver, turn=turn, supply=supply)
+
+    player_1.cleanup()
+    print(player_1.hand)
+    print(player_1.playmat)
+    print(player_1.discard)
