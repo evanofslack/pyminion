@@ -1,4 +1,4 @@
-from pyminion.models.base import Card, Turn
+from pyminion.models.base import Card, Turn, Player
 from pyminion.exceptions import InsufficientActions
 
 
@@ -13,10 +13,10 @@ class Treasure(Card):
         super().__init__(name, cost)
         self.money = money
 
-    def play(self, turn: Turn):
+    def play(self, turn: Turn, player: Player):
         turn.money += self.money
-        turn.player.playmat.add(self)
-        turn.player.hand.remove(self)
+        player.playmat.add(self)
+        player.hand.remove(self)
 
 
 class Action(Card):
@@ -30,7 +30,7 @@ class Action(Card):
         """
         raise NotImplementedError(f"Play method must be implemented for {self.name}")
 
-    def common_play(self, turn: Turn):
+    def common_play(self, turn: Turn, player: Player):
         """
         Common play method that gets executes for all action cards
 
@@ -40,8 +40,8 @@ class Action(Card):
                 f"{turn.player.player_id}: Not enough actions to play {self.name}"
             )
 
-        turn.player.playmat.add(self)
-        turn.player.hand.remove(self)
+        player.playmat.add(self)
+        player.hand.remove(self)
         turn.actions -= 1
 
 
@@ -49,8 +49,8 @@ class Smithy(Action):
     def __init__(self, name: str = "Smithy", cost: int = 4):
         super().__init__(name, cost)
 
-    def play(self, turn: Turn):
-        super().common_play(turn)
+    def play(self, turn: Turn, player: Player):
+        super().common_play(turn, player)
 
         for i in range(3):  # draw 3 cards from deck and add to hand
-            turn.player.hand.add(turn.player.deck.draw())
+            player.hand.add(player.deck.draw())
