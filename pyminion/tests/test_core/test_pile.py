@@ -1,5 +1,8 @@
 from pyminion.models.base import Pile
 from pyminion.base_set.base_cards import copper, estate
+from pyminion.exceptions import EmptyPile
+
+import pytest
 
 
 def make_empty_pile():
@@ -19,3 +22,12 @@ def test_make_mixed_pile():
     mixed = Pile([estate, copper])
     assert len(mixed) == 2
     assert mixed.name == "Mixed"
+
+
+def test_draw_empty_pile():
+    pile = Pile([copper])
+    assert len(pile) == 1
+    pile.remove(copper)
+    assert len(pile) == 0
+    with pytest.raises(EmptyPile):
+        pile.remove(copper)

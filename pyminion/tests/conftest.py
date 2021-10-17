@@ -40,7 +40,10 @@ def player(deck):
     discard = DiscardPile()
     hand = Hand()
     playmat = Playmat()
-    player = Player(deck=deck, discard=discard, hand=hand, playmat=playmat)
+    player_id = "Test"
+    player = Player(
+        deck=deck, discard=discard, hand=hand, playmat=playmat, player_id=player_id
+    )
     return player
 
 
@@ -55,8 +58,8 @@ def supply():
     estates = Pile([estate for x in range(8)])
     duchies = Pile([duchy for x in range(8)])
     provinces = Pile([province for x in range(8)])
-    coppers = Pile([copper for x in range(8)])
-    silvers = Pile([silver for x in range(8)])
-    golds = Pile([gold for x in range(8)])
+    coppers = Pile([copper for x in range(60)])
+    silvers = Pile([silver for x in range(40)])
+    golds = Pile([gold for x in range(30)])
     supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
     return supply
