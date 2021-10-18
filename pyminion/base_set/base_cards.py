@@ -1,4 +1,4 @@
-from pyminion.models.cards import Treasure, Victory, Smithy
+from pyminion.models.cards import Treasure, Victory, Smithy, Village, Market, Laboratory
 from pyminion.models.base import Pile
 
 COPPER = 60
@@ -22,6 +22,9 @@ province = Victory(name="Province", cost=8, victory_points=6)
 
 # Actions
 smithy = Smithy()
+village = Village()
+market = Market()
+laboratory = Laboratory()
 
 
 copper_pile = Pile([copper for x in range(COPPER)])

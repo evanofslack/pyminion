@@ -35,6 +35,14 @@ def test_abstract_deck_add():
     assert type(abs_deck.cards[1]) is Victory
 
 
+def test_abstract_deck_move_to():
+    deck_1 = AbstractDeck([copper, copper])
+    deck_2 = AbstractDeck([estate, estate, estate])
+    deck_1.move_to(deck_2)
+    assert len(deck_1) == 0
+    assert len(deck_2) == 5
+
+
 def test_create_deck():
     start_cards = [copper for x in range(NUM_COPPER)] + [
         estate for x in range(NUM_ESTATE)
@@ -68,10 +76,3 @@ def test_topdeck_deck(deck: Deck):
     deck.add(estate)
     assert len(deck.cards) == 12
     assert type(deck.cards[-1]) is Victory
-
-
-def test_combine_deck(deck: Deck):
-    assert len(deck.cards) == 10
-    discard = DiscardPile([copper, copper])
-    deck.combine(discard.cards)
-    assert len(deck.cards) == 12

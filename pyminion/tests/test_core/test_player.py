@@ -16,11 +16,23 @@ def test_create_player(deck):
     assert len(player.playmat) == 0
 
 
-def test_draw_deck_to_hand(player: Player):
-    drawn_card = player.deck.draw()
-    player.hand.add(drawn_card)
+def test_draw_normal(player: Player):
+    assert len(player.hand) == 0
+    assert len(player.deck) == 10
+    player.draw()
     assert len(player.hand) == 1
     assert len(player.deck) == 9
+
+
+def test_draw_empty_deck(player: Player):
+    player.deck.move_to(player.discard)
+    assert len(player.hand) == 0
+    assert len(player.deck) == 0
+    assert len(player.discard) == 10
+    player.draw()
+    assert len(player.deck) == 9
+    assert len(player.hand) == 1
+    assert len(player.discard) == 0
 
 
 def test_draw_five(player: Player):

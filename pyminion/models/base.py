@@ -9,7 +9,8 @@ from pyminion.exceptions import (
 )
 
 
-class Card:
+class Card:  # TODO add card type to card
+
     """
     Base class representing a dominion card
 
@@ -35,11 +36,11 @@ class AbstractDeck:
         else:
             self.cards = []
 
-    def __len__(self):
-        return len(self.cards)
-
     def __repr__(self):
         return f"{type(self).__name__} {[card.name for card in self.cards]}"
+
+    def __len__(self):
+        return len(self.cards)
 
     def add(self, card: Card) -> Card:
         self.cards.append(card)
@@ -47,6 +48,10 @@ class AbstractDeck:
     def remove(self, card: Card) -> Card:
         self.cards.remove(card)
         return card
+
+    def move_to(self, destination: "AbstractDeck"):
+        destination.cards += self.cards
+        self.cards = []
 
 
 class Deck(AbstractDeck):
@@ -59,9 +64,6 @@ class Deck(AbstractDeck):
 
     def shuffle(self):
         random.shuffle(self.cards)
-
-    def combine(self, cards: List[Card]):
-        self.cards += cards
 
 
 class DiscardPile(AbstractDeck):
@@ -96,11 +98,6 @@ class Playmat(AbstractDeck):
         super().__init__(cards)
 
 
-class Trash(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
-        super().__init__(cards)
-
-
 class Player:
     """
     Collection of card piles associated with each player
@@ -120,10 +117,23 @@ class Player:
         self.hand = hand
         self.playmat = playmat
         self.player_id = player_id
+        self.shuffles: int = 0
+
+    def draw(self):  # TODO draw multiple cards | cards:int = 1
+        # Both deck and discard empty
+        if len(self.discard) == 0 and len(self.deck) == 0:
+            return None
+        # Deck is empty -> shuffle in the discard pile
+        elif len(self.deck) == 0:
+            self.discard.move_to(self.deck)
+            self.deck.shuffle()
+            self.hand.add(self.deck.draw())
+        else:
+            self.hand.add(self.deck.draw())
 
     def draw_five(self):
-        for i in range(5):  # draw 5 cards from deck and add to hand
-            self.hand.add(self.deck.draw())
+        for i in range(5):
+            self.draw()
 
     def autoplay_treasures(self, turn: "Turn"):
         i = 0  # Pythonic way to pop in loop?
@@ -146,6 +156,18 @@ class Player:
         turn.buys -= 1
         self.discard.add(card)
         supply.gain_card(card)
+
+    def cleanup(self):
+        self.discard.cards += self.hand.cards
+        self.discard.cards += self.playmat.cards
+        self.hand.cards = []
+        self.playmat.cards = []
+
+    def trash(self, target_card: Card, game: "Game"):
+        for card in self.hand.cards:
+            if card == target_card:
+                game.trash.add(self.hand.remove(card))
+                break
 
 
 class Supply:
@@ -180,15 +202,21 @@ class Supply:
                 pile.add(card)
 
 
+class Trash(AbstractDeck):
+    def __init__(self, cards: List[Card] = None):
+        super().__init__(cards)
+
+
 class Game:
-    def __init__(self, players: List[Player], supply: Supply):
+    def __init__(self, players: List[Player], supply: Supply, trash: Trash):
         self.players = players
         self.supply = supply
+        self.trash = trash
 
 
 class Turn:
     """
-    Control state during a player's turn
+    Hold state during a player's turn
 
     """
 
@@ -203,6 +231,3 @@ class Turn:
         self.actions = actions
         self.money = money
         self.buys = buys
-
-    def clean_up(self):
-        pass
