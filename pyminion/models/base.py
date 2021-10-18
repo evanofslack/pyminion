@@ -9,7 +9,8 @@ from pyminion.exceptions import (
 )
 
 
-class Card:
+class Card:  # TODO add card type to card
+
     """
     Base class representing a dominion card
 
@@ -35,11 +36,11 @@ class AbstractDeck:
         else:
             self.cards = []
 
-    def __len__(self):
-        return len(self.cards)
-
     def __repr__(self):
         return f"{type(self).__name__} {[card.name for card in self.cards]}"
+
+    def __len__(self):
+        return len(self.cards)
 
     def add(self, card: Card) -> Card:
         self.cards.append(card)
@@ -63,10 +64,6 @@ class Deck(AbstractDeck):
 
     def shuffle(self):
         random.shuffle(self.cards)
-
-    def move_to(self, destination: AbstractDeck):
-        destination.cards += self.cards
-        self.cards = []
 
 
 class DiscardPile(AbstractDeck):
@@ -101,11 +98,6 @@ class Playmat(AbstractDeck):
         super().__init__(cards)
 
 
-class Trash(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
-        super().__init__(cards)
-
-
 class Player:
     """
     Collection of card piles associated with each player
@@ -127,11 +119,11 @@ class Player:
         self.player_id = player_id
         self.shuffles: int = 0
 
-    def draw(self):
+    def draw(self):  # TODO draw multiple cards | cards:int = 1
         # Both deck and discard empty
         if len(self.discard) == 0 and len(self.deck) == 0:
             return None
-        # If deck is empty, shuffle in the discard pile
+        # Deck is empty -> shuffle in the discard pile
         elif len(self.deck) == 0:
             self.discard.move_to(self.deck)
             self.deck.shuffle()
@@ -140,7 +132,7 @@ class Player:
             self.hand.add(self.deck.draw())
 
     def draw_five(self):
-        for i in range(5):  # draw 5 cards from deck and add to hand
+        for i in range(5):
             self.draw()
 
     def autoplay_treasures(self, turn: "Turn"):
@@ -210,6 +202,11 @@ class Supply:
                 pile.add(card)
 
 
+class Trash(AbstractDeck):
+    def __init__(self, cards: List[Card] = None):
+        super().__init__(cards)
+
+
 class Game:
     def __init__(self, players: List[Player], supply: Supply, trash: Trash):
         self.players = players
@@ -219,7 +216,7 @@ class Game:
 
 class Turn:
     """
-    Control state during a player's turn
+    Hold state during a player's turn
 
     """
 

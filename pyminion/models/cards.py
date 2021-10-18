@@ -1,6 +1,8 @@
 from pyminion.models.base import Card, Turn, Player
 from pyminion.exceptions import InsufficientActions
 
+# TODO add card type to card
+
 
 class Victory(Card):
     def __init__(self, name: str, cost: int, victory_points: int):
@@ -32,7 +34,7 @@ class Action(Card):
 
     def common_play(self, turn: Turn, player: Player):
         """
-        Common play method that gets executes for all action cards
+        Generic play method that gets executes for all action cards
 
         """
         if turn.actions < 1:
@@ -50,7 +52,71 @@ class Smithy(Action):
         super().__init__(name, cost)
 
     def play(self, turn: Turn, player: Player):
+        """
+        +3 Cards
+
+        """
         super().common_play(turn, player)
 
-        for i in range(3):  # draw 3 cards from deck and add to hand
-            player.hand.add(player.deck.draw())
+        for i in range(3):
+            player.draw()
+
+
+class Village(Action):
+    def __init__(self, name: str = "Village", cost: int = 3):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +1 Card, +1 Action
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 2
+        player.draw()
+
+
+class Laboratory(Action):
+    def __init__(self, name: str = "Laboratory", cost: int = 5):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +2 Cards, +1 Action
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 1
+        player.draw()
+        player.draw()
+
+
+class Laboratory(Action):
+    def __init__(self, name: str = "Laboratory", cost: int = 5):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +2 Cards, +1 Action
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 1
+        player.draw()
+        player.draw()
+
+
+class Market(Action):
+    def __init__(self, name: str = "Market", cost: int = 5):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +1Card, +1 Action, +1 Money, +1 Buy
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 1
+        player.draw()
+        turn.money += 1
+        turn.buys += 1
