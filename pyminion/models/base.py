@@ -163,10 +163,10 @@ class Player:
         self.hand.cards = []
         self.playmat.cards = []
 
-    def trash(self, target_card: Card, game: "Game"):
+    def trash(self, target_card: Card, trash: "Trash"):
         for card in self.hand.cards:
             if card == target_card:
-                game.trash.add(self.hand.remove(card))
+                trash.add(self.hand.remove(card))
                 break
 
 

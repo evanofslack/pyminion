@@ -1,7 +1,6 @@
-from pyminion.models.base import Card, Turn, Player
-from pyminion.exceptions import InsufficientActions
-
-# TODO add card type to card
+from pyminion.models.base import Card, Turn, Player, Trash
+from pyminion.exceptions import InsufficientActions, InvalidBinaryInput
+from pyminion.base_set.base_cards import copper
 
 
 class Victory(Card):
@@ -53,7 +52,7 @@ class Smithy(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +3 Cards
+        +3 cards
 
         """
         super().common_play(turn, player)
@@ -68,7 +67,7 @@ class Village(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +1 Card, +1 Action
+        +1 card, +1 action
 
         """
         super().common_play(turn, player)
@@ -82,7 +81,7 @@ class Laboratory(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +2 Cards, +1 Action
+        +2 cards, +1 action
 
         """
         super().common_play(turn, player)
@@ -97,7 +96,7 @@ class Laboratory(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +2 Cards, +1 Action
+        +2 cards, +1 action
 
         """
         super().common_play(turn, player)
@@ -112,7 +111,7 @@ class Market(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +1Card, +1 Action, +1 Money, +1 Buy
+        +1 card, +1 action, +1 money, +1 buy
 
         """
         super().common_play(turn, player)
@@ -120,3 +119,24 @@ class Market(Action):
         player.draw()
         turn.money += 1
         turn.buys += 1
+
+
+class Moneylender(Action):
+    def __init__(self, name: str = "Moneylender", cost: int = 4):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player, trash: Trash):
+        """
+        You may trash a copper from your hand for + 3 money
+
+        """
+        super().common_play(turn, player)
+        if copper in player.hand.cards:
+            decision = input("Do you want to trash a copper from your hand? y/n?")
+            if decision == "y":
+                player.trash(target_card=copper, trash=trash)
+                turn.money += 3
+            elif decision == "n":
+                pass
+            else:
+                raise InvalidBinaryInput
