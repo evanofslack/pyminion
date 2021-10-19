@@ -31,3 +31,10 @@ class PileNotFound(Exception):
     The pile does not exist
 
     """
+
+
+class InvalidBinaryInput(Exception):
+    """
+    Invalid response, valid choices are "y" or "n"
+
+    """
