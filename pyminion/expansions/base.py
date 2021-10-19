@@ -1,6 +1,6 @@
-from pyminion.models.cards import (
-    Treasure,
-    Victory,
+from pyminion.models.cards import Treasure, Victory
+
+from pyminion.models.base import (
     Smithy,
     Village,
     Market,

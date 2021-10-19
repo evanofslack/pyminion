@@ -1,5 +1,5 @@
 from pyminion.models.core import Turn, Player
-from pyminion.models.cards import Village
+from pyminion.models.base import Village
 from pyminion.expansions.base import village
 
 

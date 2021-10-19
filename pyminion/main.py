@@ -9,7 +9,7 @@ from pyminion.models.base import (
     Turn,
     Trash,
 )
-from pyminion.base_set.base_cards import (
+from pyminion.expansions.base import (
     start_cards,
     core_supply,
     kingdom_cards,

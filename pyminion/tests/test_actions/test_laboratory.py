@@ -1,5 +1,5 @@
 from pyminion.models.core import Turn, Player
-from pyminion.models.cards import Laboratory
+from pyminion.models.base import Laboratory
 from pyminion.expansions.base import laboratory
 
 

@@ -1,5 +1,5 @@
 from pyminion.models.core import Turn, Player
-from pyminion.models.cards import Smithy
+from pyminion.models.base import Smithy
 from pyminion.expansions.base import smithy
 
 

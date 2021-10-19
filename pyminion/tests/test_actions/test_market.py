@@ -1,5 +1,5 @@
 from pyminion.models.core import Turn, Player
-from pyminion.models.cards import Market
+from pyminion.models.base import Market
 from pyminion.expansions.base import market
 
 
