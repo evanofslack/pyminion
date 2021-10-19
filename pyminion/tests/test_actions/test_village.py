@@ -1,6 +1,6 @@
-from pyminion.models.base import Turn, Player
+from pyminion.models.core import Turn, Player
 from pyminion.models.cards import Village
-from pyminion.base_set.base_cards import village
+from pyminion.expansions.base import village
 
 
 def test_village(turn: Turn, player: Player):

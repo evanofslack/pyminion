@@ -1,5 +1,5 @@
-from pyminion.models.base import Supply, Pile, Card
-from pyminion.base_set.base_cards import estate, duchy, province, copper, silver, gold
+from pyminion.models.core import Supply, Pile, Card
+from pyminion.expansions.base import estate, duchy, province, copper, silver, gold
 from pyminion.exceptions import PileNotFound
 
 import pytest

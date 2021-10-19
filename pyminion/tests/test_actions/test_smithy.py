@@ -1,6 +1,6 @@
-from pyminion.models.base import Turn, Player
+from pyminion.models.core import Turn, Player
 from pyminion.models.cards import Smithy
-from pyminion.base_set.base_cards import smithy
+from pyminion.expansions.base import smithy
 
 
 def test_smithy_draw(turn: Turn, player: Player):

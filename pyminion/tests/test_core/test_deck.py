@@ -1,6 +1,6 @@
-from pyminion.models.base import AbstractDeck, Deck, DiscardPile
+from pyminion.models.core import AbstractDeck, Deck, DiscardPile
 from pyminion.models.cards import Treasure, Victory
-from pyminion.base_set.base_cards import copper, estate
+from pyminion.expansions.base import copper, estate
 
 NUM_COPPER = 7
 NUM_ESTATE = 3

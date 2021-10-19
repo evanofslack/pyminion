@@ -1,6 +1,5 @@
-from pyminion.models.base import Card, Turn, Player, Trash
+from pyminion.models.core import Card, Turn, Player, Trash
 from pyminion.exceptions import InsufficientActions, InvalidBinaryInput
-from pyminion.base_set.base_cards import copper
 
 
 class Victory(Card):
@@ -131,7 +130,8 @@ class Moneylender(Action):
 
         """
         super().common_play(turn, player)
-        if copper in player.hand.cards:
+        # if copper in player.hand.cards:
+        if True:
             decision = input("Do you want to trash a copper from your hand? y/n?")
             if decision == "y":
                 player.trash(target_card=copper, trash=trash)
