@@ -1,4 +1,12 @@
-from pyminion.models.cards import Treasure, Victory, Smithy, Village, Market, Laboratory
+from pyminion.models.cards import (
+    Treasure,
+    Victory,
+    Smithy,
+    Village,
+    Market,
+    Laboratory,
+    Moneylender,
+)
 from pyminion.models.base import Pile
 
 COPPER = 60
@@ -25,6 +33,7 @@ smithy = Smithy()
 village = Village()
 market = Market()
 laboratory = Laboratory()
+moneylender = Moneylender()
 
 
 copper_pile = Pile([copper for x in range(COPPER)])
@@ -42,6 +51,8 @@ core_supply = [
     duchy_pile,
     province_pile,
 ]
+
+kingdom_cards = [smithy, village, market, laboratory, moneylender]
 
 
 start_cards = [copper for x in range(START_COPPER)] + [
