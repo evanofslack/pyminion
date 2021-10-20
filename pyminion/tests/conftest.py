@@ -10,20 +10,12 @@ from pyminion.models.core import (
     Player,
     Turn,
     Supply,
+    Trash,
 )
 
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
-
-
-@pytest.fixture
-def deck():
-    start_cards = [copper for x in range(NUM_COPPER)] + [
-        estate for x in range(NUM_ESTATE)
-    ]
-    deck = Deck(cards=start_cards)
-    return deck
 
 
 @pytest.fixture
@@ -51,6 +43,12 @@ def player(deck):
 def turn(player):
     turn = Turn(player=player)
     return turn
+
+
+@pytest.fixture
+def trash():
+    trash = Trash()
+    return trash
 
 
 @pytest.fixture
