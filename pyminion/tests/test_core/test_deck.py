@@ -1,18 +1,9 @@
-from pyminion.models.core import AbstractDeck, Deck, DiscardPile
-from pyminion.models.cards import Treasure, Victory
+from pyminion.models.core import AbstractDeck, Deck
+from pyminion.models.base import Copper, Estate
 from pyminion.expansions.base import copper, estate
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
-
-
-# @pytest.fixture
-# def deck():
-#     start_cards = [copper for x in range(NUM_COPPER)] + [
-#         estate for x in range(NUM_ESTATE)
-#     ]
-#     deck = Deck(cards=start_cards)
-#     return deck
 
 
 def test_abstract_deck_creates_empty_list():
@@ -31,8 +22,8 @@ def test_abstract_deck_add():
     assert len(abs_deck) == 1
     abs_deck.add(estate)
     assert len(abs_deck) == 2
-    assert type(abs_deck.cards[0]) is Treasure
-    assert type(abs_deck.cards[1]) is Victory
+    assert type(abs_deck.cards[0]) is Copper
+    assert type(abs_deck.cards[1]) is Estate
 
 
 def test_abstract_deck_move_to():
@@ -51,13 +42,13 @@ def test_create_deck():
     assert len(deck.cards) == 10
     assert deck.cards.count(copper) == 7
     assert deck.cards.count(estate) == 3
-    assert type(deck.cards[0]) is Treasure
-    assert type(deck.cards[9]) is Victory
+    assert type(deck.cards[0]) is Copper
+    assert type(deck.cards[9]) is Estate
 
 
 def test_draw_one_deck(deck: Deck):
     drawn_card = deck.draw()
-    assert type(drawn_card) is Victory
+    assert type(drawn_card) is Estate
 
 
 # def test_shuffle_deck(deck: Deck):
@@ -67,12 +58,12 @@ def test_draw_one_deck(deck: Deck):
 
 def test_topdeck_deck(deck: Deck):
     assert len(deck.cards) == 10
-    assert type(deck.cards[-1]) is Victory
+    assert type(deck.cards[-1]) is Estate
 
     deck.add(copper)
     assert len(deck.cards) == 11
-    assert type(deck.cards[-1]) is Treasure
+    assert type(deck.cards[-1]) is Copper
 
     deck.add(estate)
     assert len(deck.cards) == 12
-    assert type(deck.cards[-1]) is Victory
+    assert type(deck.cards[-1]) is Estate

@@ -1,6 +1,36 @@
-from pyminion.models.cards import Action
+from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Turn, Player, Trash
 from pyminion.exceptions import InvalidBinaryInput
+
+
+class Copper(Treasure):
+    def __init__(self, name: str = "Copper", cost: int = 0, money: int = 1):
+        super().__init__(name, cost, money)
+
+
+class Silver(Treasure):
+    def __init__(self, name: str = "Silver", cost: int = 3, money: int = 2):
+        super().__init__(name, cost, money)
+
+
+class Gold(Treasure):
+    def __init__(self, name: str = "Gold", cost: int = 6, money: int = 3):
+        super().__init__(name, cost, money)
+
+
+class Estate(Victory):
+    def __init__(self, name: str = "Estate", cost: int = 2, victory_points: int = 1):
+        super().__init__(name, cost, victory_points)
+
+
+class Duchy(Victory):
+    def __init__(self, name: str = "Duchy", cost: int = 5, victory_points: int = 3):
+        super().__init__(name, cost, victory_points)
+
+
+class Province(Victory):
+    def __init__(self, name: str = "Province", cost: int = 8, victory_points: int = 6):
+        super().__init__(name, cost, victory_points)
 
 
 class Smithy(Action):
@@ -88,8 +118,7 @@ class Moneylender(Action):
 
         """
         super().common_play(turn, player)
-        # if copper in player.hand.cards:
-        if True:
+        if copper in player.hand.cards:
             decision = input("Do you want to trash a copper from your hand? y/n?")
             if decision == "y":
                 player.trash(target_card=copper, trash=trash)
@@ -98,3 +127,17 @@ class Moneylender(Action):
                 pass
             else:
                 raise InvalidBinaryInput
+
+
+copper = Copper()
+silver = Silver()
+gold = Gold()
+estate = Estate()
+duchy = Duchy()
+province = Province()
+
+smithy = Smithy()
+village = Village()
+laboratory = Laboratory()
+market = Market()
+moneylender = Moneylender()
