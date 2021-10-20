@@ -1,4 +1,4 @@
-from pyminion.models.base import (
+from pyminion.models.core import (
     Game,
     Supply,
     Player,
@@ -41,11 +41,14 @@ if __name__ == "__main__":
     if turn.money > 2:
         player_1.buy(card=silver, turn=turn, supply=supply)
     player_1.cleanup()
-    print(player_1.hand)
-    print(player_1.playmat)
-    print(player_1.discard)
 
     turn = Turn(player=player_1)
     player_1.draw_five()
     player_1.hand.add(moneylender)
+    print(player_1.hand)
+    print(player_1.playmat)
+    print(player_1.discard)
     player_1.hand.cards[-1].play(turn, player_1, trash)
+    print(game.trash)
+    print(trash)
+    print(turn.money)
