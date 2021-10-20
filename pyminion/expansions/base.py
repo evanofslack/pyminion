@@ -1,5 +1,4 @@
-from pyminion.models.cards import Treasure, Victory
-
+from pyminion.util import pile_maker, kingdom_maker
 from pyminion.models.base import (
     copper,
     silver,
@@ -13,8 +12,6 @@ from pyminion.models.base import (
     market,
     moneylender,
 )
-from pyminion.models.core import Pile, Card
-from typing import List
 
 COPPER_PILE = 60
 SILVER_PILE = 40
@@ -24,14 +21,6 @@ VICTORY_PILE = 8
 START_COPPER = 7
 START_ESTATE = 3
 KINGDOM_PILE = 10
-
-
-def pile_maker(card: Card, num_card: int) -> Pile:
-    return Pile([card for x in range(num_card)])
-
-
-def kingdom_maker(cards: List[Card]) -> List[Pile]:
-    return [pile_maker(card, KINGDOM_PILE) for card in cards]
 
 
 copper_pile = pile_maker(card=copper, num_card=COPPER_PILE)
@@ -52,7 +41,9 @@ core_supply = [
 ]
 
 
-kingdom_cards = kingdom_maker(cards=[smithy, village, market, laboratory, moneylender])
+kingdom_cards = kingdom_maker(
+    cards=[smithy, village, market, laboratory, moneylender], pile_length=KINGDOM_PILE
+)
 
 
 start_cards = [copper for x in range(START_COPPER)] + [
