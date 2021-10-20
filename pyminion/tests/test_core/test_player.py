@@ -1,5 +1,5 @@
-from pyminion.models.base import Hand, DiscardPile, Player, Playmat, Turn, Supply
-from pyminion.base_set.base_cards import copper, estate
+from pyminion.models.core import Hand, DiscardPile, Player, Playmat, Turn, Supply, Trash
+from pyminion.models.base import Estate, Copper, copper, estate
 from pyminion.exceptions import InsufficientBuys, InsufficientMoney
 import pytest
 
@@ -35,11 +35,27 @@ def test_draw_empty_deck(player: Player):
     assert len(player.discard) == 0
 
 
-def test_draw_five(player: Player):
+def test_draw_empty_deck_empty_discard(player: Player):
     assert len(player.hand) == 0
-    player.draw_five()
-    assert len(player.hand) == 5
-    assert len(player.deck) == 5
+    assert len(player.deck) == 10
+    assert len(player.discard) == 0
+    player.draw(10)
+    assert len(player.hand) == 10
+    assert len(player.deck) == 0
+    assert len(player.discard) == 0
+    null = player.draw()
+    assert null == None
+    assert len(player.hand) == 10
+    assert len(player.deck) == 0
+    assert len(player.discard) == 0
+
+
+def test_draw_multiple(player: Player):
+    assert len(player.hand) == 0
+    assert len(player.deck) == 10
+    player.draw(num_cards=3)
+    assert len(player.hand) == 3
+    assert len(player.deck) == 7
 
 
 def test_play_copper(player: Player, turn: Turn):
@@ -51,12 +67,6 @@ def test_play_copper(player: Player, turn: Turn):
 
 
 def test_autoplay_treasures(player: Player, turn: Turn):
-    """
-    Create a hand with 3 estates and 6 coppers. Play all coppers.
-    Assert 6 coppers end up on playmat, 3 estates remain in hand,
-    and that money increases to 6
-
-    """
     for i in range(3):
         turn.player.hand.add(estate)
         turn.player.hand.add(copper)
@@ -93,3 +103,28 @@ def test_buy_insufficient_buys(turn: Turn, player: Player, supply: Supply):
 def test_buy_insufficient_money(turn: Turn, player: Player, supply: Supply):
     with pytest.raises(InsufficientMoney):
         player.buy(estate, turn, supply)
+
+
+def test_player_cleanup(turn: Turn, player: Player):
+    player.draw(5)
+    assert len(player.hand) == 5
+    assert len(player.discard) == 0
+    assert len(player.playmat) == 0
+    player.autoplay_treasures(turn)
+    assert len(player.playmat) > 0
+    player.cleanup()
+    assert len(player.discard) == 5
+    assert len(player.hand) == 0
+    assert len(player.playmat) == 0
+
+
+def test_player_trash(turn: Turn, player: Player, trash: Trash):
+    player.hand.add(copper)
+    player.hand.add(estate)
+    assert len(trash) == 0
+    assert len(player.hand) == 2
+    player.trash(copper, trash)
+    assert len(player.hand) == 1
+    assert type(player.hand.cards[0]) is Estate
+    assert len(trash) == 1
+    assert type(trash.cards[0]) is Copper

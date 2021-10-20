@@ -1,7 +1,7 @@
 import pytest
 
-from pyminion.base_set.base_cards import copper, silver, gold, estate, duchy, province
-from pyminion.models.base import (
+from pyminion.expansions.base import copper, silver, gold, estate, duchy, province
+from pyminion.models.core import (
     Pile,
     Deck,
     DiscardPile,
@@ -10,20 +10,12 @@ from pyminion.models.base import (
     Player,
     Turn,
     Supply,
+    Trash,
 )
 
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
-
-
-@pytest.fixture
-def deck():
-    start_cards = [copper for x in range(NUM_COPPER)] + [
-        estate for x in range(NUM_ESTATE)
-    ]
-    deck = Deck(cards=start_cards)
-    return deck
 
 
 @pytest.fixture
@@ -51,6 +43,12 @@ def player(deck):
 def turn(player):
     turn = Turn(player=player)
     return turn
+
+
+@pytest.fixture
+def trash():
+    trash = Trash()
+    return trash
 
 
 @pytest.fixture

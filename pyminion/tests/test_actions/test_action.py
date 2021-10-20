@@ -1,8 +1,7 @@
 import pytest
 
-from pyminion.models.base import Turn, Player
+from pyminion.models.core import Turn, Player
 from pyminion.models.cards import Action
-from pyminion.base_set.base_cards import smithy
 from pyminion.exceptions import InsufficientActions
 
 action = Action(name="test", cost="0")

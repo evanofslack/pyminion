@@ -1,5 +1,5 @@
-from pyminion.models.base import Player, Turn
-from pyminion.base_set.base_cards import copper, smithy
+from pyminion.models.core import Player, Turn
+from pyminion.expansions.base import copper, smithy
 from pyminion.exceptions import InsufficientActions
 
 import pytest

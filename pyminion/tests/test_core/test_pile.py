@@ -1,5 +1,5 @@
-from pyminion.models.base import Pile
-from pyminion.base_set.base_cards import copper, estate
+from pyminion.models.core import Pile
+from pyminion.expansions.base import copper, estate
 from pyminion.exceptions import EmptyPile
 
 import pytest
