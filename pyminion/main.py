@@ -36,14 +36,14 @@ if __name__ == "__main__":
 
     turn = Turn(player=player_1)
     player_1.deck.shuffle()
-    player_1.draw_five()
+    player_1.draw(5)
     player_1.autoplay_treasures(turn)
     if turn.money > 2:
         player_1.buy(card=silver, turn=turn, supply=supply)
     player_1.cleanup()
 
     turn = Turn(player=player_1)
-    player_1.draw_five()
+    player_1.draw(5)
     player_1.hand.add(moneylender)
     print(player_1.hand)
     print(player_1.playmat)
@@ -52,3 +52,12 @@ if __name__ == "__main__":
     print(game.trash)
     print(trash)
     print(turn.money)
+
+    """
+    with StringIO('asdf') as f:
+    stdin = sys.stdin
+    sys.stdin = f
+    print("'" + input() + "' wasn't actually typed at the command line")
+    sys.stdin = stdin
+
+    """

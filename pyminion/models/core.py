@@ -119,21 +119,18 @@ class Player:
         self.player_id = player_id
         self.shuffles: int = 0
 
-    def draw(self):  # TODO draw multiple cards | cards:int = 1
-        # Both deck and discard empty
-        if len(self.discard) == 0 and len(self.deck) == 0:
-            return None
-        # Deck is empty -> shuffle in the discard pile
-        elif len(self.deck) == 0:
-            self.discard.move_to(self.deck)
-            self.deck.shuffle()
-            self.hand.add(self.deck.draw())
-        else:
-            self.hand.add(self.deck.draw())
-
-    def draw_five(self):
-        for i in range(5):
-            self.draw()
+    def draw(self, num_cards: int = 1):
+        for i in range(num_cards):
+            # Both deck and discard empty -> do nothing
+            if len(self.discard) == 0 and len(self.deck) == 0:
+                pass
+            # Deck is empty -> shuffle in the discard pile
+            elif len(self.deck) == 0:
+                self.discard.move_to(self.deck)
+                self.deck.shuffle()
+                self.hand.add(self.deck.draw())
+            else:
+                self.hand.add(self.deck.draw())
 
     def autoplay_treasures(self, turn: "Turn"):
         i = 0  # Pythonic way to pop in loop?
