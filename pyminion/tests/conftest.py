@@ -1,7 +1,7 @@
 import pytest
 
-from pyminion.base_set.base_cards import copper, silver, gold, estate, duchy, province
-from pyminion.models.base import (
+from pyminion.expansions.base import copper, silver, gold, estate, duchy, province
+from pyminion.models.core import (
     Pile,
     Deck,
     DiscardPile,

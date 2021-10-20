@@ -1,5 +1,5 @@
-from pyminion.models.base import Hand, DiscardPile, Player, Playmat, Turn, Supply
-from pyminion.base_set.base_cards import copper, estate
+from pyminion.models.core import Hand, DiscardPile, Player, Playmat, Turn, Supply
+from pyminion.expansions.base import copper, estate
 from pyminion.exceptions import InsufficientBuys, InsufficientMoney
 import pytest
 

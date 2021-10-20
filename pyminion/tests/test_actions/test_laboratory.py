@@ -1,6 +1,6 @@
-from pyminion.models.base import Turn, Player
-from pyminion.models.cards import Laboratory
-from pyminion.base_set.base_cards import laboratory
+from pyminion.models.core import Turn, Player
+from pyminion.models.base import Laboratory
+from pyminion.expansions.base import laboratory
 
 
 def test_laboratory(turn: Turn, player: Player):
