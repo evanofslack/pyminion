@@ -1,7 +1,6 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Turn, Player, Trash
-from pyminion.exceptions import InvalidBinaryInput
-from pyminion.util import binary_decision
+from pyminion.util import binary_decision, multiple_discard_decision
 
 
 class Copper(Treasure):
@@ -127,6 +126,29 @@ class Moneylender(Action):
                 turn.money += 3
 
 
+class Cellar(Action):
+    def __init__(self, name: str = "Cellar", cost: int = 4):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +1 Action
+
+        Discard any number of cards, then draw that many
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 1
+
+        discard_cards = multiple_discard_decision(
+            prompt="Enter the cards you would like to discard seperated by commas: ",
+            valid_cards=player.hand.cards,
+        )
+        for card in discard_cards:
+            player.discard(card)
+        player.draw(len(discard_cards))
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -139,3 +161,4 @@ village = Village()
 laboratory = Laboratory()
 market = Market()
 moneylender = Moneylender()
+cellar = Cellar()
