@@ -29,12 +29,16 @@ def deck():
 
 @pytest.fixture
 def player(deck):
-    discard = DiscardPile()
+    discard_pile = DiscardPile()
     hand = Hand()
     playmat = Playmat()
     player_id = "Test"
     player = Player(
-        deck=deck, discard=discard, hand=hand, playmat=playmat, player_id=player_id
+        deck=deck,
+        discard_pile=discard_pile,
+        hand=hand,
+        playmat=playmat,
+        player_id=player_id,
     )
     return player
 
