@@ -33,8 +33,22 @@ class PileNotFound(Exception):
     """
 
 
-class InvalidBinaryInput(Exception):
+class InvalidInput(Exception):
+    """
+    Base class for input exceptions
+
+    """
+
+
+class InvalidBinaryInput(InvalidInput):
     """
     Invalid response, valid choices are "y" or "n"
+
+    """
+
+
+class InvalidMultiDiscardInput(InvalidInput):
+    """
+    Invalid response, that input cannot be discarded
 
     """

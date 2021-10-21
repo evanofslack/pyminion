@@ -1,7 +1,7 @@
 from pyminion.models.core import Card, Pile
-from pyminion.exceptions import InvalidBinaryInput
+from pyminion.exceptions import InvalidBinaryInput, InvalidMultiDiscardInput
 
-from typing import List
+from typing import List, Optional
 from collections import Counter
 
 # TODO write tests
@@ -15,6 +15,11 @@ def kingdom_maker(cards: List[Card], pile_length: int) -> List[Pile]:
 
 
 def binary_decision(prompt: str) -> bool:
+    """
+    Get user response to a binary "yes" or "no" question.
+    Raise exception is input is anything other than 'y' or 'n'
+
+    """
     while True:
         try:
             decision = input(prompt)
@@ -30,17 +35,41 @@ def binary_decision(prompt: str) -> bool:
             print(e)
 
 
-def multiple_discard_decision(prompt: str, valid_cards: List[Card]) -> List[Card]:
-    discard_input = input(prompt)
-    discard_strings = [x.strip() for x in discard_input.split(",")]
-    discard_cards = []
-    for discard_string in discard_strings:
-        for card in valid_cards:
-            if discard_string == card.name:
-                discard_cards.append(card)
-                break
+def multiple_card_decision(
+    prompt: str, valid_cards: List[Card]
+) -> Optional[List[Card]]:
+    """
+    Get user response when given the option to select multiple cards
+    Raise exception if user provided selection is not valid.
 
-    discard_count = Counter(discard_cards)
-    valid_count = Counter(valid_cards)
+    """
+    while True:
+        try:
+            card_input = input(prompt)
+            if not card_input:
+                return
+            card_strings = [x.strip() for x in card_input.split(",")]
+            selected_cards = []
+            for card_string in card_strings:
+                for card in valid_cards:
+                    if card_string == card.name:
+                        selected_cards.append(card)
+                        break
 
-    return discard_cards
+            if not selected_cards:
+                raise InvalidMultiDiscardInput(
+                    f"Invalid input, {card_strings[0]} does not match any card in your hand"
+                )
+
+            # TODO This can be abstracted into function
+            selected_count = Counter(selected_cards)
+            valid_count = Counter(valid_cards)
+
+            for element in selected_count:
+                if selected_count[element] > valid_count[element]:
+                    raise InvalidMultiDiscardInput(
+                        f"Invalid input, attemped to drop too many copies of {element}"
+                    )
+            return selected_cards
+        except InvalidMultiDiscardInput as e:
+            print(e)

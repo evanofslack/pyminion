@@ -1,6 +1,6 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Turn, Player, Trash
-from pyminion.util import binary_decision, multiple_discard_decision
+from pyminion.util import binary_decision, multiple_card_decision
 
 
 class Copper(Treasure):
@@ -140,7 +140,7 @@ class Cellar(Action):
         super().common_play(turn, player)
         turn.actions += 1
 
-        discard_cards = multiple_discard_decision(
+        discard_cards = multiple_card_decision(
             prompt="Enter the cards you would like to discard seperated by commas: ",
             valid_cards=player.hand.cards,
         )
