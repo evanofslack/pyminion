@@ -45,7 +45,8 @@ def multiple_card_decision(
     selected_cards = []
     for card_string in card_strings:
         for card in valid_cards:
-            if card_string == card.name:
+            # compare strings regardless of case i.e. 'Copper' = 'copper'
+            if card_string.casefold() == card.name.casefold():
                 selected_cards.append(card)
                 break
 
