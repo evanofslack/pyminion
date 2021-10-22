@@ -1,7 +1,7 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Turn, Player, Trash
-from pyminion.exceptions import InvalidBinaryInput
-from pyminion.util import binary_decision
+from pyminion.util import binary_decision, multiple_card_decision
+from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
 
 
 class Copper(Treasure):
@@ -55,26 +55,11 @@ class Village(Action):
 
     def play(self, turn: Turn, player: Player):
         """
-        +1 card, +1 action
+        +1 card, +2 actions
 
         """
         super().common_play(turn, player)
         turn.actions += 2
-        player.draw()
-
-
-class Laboratory(Action):
-    def __init__(self, name: str = "Laboratory", cost: int = 5):
-        super().__init__(name, cost)
-
-    def play(self, turn: Turn, player: Player):
-        """
-        +2 cards, +1 action
-
-        """
-        super().common_play(turn, player)
-        turn.actions += 1
-        player.draw()
         player.draw()
 
 
@@ -120,11 +105,78 @@ class Moneylender(Action):
         """
         super().common_play(turn, player)
         if copper in player.hand.cards:
-            if binary_decision(
-                prompt="Do you want to trash a copper from your hand? y/n?"
-            ):
-                player.trash(target_card=copper, trash=trash)
-                turn.money += 3
+            while True:
+                try:
+                    if binary_decision(
+                        prompt="Do you want to trash a copper from your hand? y/n?"
+                    ):
+                        player.trash(target_card=copper, trash=trash)
+                        turn.money += 3
+                    return
+                except InvalidBinaryInput as e:
+                    print(e)
+
+
+class Cellar(Action):
+    def __init__(self, name: str = "Cellar", cost: int = 2):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player):
+        """
+        +1 Action
+
+        Discard any number of cards, then draw that many
+
+        """
+        super().common_play(turn, player)
+        turn.actions += 1
+
+        if not player.hand.cards:
+            return
+
+        while True:
+            try:
+                if discard_cards := multiple_card_decision(
+                    prompt="Enter the cards you would like to discard seperated by commas: ",
+                    valid_cards=player.hand.cards,
+                ):
+                    for card in discard_cards:
+                        player.discard(card)
+                    player.draw(len(discard_cards))
+                return
+            except InvalidMultiCardInput as e:
+                print(e)
+
+
+class Chapel(Action):
+    def __init__(self, name: str = "Chapel", cost: int = 2):
+        super().__init__(name, cost)
+
+    def play(self, turn: Turn, player: Player, trash: Trash):
+        """
+        Trash up to 4 cards from your hand
+
+        """
+        super().common_play(turn, player)
+
+        if not player.hand.cards:
+            return
+
+        while True:
+            try:
+                if discard_cards := multiple_card_decision(
+                    prompt="Enter up to 4 cards you would like to trash from your hand: ",
+                    valid_cards=player.hand.cards,
+                ):
+                    if len(discard_cards) > 4:
+                        raise InvalidMultiCardInput(
+                            "You cannot trash more than 4 cards"
+                        )
+                    for card in discard_cards:
+                        player.trash(card, trash)
+                return
+            except InvalidMultiCardInput as e:
+                print(e)
 
 
 copper = Copper()
@@ -139,3 +191,5 @@ village = Village()
 laboratory = Laboratory()
 market = Market()
 moneylender = Moneylender()
+cellar = Cellar()
+chapel = Chapel()

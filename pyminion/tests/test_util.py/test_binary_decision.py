@@ -11,16 +11,10 @@ def test_no_input(monkeypatch):
     assert binary_decision(prompt="test") is False
 
 
-def test_invalid_then_valid_input(monkeypatch):
+def test_invalid_input(monkeypatch):
+    from pyminion.exceptions import InvalidBinaryInput
+    import pytest
+
     monkeypatch.setattr("builtins.input", lambda _: "")
-    monkeypatch.setattr("builtins.input", lambda _: "n")
-    assert binary_decision(prompt="test") is False
-
-
-# def test_invalid_input(monkeypatch):
-#     from pyminion.exceptions import InvalidBinaryInput
-#     import pytest
-
-#     monkeypatch.setattr("builtins.input", lambda _: "")
-#     with pytest.raises(InvalidBinaryInput):
-#         binary_decision(prompt="test")
+    with pytest.raises(InvalidBinaryInput):
+        binary_decision(prompt="test")

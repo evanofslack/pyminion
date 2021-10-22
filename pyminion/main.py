@@ -13,15 +13,13 @@ from pyminion.expansions.base import (
     start_cards,
     core_supply,
     kingdom_cards,
-    estate,
-    silver,
-    moneylender,
 )
+from pyminion.models.base import estate, silver, moneylender, cellar, chapel
 
 
 player_1 = Player(
     deck=Deck(start_cards),
-    discard=DiscardPile(),
+    discard_pile=DiscardPile(),
     hand=Hand(),
     playmat=Playmat(),
     player_id="player_1",
@@ -37,21 +35,14 @@ if __name__ == "__main__":
     turn = Turn(player=player_1)
     player_1.deck.shuffle()
     player_1.draw(5)
-    player_1.autoplay_treasures(turn)
-    if turn.money > 2:
-        player_1.buy(card=silver, turn=turn, supply=supply)
-    player_1.cleanup()
-
-    turn = Turn(player=player_1)
-    player_1.draw(5)
-    player_1.hand.add(moneylender)
+    player_1.hand.add(chapel)
+    print(player_1.hand)
+    player_1.hand.cards[-1].play(turn, player_1, trash)
     print(player_1.hand)
     print(player_1.playmat)
-    print(player_1.discard)
-    player_1.hand.cards[-1].play(turn, player_1, trash)
-    print(game.trash)
+    print(player_1.discard_pile)
     print(trash)
-    print(turn.money)
+    player_1.cleanup()
 
     """
     with StringIO('asdf') as f:

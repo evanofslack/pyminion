@@ -107,32 +107,38 @@ class Player:
     def __init__(
         self,
         deck: Deck,
-        discard: DiscardPile,
+        discard_pile: DiscardPile,
         hand: Hand,
         playmat: Playmat,
         player_id: str = None,
     ):
         self.deck = deck
-        self.discard = discard
+        self.discard_pile = discard_pile
         self.hand = hand
         self.playmat = playmat
         self.player_id = player_id
         self.shuffles: int = 0
 
-    def draw(self, num_cards: int = 1):
+    def draw(self, num_cards: int = 1) -> None:
         for i in range(num_cards):
             # Both deck and discard empty -> do nothing
-            if len(self.discard) == 0 and len(self.deck) == 0:
+            if len(self.discard_pile) == 0 and len(self.deck) == 0:
                 pass
             # Deck is empty -> shuffle in the discard pile
             elif len(self.deck) == 0:
-                self.discard.move_to(self.deck)
+                self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
                 self.hand.add(self.deck.draw())
             else:
                 self.hand.add(self.deck.draw())
 
-    def autoplay_treasures(self, turn: "Turn"):
+    def discard(self, target_card: Card) -> None:
+        for card in self.hand.cards:
+            if card == target_card:
+                self.discard_pile.add(self.hand.remove(card))
+                break
+
+    def autoplay_treasures(self, turn: "Turn") -> None:
         i = 0  # Pythonic way to pop in loop?
         while i < len(self.hand):
             if self.hand.cards[i].name == "Copper":
@@ -140,7 +146,7 @@ class Player:
             else:
                 i += 1
 
-    def buy(self, card: Card, turn: "Turn", supply: "Supply"):
+    def buy(self, card: Card, turn: "Turn", supply: "Supply") -> None:
         if card.cost > turn.money:
             raise InsufficientMoney(
                 f"{turn.player.player_id}: Not enough money to buy {card.name}"
@@ -151,16 +157,16 @@ class Player:
             )
         turn.money -= card.cost
         turn.buys -= 1
-        self.discard.add(card)
+        self.discard_pile.add(card)
         supply.gain_card(card)
 
-    def cleanup(self):
-        self.discard.cards += self.hand.cards
-        self.discard.cards += self.playmat.cards
+    def cleanup(self) -> None:
+        self.discard_pile.cards += self.hand.cards
+        self.discard_pile.cards += self.playmat.cards
         self.hand.cards = []
         self.playmat.cards = []
 
-    def trash(self, target_card: Card, trash: "Trash"):
+    def trash(self, target_card: Card, trash: "Trash") -> None:
         for card in self.hand.cards:
             if card == target_card:
                 trash.add(self.hand.remove(card))
