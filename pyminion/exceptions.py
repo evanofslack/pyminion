@@ -47,7 +47,7 @@ class InvalidBinaryInput(InvalidInput):
     """
 
 
-class InvalidMultiDiscardInput(InvalidInput):
+class InvalidMultiCardInput(InvalidInput):
     """
     Invalid response, that input cannot be discarded
 

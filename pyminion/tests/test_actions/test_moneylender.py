@@ -22,7 +22,7 @@ def test_moneylender_normal(turn: Turn, player: Player, trash: Trash, monkeypatc
     assert type(trash.cards[0]) is Copper
 
 
-def test_moneylender_no_input(turn: Turn, player: Player, trash: Trash, monkeypatch):
+def test_moneylender_input_no(turn: Turn, player: Player, trash: Trash, monkeypatch):
     player.hand.add(moneylender)
     player.hand.add(copper)
     assert len(player.hand) == 2
