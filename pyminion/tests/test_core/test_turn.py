@@ -1,4 +1,4 @@
-from pyminion.models.core import Player, Turn
+from pyminion.models.core import Player, Turn, Game
 from pyminion.expansions.base import copper, smithy
 from pyminion.exceptions import InsufficientActions
 
@@ -19,17 +19,17 @@ def test_play_treasure_increment_money(player: Player, turn: Turn):
     assert turn.money == 1
 
 
-def test_play_action_decrement_action(player: Player, turn: Turn):
+def test_play_action_decrement_action(player: Player, turn: Turn, game: Game):
     player.hand.add(smithy)
     assert turn.actions == 1
-    player.hand.cards[0].play(turn, player)
+    player.hand.cards[0].play(turn, player, game)
     assert turn.actions == 0
 
 
-def test_insufficents_actions(player: Player, turn: Turn):
+def test_insufficents_actions(player: Player, turn: Turn, game: Game):
     player.hand.add(smithy)
     player.hand.add(smithy)
-    player.hand.cards[0].play(turn, player)
+    player.hand.cards[0].play(turn, player, game)
     assert turn.actions == 0
     with pytest.raises(InsufficientActions):
-        player.hand.cards[0].play(turn, player)
+        player.hand.cards[0].play(turn, player, game)

@@ -11,6 +11,7 @@ from pyminion.models.core import (
     Turn,
     Supply,
     Trash,
+    Game,
 )
 
 
@@ -65,3 +66,9 @@ def supply():
     golds = Pile([gold for x in range(30)])
     supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
     return supply
+
+
+@pytest.fixture
+def game(player, supply, trash):
+    game = Game(players=[player], supply=supply, trash=trash)
+    return game
