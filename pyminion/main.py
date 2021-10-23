@@ -37,7 +37,10 @@ if __name__ == "__main__":
     player_1.draw(5)
     player_1.hand.add(chapel)
     print(player_1.hand)
+
     player_1.hand.cards[-1].play(turn, player_1, trash)
+    player_1.hand.cards[-1].play(turn, player_1)
+
     print(player_1.hand)
     print(player_1.playmat)
     print(player_1.discard_pile)
