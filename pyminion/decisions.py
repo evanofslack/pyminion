@@ -1,5 +1,9 @@
 from pyminion.models.core import Card
-from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
+from pyminion.exceptions import (
+    InvalidBinaryInput,
+    InvalidMultiCardInput,
+    InvalidSingleCardInput,
+)
 
 from typing import List, Optional
 from collections import Counter
@@ -19,6 +23,30 @@ def binary_decision(prompt: str) -> bool:
         return False
     else:
         raise InvalidBinaryInput("Invalid response, valid choices are 'y' or 'n'")
+
+
+def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[List[Card]]:
+    """
+    Get user response when given the option to select one card
+    Raise exception if user provided selection is not valid.
+
+    """
+    card_input = input(prompt)
+    if not card_input:
+        return
+
+    selected_card = None
+    for card in valid_cards:
+        if card_input.casefold() == card.name.casefold():
+            selected_card = card
+            break
+
+    if not selected_card:
+        raise InvalidSingleCardInput(
+            f"Invalid input, {card_input} does not match any card in your hand"
+        )
+
+    return selected_card
 
 
 def multiple_card_decision(
