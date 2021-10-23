@@ -6,6 +6,7 @@ from pyminion.exceptions import (
     InsufficientBuys,
     PileNotFound,
     EmptyPile,
+    InvalidCardPlay,
 )
 
 
@@ -22,7 +23,7 @@ class Card:
         self.type = type
 
     def __repr__(self):
-        return f"{self.name} - {self.type}"
+        return f"{self.name} ({self.type})"
 
 
 class AbstractDeck:
@@ -137,7 +138,17 @@ class Player:
         for card in self.hand.cards:
             if card == target_card:
                 self.discard_pile.add(self.hand.remove(card))
-                break
+                return
+
+    def play(self, target_card: Card, turn: "Turn", game: "Game") -> None:
+        for card in self.hand.cards:
+            try:
+                if card == target_card:
+                    card.play(turn=turn, player=self, game=game)
+                    return
+            except:
+                raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
+        raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def autoplay_treasures(self, turn: "Turn") -> None:
         i = 0  # Pythonic way to pop in loop?
