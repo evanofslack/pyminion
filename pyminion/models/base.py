@@ -5,38 +5,79 @@ from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
 
 
 class Copper(Treasure):
-    def __init__(self, name: str = "Copper", cost: int = 0, money: int = 1):
-        super().__init__(name, cost, money)
+    def __init__(
+        self,
+        name: str = "Copper",
+        cost: int = 0,
+        type: str = "Treasure",
+        money: int = 1,
+    ):
+        super().__init__(name, cost, type, money)
 
 
 class Silver(Treasure):
-    def __init__(self, name: str = "Silver", cost: int = 3, money: int = 2):
-        super().__init__(name, cost, money)
+    def __init__(
+        self,
+        name: str = "Silver",
+        cost: int = 3,
+        type: str = "Treasure",
+        money: int = 2,
+    ):
+        super().__init__(name, cost, type, money)
 
 
 class Gold(Treasure):
-    def __init__(self, name: str = "Gold", cost: int = 6, money: int = 3):
-        super().__init__(name, cost, money)
+    def __init__(
+        self,
+        name: str = "Gold",
+        cost: int = 6,
+        type: str = "Treasure",
+        money: int = 3,
+    ):
+        super().__init__(name, cost, type, money)
 
 
 class Estate(Victory):
-    def __init__(self, name: str = "Estate", cost: int = 2, victory_points: int = 1):
-        super().__init__(name, cost, victory_points)
+    def __init__(
+        self,
+        name: str = "Estate",
+        cost: int = 2,
+        type: str = "Victory",
+        victory_points: int = 1,
+    ):
+        super().__init__(name, cost, type, victory_points)
 
 
 class Duchy(Victory):
-    def __init__(self, name: str = "Duchy", cost: int = 5, victory_points: int = 3):
-        super().__init__(name, cost, victory_points)
+    def __init__(
+        self,
+        name: str = "Duchy",
+        cost: int = 5,
+        type: str = "Victory",
+        victory_points: int = 3,
+    ):
+        super().__init__(name, cost, type, victory_points)
 
 
 class Province(Victory):
-    def __init__(self, name: str = "Province", cost: int = 8, victory_points: int = 6):
-        super().__init__(name, cost, victory_points)
+    def __init__(
+        self,
+        name: str = "Province",
+        cost: int = 8,
+        type: str = "Victory",
+        victory_points: int = 6,
+    ):
+        super().__init__(name, cost, type, victory_points)
 
 
 class Smithy(Action):
-    def __init__(self, name: str = "Smithy", cost: int = 4):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Smithy",
+        cost: int = 4,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player):
         """
@@ -45,13 +86,17 @@ class Smithy(Action):
         """
         super().common_play(turn, player)
 
-        for i in range(3):
-            player.draw()
+        player.draw(3)
 
 
 class Village(Action):
-    def __init__(self, name: str = "Village", cost: int = 3):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Village",
+        cost: int = 3,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player):
         """
@@ -64,8 +109,13 @@ class Village(Action):
 
 
 class Laboratory(Action):
-    def __init__(self, name: str = "Laboratory", cost: int = 5):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Laboratory",
+        cost: int = 5,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player):
         """
@@ -79,8 +129,13 @@ class Laboratory(Action):
 
 
 class Market(Action):
-    def __init__(self, name: str = "Market", cost: int = 5):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Market",
+        cost: int = 5,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player):
         """
@@ -95,8 +150,13 @@ class Market(Action):
 
 
 class Moneylender(Action):
-    def __init__(self, name: str = "Moneylender", cost: int = 4):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Moneylender",
+        cost: int = 4,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player, trash: Trash):
         """
@@ -118,8 +178,13 @@ class Moneylender(Action):
 
 
 class Cellar(Action):
-    def __init__(self, name: str = "Cellar", cost: int = 2):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Cellar",
+        cost: int = 2,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player):
         """
@@ -149,8 +214,13 @@ class Cellar(Action):
 
 
 class Chapel(Action):
-    def __init__(self, name: str = "Chapel", cost: int = 2):
-        super().__init__(name, cost)
+    def __init__(
+        self,
+        name: str = "Chapel",
+        cost: int = 2,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
 
     def play(self, turn: Turn, player: Player, trash: Trash):
         """

@@ -9,19 +9,20 @@ from pyminion.exceptions import (
 )
 
 
-class Card:  # TODO add card type to card
+class Card:
 
     """
     Base class representing a dominion card
 
     """
 
-    def __init__(self, name: str, cost: int):
+    def __init__(self, name: str, cost: int, type: str):
         self.name = name
         self.cost = cost
+        self.type = type
 
     def __repr__(self):
-        return f"{self.name} ({type(self).__name__})"
+        return f"{self.name} - {self.type}"
 
 
 class AbstractDeck:

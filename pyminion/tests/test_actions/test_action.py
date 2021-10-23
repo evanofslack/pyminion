@@ -4,7 +4,7 @@ from pyminion.models.core import Turn, Player
 from pyminion.models.cards import Action
 from pyminion.exceptions import InsufficientActions
 
-action = Action(name="test", cost="0")
+action = Action(name="test", cost="0", type="Action")
 
 
 def test_action_common_play(turn: Turn, player: Player):

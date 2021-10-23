@@ -3,14 +3,14 @@ from pyminion.exceptions import InsufficientActions
 
 
 class Victory(Card):
-    def __init__(self, name: str, cost: int, victory_points: int):
-        super().__init__(name, cost)
+    def __init__(self, name: str, cost: int, type: str, victory_points: int):
+        super().__init__(name, cost, type)
         self.victory_points = victory_points
 
 
 class Treasure(Card):
-    def __init__(self, name: str, cost: int, money: int):
-        super().__init__(name, cost)
+    def __init__(self, name: str, cost: int, type: str, money: int):
+        super().__init__(name, cost, type)
         self.money = money
 
     def play(self, turn: Turn, player: Player):
@@ -20,8 +20,8 @@ class Treasure(Card):
 
 
 class Action(Card):
-    def __init__(self, name: str, cost: int):
-        super().__init__(name, cost)
+    def __init__(self, name: str, cost: int, type: str):
+        super().__init__(name, cost, type)
 
     def play(self):
         """
