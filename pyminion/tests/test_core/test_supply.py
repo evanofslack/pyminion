@@ -32,6 +32,6 @@ def test_gain_empty_pile_is_None(supply: Supply):
 
 
 def test_pile_not_found(supply: Supply):
-    fake_card = Card(name="fake", cost=0)
+    fake_card = Card(name="fake", cost=0, type="test")
     with pytest.raises(PileNotFound):
         supply.gain_card(fake_card)
