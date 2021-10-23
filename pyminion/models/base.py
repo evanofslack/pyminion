@@ -1,5 +1,5 @@
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import Turn, Player, Trash
+from pyminion.models.core import Turn, Player, Trash, Game
 from pyminion.decisions import binary_decision, multiple_card_decision
 from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
 
@@ -79,7 +79,7 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         +3 cards
 
@@ -98,7 +98,7 @@ class Village(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         +1 card, +2 actions
 
@@ -117,7 +117,7 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         +2 cards, +1 action
 
@@ -137,7 +137,7 @@ class Market(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         +1 card, +1 action, +1 money, +1 buy
 
@@ -158,7 +158,7 @@ class Moneylender(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, trash: Trash):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         You may trash a copper from your hand for + 3 money
 
@@ -170,7 +170,7 @@ class Moneylender(Action):
                     if binary_decision(
                         prompt="Do you want to trash a copper from your hand? y/n?"
                     ):
-                        player.trash(target_card=copper, trash=trash)
+                        player.trash(target_card=copper, trash=game.trash)
                         turn.money += 3
                     return
                 except InvalidBinaryInput as e:
@@ -186,7 +186,7 @@ class Cellar(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         +1 Action
 
@@ -222,7 +222,7 @@ class Chapel(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, trash: Trash):
+    def play(self, turn: Turn, player: Player, game: Game):
         """
         Trash up to 4 cards from your hand
 
@@ -243,7 +243,7 @@ class Chapel(Action):
                             "You cannot trash more than 4 cards"
                         )
                     for card in discard_cards:
-                        player.trash(card, trash)
+                        player.trash(card, game.trash)
                 return
             except InvalidMultiCardInput as e:
                 print(e)

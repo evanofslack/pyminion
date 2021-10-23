@@ -1,6 +1,15 @@
-from pyminion.models.core import Hand, DiscardPile, Player, Playmat, Turn, Supply, Trash
-from pyminion.models.base import Estate, Copper, copper, estate
-from pyminion.exceptions import InsufficientBuys, InsufficientMoney
+from pyminion.models.core import (
+    Hand,
+    DiscardPile,
+    Player,
+    Playmat,
+    Turn,
+    Supply,
+    Trash,
+    Game,
+)
+from pyminion.models.base import Estate, Copper, copper, estate, smithy
+from pyminion.exceptions import InsufficientBuys, InsufficientMoney, InvalidCardPlay
 import pytest
 
 
@@ -64,6 +73,24 @@ def test_play_copper(player: Player, turn: Turn):
     player.hand.cards[0].play(turn, player)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
+
+
+def test_player_play_valid(player: Player, turn: Turn, game: Game):
+    player.hand.add(smithy)
+    player.play(target_card=smithy, turn=turn, game=game)
+    assert len(player.playmat) == 1
+    assert len(player.hand) == 3
+
+
+def test_player_play_invalid_play(player: Player, turn: Turn, game: Game):
+    player.hand.add(estate)
+    with pytest.raises(InvalidCardPlay):
+        player.play(target_card=estate, turn=turn, game=game)
+
+
+def test_player_play_not_in_hand(player: Player, turn: Turn, game: Game):
+    with pytest.raises(InvalidCardPlay):
+        player.play(target_card=smithy, turn=turn, game=game)
 
 
 def test_autoplay_treasures(player: Player, turn: Turn):

@@ -40,6 +40,13 @@ class InvalidInput(Exception):
     """
 
 
+class InvalidCardPlay(Exception):
+    """
+    Unable to play card
+
+    """
+
+
 class InvalidBinaryInput(InvalidInput):
     """
     Invalid response, valid choices are "y" or "n"

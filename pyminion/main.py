@@ -14,7 +14,7 @@ from pyminion.expansions.base import (
     core_supply,
     kingdom_cards,
 )
-from pyminion.models.base import estate, silver, moneylender, cellar, chapel
+from pyminion.models.base import estate, silver, moneylender, cellar, chapel, copper
 
 
 player_1 = Player(
@@ -37,15 +37,14 @@ if __name__ == "__main__":
     player_1.draw(5)
     player_1.hand.add(chapel)
     print(player_1.hand)
-
-    player_1.hand.cards[-1].play(turn, player_1, trash)
-    player_1.hand.cards[-1].play(turn, player_1)
-
+    player_1.play(chapel, turn, game)
     print(player_1.hand)
     print(player_1.playmat)
     print(player_1.discard_pile)
     print(trash)
     player_1.cleanup()
+    player_1.draw(5)
+    player_1.play(copper, turn, game)
 
     """
     with StringIO('asdf') as f:
