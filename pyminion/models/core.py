@@ -228,6 +228,16 @@ class Game:
         self.supply = supply
         self.trash = trash
 
+    def is_over(self) -> bool:
+        empty_piles: int = 0
+        for pile in self.supply.piles:
+            if pile.name == "Province" and len(pile) == 0:
+                return True
+            if len(pile) == 0:
+                empty_piles += 1
+            if empty_piles >= 3:
+                return True
+
 
 class Turn:
     """
