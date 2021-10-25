@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import random
 
 from pyminion.exceptions import (
@@ -119,6 +119,7 @@ class Player:
         self.hand = hand
         self.playmat = playmat
         self.player_id = player_id
+        self.turns: int = 0
         self.shuffles: int = 0
 
     def draw(self, num_cards: int = 1) -> None:
@@ -149,6 +150,9 @@ class Player:
             except:
                 raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
+
+    def start_action_phase(self):
+        self.turns += 1
 
     def autoplay_treasures(self, turn: "Turn") -> None:
         i = 0  # Pythonic way to pop in loop?
@@ -191,6 +195,13 @@ class Player:
             + self.playmat.cards
             + self.hand.cards
         )
+
+    def get_victory_points(self):
+        total_vp: int = 0
+        for card in self.get_all_cards():
+            if card.type == "Victory":
+                total_vp += card.score(self)
+        return total_vp
 
 
 class Supply:
@@ -237,6 +248,13 @@ class Game:
         self.trash = trash
 
     def is_over(self) -> bool:
+        """
+        The game is over if any 3 supply piles are empty or
+        if the province pile is empty.
+
+        Returns True if the game is over
+
+        """
         empty_piles: int = 0
         for pile in self.supply.piles:
             if pile.name == "Province" and len(pile) == 0:
@@ -246,8 +264,39 @@ class Game:
             if empty_piles >= 3:
                 return True
 
+    def get_winner(self) -> Optional[Player]:
+        """
+        The player with the most victory points wins.
+        If the highest scores are tied at the end of the game,
+        the tied player who has had the fewest turns wins the game.
+        If the tied players have had the same number of turns, they tie.
 
-class Turn:
+        Returns the winning player or None if there is a tie.
+
+        """
+        if len(self.players) == 1:
+            return self.players[0]
+
+        high_score = self.players[0].get_victory_points()
+        winner = self.players[0]
+        tie = False
+
+        for player in self.players[1:]:
+            score = player.get_victory_points()
+            if score > high_score:
+                high_score = score
+                winner = player
+
+            elif score == high_score:
+                if player.turns < winner.turns:
+                    winner = player
+                    tie = False
+                elif player.turns == winner.turns:
+                    tie = True
+        return None if tie else winner  # TODO return just the players that tie
+
+
+class Turn:  # TODO store turn state in player instance
     """
     Hold state during a player's turn
 

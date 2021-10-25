@@ -46,3 +46,17 @@ def test_game_is_over_true_three_piles(game: Game):
     assert not game.is_over()
     game.supply.gain_card(card=gold)
     assert game.is_over()
+
+
+def test_game_tie(multiplayer_game: Game):
+    assert not multiplayer_game.get_winner()
+
+
+def test_game_win(multiplayer_game: Game):
+    multiplayer_game.players[0].deck.add(estate)
+    assert multiplayer_game.get_winner() == multiplayer_game.players[0]
+
+
+def test_game_win_turns(multiplayer_game: Game):
+    multiplayer_game.players[1].start_action_phase()
+    assert multiplayer_game.get_winner() == multiplayer_game.players[0]
