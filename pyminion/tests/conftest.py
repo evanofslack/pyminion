@@ -13,7 +13,7 @@ from pyminion.models.core import (
     Trash,
     Game,
 )
-
+from pyminion.expansions.base import start_cards
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
@@ -71,4 +71,19 @@ def supply():
 @pytest.fixture
 def game(player, supply, trash):
     game = Game(players=[player], supply=supply, trash=trash)
+    return game
+
+
+@pytest.fixture
+def multiplayer_game(deck, player, supply, trash):
+
+    player2 = Player(
+        deck=Deck(start_cards),
+        discard_pile=DiscardPile(),
+        hand=Hand(),
+        playmat=Playmat(),
+        player_id="Test_2",
+    )
+
+    game = Game(players=[player, player2], supply=supply, trash=trash)
     return game

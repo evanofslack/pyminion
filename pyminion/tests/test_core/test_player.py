@@ -8,7 +8,16 @@ from pyminion.models.core import (
     Trash,
     Game,
 )
-from pyminion.models.base import Estate, Copper, copper, estate, smithy
+from pyminion.models.base import (
+    Estate,
+    Copper,
+    copper,
+    estate,
+    smithy,
+    duchy,
+    province,
+    gardens,
+)
 from pyminion.exceptions import InsufficientBuys, InsufficientMoney, InvalidCardPlay
 import pytest
 
@@ -182,3 +191,15 @@ def test_player_all_cards(player: Player):
     assert len(player.get_all_cards()) == 14
     player.playmat.remove(copper)
     assert len(player.get_all_cards()) == 13
+
+
+def test_player_get_vp(player: Player):
+    assert player.get_victory_points() == 3
+    player.hand.add(estate)
+    assert player.get_victory_points() == 4
+    player.hand.add(duchy)
+    assert player.get_victory_points() == 7
+    player.hand.add(province)
+    assert player.get_victory_points() == 13
+    player.hand.add(gardens)
+    assert player.get_victory_points() == 14
