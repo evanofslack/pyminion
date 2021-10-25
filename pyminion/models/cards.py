@@ -3,9 +3,15 @@ from pyminion.exceptions import InsufficientActions
 
 
 class Victory(Card):
-    def __init__(self, name: str, cost: int, type: str, victory_points: int):
+    def __init__(self, name: str, cost: int, type: str):
         super().__init__(name, cost, type)
-        self.victory_points = victory_points
+
+    def score(self):
+        """
+        Specific score method unique to each victory card
+
+        """
+        raise NotImplementedError(f"Score method must be implemented for {self.name}")
 
 
 class Treasure(Card):

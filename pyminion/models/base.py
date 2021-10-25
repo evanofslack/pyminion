@@ -3,6 +3,8 @@ from pyminion.models.core import Turn, Player, Trash, Game
 from pyminion.decisions import binary_decision, multiple_card_decision
 from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
 
+import math
+
 
 class Copper(Treasure):
     def __init__(
@@ -43,9 +45,12 @@ class Estate(Victory):
         name: str = "Estate",
         cost: int = 2,
         type: str = "Victory",
-        victory_points: int = 1,
     ):
-        super().__init__(name, cost, type, victory_points)
+        super().__init__(name, cost, type)
+
+    def score(self, player: Player) -> int:
+        VICTORY_POINTS = 1
+        return VICTORY_POINTS
 
 
 class Duchy(Victory):
@@ -54,9 +59,12 @@ class Duchy(Victory):
         name: str = "Duchy",
         cost: int = 5,
         type: str = "Victory",
-        victory_points: int = 3,
     ):
-        super().__init__(name, cost, type, victory_points)
+        super().__init__(name, cost, type)
+
+    def score(self, player: Player) -> int:
+        VICTORY_POINTS = 3
+        return VICTORY_POINTS
 
 
 class Province(Victory):
@@ -65,9 +73,30 @@ class Province(Victory):
         name: str = "Province",
         cost: int = 8,
         type: str = "Victory",
-        victory_points: int = 6,
     ):
-        super().__init__(name, cost, type, victory_points)
+        super().__init__(name, cost, type)
+
+    def score(self, player: Player) -> int:
+        VICTORY_POINTS = 6
+        return VICTORY_POINTS
+
+
+class Gardens(Victory):
+    def __init__(
+        self,
+        name: str = "Gardens",
+        cost: int = 4,
+        type: str = "Victory",
+    ):
+        super().__init__(name, cost, type)
+
+    def score(self, player: Player) -> int:
+        """
+        Worth 1VP for every 10 cards you have (round down)
+
+        """
+        total_count = len(player.get_all_cards())
+        return math.floor(total_count / 10)
 
 
 class Smithy(Action):
@@ -252,9 +281,11 @@ class Chapel(Action):
 copper = Copper()
 silver = Silver()
 gold = Gold()
+
 estate = Estate()
 duchy = Duchy()
 province = Province()
+gardens = Gardens()
 
 smithy = Smithy()
 village = Village()
