@@ -167,3 +167,18 @@ def test_player_discard_pile(player: Player):
     assert type(player.hand.cards[0]) is Estate
     assert len(player.discard_pile) == 1
     assert type(player.discard_pile.cards[0]) is Copper
+
+
+def test_player_all_cards(player: Player):
+    assert len(player.get_all_cards()) == 10
+    player.hand.add(copper)
+    assert len(player.get_all_cards()) == 11
+    assert type(player.get_all_cards()) is list
+    player.discard_pile.add(copper)
+    assert len(player.get_all_cards()) == 12
+    player.deck.add(copper)
+    assert len(player.get_all_cards()) == 13
+    player.playmat.add(copper)
+    assert len(player.get_all_cards()) == 14
+    player.playmat.remove(copper)
+    assert len(player.get_all_cards()) == 13
