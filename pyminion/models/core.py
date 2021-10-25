@@ -184,6 +184,14 @@ class Player:
                 trash.add(self.hand.remove(card))
                 break
 
+    def get_all_cards(self) -> List[Card]:
+        return (
+            self.deck.cards
+            + self.discard_pile.cards
+            + self.playmat.cards
+            + self.hand.cards
+        )
+
 
 class Supply:
     """
