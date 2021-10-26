@@ -1,15 +1,15 @@
-from pyminion.models.core import Turn, Player, Game
+from pyminion.models.core import Player, Game
 from pyminion.models.base import Market
 from pyminion.expansions.base import market
 
 
-def test_market(turn: Turn, player: Player, game: Game):
+def test_market(player: Player, game: Game):
     player.hand.add(market)
     assert len(player.hand) == 1
-    player.hand.cards[0].play(turn, player, game)
+    player.hand.cards[0].play(player, game)
     assert len(player.hand) == 1
     assert len(player.playmat) == 1
     assert type(player.playmat.cards[0]) is Market
-    assert turn.actions == 1
-    assert turn.money == 1
-    assert turn.buys == 2
+    assert player.state.actions == 1
+    assert player.state.money == 1
+    assert player.state.buys == 2

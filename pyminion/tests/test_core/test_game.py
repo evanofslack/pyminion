@@ -58,5 +58,5 @@ def test_game_win(multiplayer_game: Game):
 
 
 def test_game_win_turns(multiplayer_game: Game):
-    multiplayer_game.players[1].start_action_phase()
+    multiplayer_game.players[1].start_turn()
     assert multiplayer_game.get_winner() == multiplayer_game.players[0]

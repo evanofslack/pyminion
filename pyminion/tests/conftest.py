@@ -8,7 +8,6 @@ from pyminion.models.core import (
     Hand,
     Playmat,
     Player,
-    Turn,
     Supply,
     Trash,
     Game,
@@ -42,12 +41,6 @@ def player(deck):
         player_id=player_id,
     )
     return player
-
-
-@pytest.fixture
-def turn(player):
-    turn = Turn(player=player)
-    return turn
 
 
 @pytest.fixture

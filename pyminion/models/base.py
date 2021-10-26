@@ -1,5 +1,5 @@
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import Turn, Player, Trash, Game
+from pyminion.models.core import Player, Trash, Game
 from pyminion.decisions import binary_decision, multiple_card_decision
 from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
 
@@ -108,12 +108,12 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         +3 cards
 
         """
-        super().common_play(turn, player)
+        super().common_play(player)
 
         player.draw(3)
 
@@ -127,13 +127,13 @@ class Village(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         +1 card, +2 actions
 
         """
-        super().common_play(turn, player)
-        turn.actions += 2
+        super().common_play(player)
+        player.state.actions += 2
         player.draw()
 
 
@@ -146,15 +146,14 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         +2 cards, +1 action
 
         """
-        super().common_play(turn, player)
-        turn.actions += 1
-        player.draw()
-        player.draw()
+        super().common_play(player)
+        player.state.actions += 1
+        player.draw(2)
 
 
 class Market(Action):
@@ -166,16 +165,16 @@ class Market(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         +1 card, +1 action, +1 money, +1 buy
 
         """
-        super().common_play(turn, player)
-        turn.actions += 1
+        super().common_play(player)
+        player.state.actions += 1
         player.draw()
-        turn.money += 1
-        turn.buys += 1
+        player.state.money += 1
+        player.state.buys += 1
 
 
 class Moneylender(Action):
@@ -187,12 +186,12 @@ class Moneylender(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         You may trash a copper from your hand for + 3 money
 
         """
-        super().common_play(turn, player)
+        super().common_play(player)
         if copper in player.hand.cards:
             while True:
                 try:
@@ -200,7 +199,7 @@ class Moneylender(Action):
                         prompt="Do you want to trash a copper from your hand? y/n?"
                     ):
                         player.trash(target_card=copper, trash=game.trash)
-                        turn.money += 3
+                        player.state.money += 3
                     return
                 except InvalidBinaryInput as e:
                     print(e)
@@ -215,15 +214,15 @@ class Cellar(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         +1 Action
 
         Discard any number of cards, then draw that many
 
         """
-        super().common_play(turn, player)
-        turn.actions += 1
+        super().common_play(player)
+        player.state.actions += 1
 
         if not player.hand.cards:
             return
@@ -251,12 +250,12 @@ class Chapel(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, turn: Turn, player: Player, game: Game):
+    def play(self, player: Player, game: Game):
         """
         Trash up to 4 cards from your hand
 
         """
-        super().common_play(turn, player)
+        super().common_play(player)
 
         if not player.hand.cards:
             return

@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 import random
+from dataclasses import dataclass
 
 from pyminion.exceptions import (
     InsufficientMoney,
@@ -100,6 +101,18 @@ class Playmat(AbstractDeck):
         super().__init__(cards)
 
 
+@dataclass
+class State:
+    """
+    Hold state during a player's turn
+
+    """
+
+    actions: int = 1
+    money: int = 0
+    buys: int = 1
+
+
 class Player:
     """
     Collection of card piles associated with each player
@@ -112,15 +125,23 @@ class Player:
         discard_pile: DiscardPile,
         hand: Hand,
         playmat: Playmat,
+        state: State = None,
         player_id: str = None,
     ):
         self.deck = deck
         self.discard_pile = discard_pile
         self.hand = hand
         self.playmat = playmat
+        self.state = state if state else State()
         self.player_id = player_id
         self.turns: int = 0
         self.shuffles: int = 0
+
+    def start_turn(self):
+        self.turns += 1
+        self.state.actions = 1
+        self.state.money = 0
+        self.state.buys = 1
 
     def draw(self, num_cards: int = 1) -> None:
         for i in range(num_cards):
@@ -141,38 +162,35 @@ class Player:
                 self.discard_pile.add(self.hand.remove(card))
                 return
 
-    def play(self, target_card: Card, turn: "Turn", game: "Game") -> None:
+    def play(self, target_card: Card, game: "Game") -> None:
         for card in self.hand.cards:
             try:
                 if card == target_card:
-                    card.play(turn=turn, player=self, game=game)
+                    card.play(player=self, game=game)
                     return
             except:
                 raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
-    def start_action_phase(self):
-        self.turns += 1
-
-    def autoplay_treasures(self, turn: "Turn") -> None:
+    def autoplay_treasures(self) -> None:
         i = 0  # Pythonic way to pop in loop?
         while i < len(self.hand):
             if self.hand.cards[i].name == "Copper":
-                self.hand.cards[i].play(turn, self)
+                self.hand.cards[i].play(self)
             else:
                 i += 1
 
-    def buy(self, card: Card, turn: "Turn", supply: "Supply") -> None:
-        if card.cost > turn.money:
+    def buy(self, card: Card, supply: "Supply") -> None:
+        if card.cost > self.state.money:
             raise InsufficientMoney(
-                f"{turn.player.player_id}: Not enough money to buy {card.name}"
+                f"{self.player_id}: Not enough money to buy {card.name}"
             )
-        if turn.buys < 1:
+        if self.state.buys < 1:
             raise InsufficientBuys(
-                f"{turn.player.player_id}: Not enough buys to buy {card.name}"
+                f"{self.player_id}: Not enough buys to buy {card.name}"
             )
-        turn.money -= card.cost
-        turn.buys -= 1
+        self.state.money -= card.cost
+        self.state.buys -= 1
         self.discard_pile.add(card)
         supply.gain_card(card)
 
@@ -294,22 +312,3 @@ class Game:
                 elif player.turns == winner.turns:
                     tie = True
         return None if tie else winner  # TODO return just the players that tie
-
-
-class Turn:  # TODO store turn state in player instance
-    """
-    Hold state during a player's turn
-
-    """
-
-    def __init__(
-        self,
-        player: Player,
-        actions: int = 1,
-        money: int = 0,
-        buys: int = 1,
-    ):
-        self.player = player
-        self.actions = actions
-        self.money = money
-        self.buys = buys

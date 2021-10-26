@@ -1,9 +1,9 @@
-from pyminion.models.core import Turn, Player, Game
+from pyminion.models.core import Player, Game
 from pyminion.models.base import Smithy
 from pyminion.expansions.base import smithy
 
 
-def test_smithy_draw(turn: Turn, player: Player, game: Game):
+def test_smithy_draw(player: Player, game: Game):
     """
     Create a hand with one smithy then play that smithy.
     Assert smithy on playmat, handsize increases to 3, action count goes to 0
@@ -11,6 +11,7 @@ def test_smithy_draw(turn: Turn, player: Player, game: Game):
     """
     player.hand.add(smithy)
     assert len(player.hand) == 1
-    player.hand.cards[0].play(turn, player, game)
+    player.hand.cards[0].play(player, game)
     assert len(player.hand) == 3
     assert type(player.playmat.cards[0]) is Smithy
+    assert player.state.actions == 0
