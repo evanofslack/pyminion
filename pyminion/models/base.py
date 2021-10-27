@@ -1,7 +1,15 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Player, Trash, Game
-from pyminion.decisions import binary_decision, multiple_card_decision
-from pyminion.exceptions import InvalidBinaryInput, InvalidMultiCardInput
+from pyminion.decisions import (
+    binary_decision,
+    multiple_card_decision,
+    single_card_decision,
+)
+from pyminion.exceptions import (
+    InvalidBinaryInput,
+    InvalidMultiCardInput,
+    InvalidSingleCardInput,
+)
 
 import math
 
@@ -277,6 +285,38 @@ class Chapel(Action):
                 print(e)
 
 
+class Workshop(Action):
+    def __init__(
+        self,
+        name: str = "Workshop",
+        cost: int = 3,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
+
+    def play(self, player: Player, game: Game):
+        """
+        Gain a card costing up to 4 money
+
+        """
+        super().common_play(player)
+
+        while True:
+            try:
+                gain_card = single_card_decision(
+                    prompt="Gain a card costing up to 4 money",
+                    valid_cards=game.supply.avaliable_cards(),
+                )
+                if not gain_card:
+                    raise InvalidSingleCardInput("You must gain a card")
+                if gain_card.cost > 4:
+                    raise InvalidSingleCardInput("Card must cost less than 4 money")
+                player.gain(gain_card, game.supply)
+                return
+            except InvalidSingleCardInput as e:
+                print(e)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -293,3 +333,4 @@ market = Market()
 moneylender = Moneylender()
 cellar = Cellar()
 chapel = Chapel()
+workshop = Workshop()
