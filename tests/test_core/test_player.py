@@ -154,7 +154,7 @@ def test_player_cleanup(player: Player):
     assert len(player.playmat) > 0
     player.cleanup()
     assert len(player.discard_pile) == 5
-    assert len(player.hand) == 0
+    assert len(player.hand) == 5
     assert len(player.playmat) == 0
 
 

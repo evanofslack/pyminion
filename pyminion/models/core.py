@@ -113,7 +113,7 @@ class State:
     buys: int = 1
 
 
-class Player:
+class Player:  # todo try  Player(enum)
     """
     Collection of card piles associated with each player
 
@@ -175,12 +175,13 @@ class Player:
     def autoplay_treasures(self) -> None:
         i = 0  # Pythonic way to pop in loop?
         while i < len(self.hand):
-            if self.hand.cards[i].name == "Copper":
+            if self.hand.cards[i].type == "Treasure":
                 self.hand.cards[i].play(self)
             else:
                 i += 1
 
     def buy(self, card: Card, supply: "Supply") -> None:
+        assert isinstance(card, Card)
         if card.cost > self.state.money:
             raise InsufficientMoney(
                 f"{self.player_id}: Not enough money to buy {card.name}"
@@ -199,6 +200,7 @@ class Player:
         self.discard_pile.cards += self.playmat.cards
         self.hand.cards = []
         self.playmat.cards = []
+        self.draw(5)
 
     def trash(self, target_card: Card, trash: "Trash") -> None:
         for card in self.hand.cards:
@@ -265,6 +267,11 @@ class Game:
         self.supply = supply
         self.trash = trash
 
+    def start(self) -> None:
+        for player in self.players:
+            player.deck.shuffle()
+            player.draw(5)
+
     def is_over(self) -> bool:
         """
         The game is over if any 3 supply piles are empty or
@@ -303,7 +310,7 @@ class Game:
             score = player.get_victory_points()
             if score > high_score:
                 high_score = score
-                winner = player
+                winner = player  # todo try enum
 
             elif score == high_score:
                 if player.turns < winner.turns:
@@ -311,4 +318,4 @@ class Game:
                     tie = False
                 elif player.turns == winner.turns:
                     tie = True
-        return None if tie else winner  # TODO return just the players that tie
+        return None if tie else winner  # todo return just the players that tie
