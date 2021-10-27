@@ -122,16 +122,16 @@ class Player:
     def __init__(
         self,
         deck: Deck,
-        discard_pile: DiscardPile,
-        hand: Hand,
-        playmat: Playmat,
+        discard_pile: DiscardPile = None,
+        hand: Hand = None,
+        playmat: Playmat = None,
         state: State = None,
         player_id: str = None,
     ):
         self.deck = deck
-        self.discard_pile = discard_pile
-        self.hand = hand
-        self.playmat = playmat
+        self.discard_pile = discard_pile if discard_pile else DiscardPile()
+        self.hand = hand if hand else Hand()
+        self.playmat = playmat if playmat else Playmat()
         self.state = state if state else State()
         self.player_id = player_id
         self.turns: int = 0

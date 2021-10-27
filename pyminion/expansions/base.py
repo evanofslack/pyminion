@@ -46,6 +46,9 @@ kingdom_cards = kingdom_maker(
 )
 
 
-start_cards = [copper for x in range(START_COPPER)] + [
-    estate for x in range(START_ESTATE)
-]
+# start_cards = [copper for x in range(START_COPPER)] + [
+#     estate for x in range(START_ESTATE)
+# ]
+
+
+start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
