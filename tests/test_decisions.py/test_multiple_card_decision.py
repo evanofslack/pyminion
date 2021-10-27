@@ -39,7 +39,7 @@ def test_too_many_valid_cards(monkeypatch):
         multiple_card_decision(prompt="test", valid_cards=valid_cards)
 
 
-def test_confirm_case_insensetive(monkeypatch):
+def test_confirm_case_insensitive(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "Copper, copper, estate")
     cards = multiple_card_decision(prompt="test", valid_cards=valid_cards)
     assert len(cards) == 3
