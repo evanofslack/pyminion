@@ -223,10 +223,16 @@ def test_play_action_decrement_action(player: Player, game: Game):
     assert player.state.actions == 0
 
 
-def test_insufficents_actions(player: Player, game: Game):
+def test_insufficient_actions(player: Player, game: Game):
     player.hand.add(smithy)
     player.hand.add(smithy)
     player.hand.cards[0].play(player, game)
     assert player.state.actions == 0
     with pytest.raises(InsufficientActions):
         player.hand.cards[0].play(player, game)
+
+
+def test_player_gain_card(player: Player, supply: Supply):
+    player.gain(card=copper, supply=supply)
+    assert player.discard_pile.cards[0] == copper
+    assert len(player.discard_pile) == 1

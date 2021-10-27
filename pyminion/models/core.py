@@ -195,6 +195,10 @@ class Player:  # todo try  Player(enum)
         self.discard_pile.add(card)
         supply.gain_card(card)
 
+    def gain(self, card: Card, supply: "Supply") -> None:
+        gain_card = supply.gain_card(card)
+        self.discard_pile.add(gain_card)
+
     def cleanup(self) -> None:
         self.discard_pile.cards += self.hand.cards
         self.discard_pile.cards += self.playmat.cards
@@ -254,6 +258,14 @@ class Supply:
         for pile in self.piles:
             if card.name == pile.name:
                 pile.add(card)
+
+    def avaliable_cards(self) -> List[Card]:
+        """
+        Returns a list containing a single card from each non-empty pile in the supply
+
+        """
+        cards = [pile.cards[0] for pile in self.piles if pile]
+        return cards
 
 
 class Trash(AbstractDeck):
