@@ -25,7 +25,7 @@ def binary_decision(prompt: str) -> bool:
         raise InvalidBinaryInput("Invalid response, valid choices are 'y' or 'n'")
 
 
-def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[List[Card]]:
+def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[Card]:
     """
     Get user response when given the option to select one card
     Raise exception if user provided selection is not valid.
