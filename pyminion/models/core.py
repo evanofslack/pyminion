@@ -180,13 +180,8 @@ class Player:  # todo try  Player(enum)
             else:
                 i += 1
 
-        # while i < len(self.hand):
-        #     if self.hand.cards[i].name == "Copper":
-        #         self.hand.cards[i].play(self)
-        #     else:
-        #         i += 1
-
     def buy(self, card: Card, supply: "Supply") -> None:
+        assert isinstance(card, Card)
         if card.cost > self.state.money:
             raise InsufficientMoney(
                 f"{self.player_id}: Not enough money to buy {card.name}"
@@ -271,6 +266,11 @@ class Game:
         self.players = players
         self.supply = supply
         self.trash = trash
+
+    def start(self) -> None:
+        for player in self.players:
+            player.deck.shuffle()
+            player.draw(5)
 
     def is_over(self) -> bool:
         """

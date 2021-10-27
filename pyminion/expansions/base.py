@@ -18,11 +18,6 @@ SILVER_PILE = 40
 GOLD_PILE = 30
 VICTORY_PILE = 8
 
-START_COPPER = 7
-START_ESTATE = 3
-KINGDOM_PILE = 10
-
-
 copper_pile = pile_maker(card=copper, num_card=COPPER_PILE)
 silver_pile = pile_maker(card=silver, num_card=SILVER_PILE)
 gold_pile = pile_maker(card=gold, num_card=GOLD_PILE)
@@ -40,15 +35,12 @@ core_supply = [
     province_pile,
 ]
 
-
+KINGDOM_PILE = 10
 kingdom_cards = kingdom_maker(
     cards=[smithy, village, market, laboratory, moneylender], pile_length=KINGDOM_PILE
 )
 
 
-# start_cards = [copper for x in range(START_COPPER)] + [
-#     estate for x in range(START_ESTATE)
-# ]
-
-
+START_COPPER = 7
+START_ESTATE = 3
 start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
