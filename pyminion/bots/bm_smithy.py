@@ -1,4 +1,4 @@
-from pyminion.models.core import Player, Deck, Game, 
+from pyminion.models.core import Player, Deck, Game
 from pyminion.expansions.base import silver, gold, province, smithy
 
 
