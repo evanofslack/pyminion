@@ -3,10 +3,6 @@ from pyminion.models.core import (
     Supply,
     Player,
     Deck,
-    DiscardPile,
-    Hand,
-    Playmat,
-    Turn,
     Trash,
 )
 from pyminion.expansions.base import (
@@ -14,37 +10,44 @@ from pyminion.expansions.base import (
     core_supply,
     kingdom_cards,
 )
-from pyminion.models.base import estate, silver, moneylender, cellar, chapel, copper
-
-
-player_1 = Player(
-    deck=Deck(start_cards),
-    discard_pile=DiscardPile(),
-    hand=Hand(),
-    playmat=Playmat(),
-    player_id="player_1",
+from pyminion.models.base import (
+    estate,
+    silver,
+    moneylender,
+    cellar,
+    chapel,
+    copper,
+    gold,
+    province,
 )
 
+
+player = Player(
+    deck=Deck(start_cards),
+    player_id="player",
+)
 supply = Supply(piles=core_supply + kingdom_cards)
 trash = Trash()
-
-game = Game(players=[player_1], supply=supply, trash=trash)
+game = Game(players=[player], supply=supply, trash=trash)
 
 if __name__ == "__main__":
+    player.deck.shuffle()
+    player.draw(5)
 
-    turn = Turn(player=player_1)
-    player_1.deck.shuffle()
-    player_1.draw(5)
-    player_1.hand.add(chapel)
-    print(player_1.hand)
-    player_1.play(chapel, turn, game)
-    print(player_1.hand)
-    print(player_1.playmat)
-    print(player_1.discard_pile)
-    print(trash)
-    player_1.cleanup()
-    player_1.draw(5)
-    player_1.play(copper, turn, game)
+    while not game.is_over():
+        player.start_turn()
+        print(f"turns: {player.turns}")
+        print(f"hand: {player.hand}")
+
+        player.autoplay_treasures()
+        print(f"money: {player.state.money}")
+        if player.state.money >= 8:
+            player.buy(province, supply)
+        elif player.state.money >= 6:
+            player.buy(gold, supply)
+        elif player.state.money >= 3:
+            player.buy(silver, supply)
+        player.cleanup()
 
     """
     with StringIO('asdf') as f:
