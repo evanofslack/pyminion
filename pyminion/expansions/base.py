@@ -11,6 +11,9 @@ from pyminion.models.base import (
     laboratory,
     market,
     moneylender,
+    cellar,
+    chapel,
+    workshop,
 )
 
 COPPER_PILE = 60
@@ -37,7 +40,17 @@ core_supply = [
 
 KINGDOM_PILE = 10
 kingdom_cards = kingdom_maker(
-    cards=[smithy, village, market, laboratory, moneylender], pile_length=KINGDOM_PILE
+    cards=[
+        smithy,
+        village,
+        market,
+        laboratory,
+        moneylender,
+        cellar,
+        chapel,
+        workshop,
+    ],
+    pile_length=KINGDOM_PILE,
 )
 
 

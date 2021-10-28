@@ -13,16 +13,16 @@ class BM_Smithy(Player):
     def take_turn(self, game: Game):
 
         self.start_turn()
-        print(f"bot turns: {self.turns}")
+        # print(f"bot turns: {self.turns}")
 
         try:
             self.play(smithy, game)
-            print("bot played smithy")
+            # print("bot played smithy")
         except:
             pass
 
         self.autoplay_treasures()
-        print(f"bot money: {self.state.money}")
+        # print(f"bot money: {self.state.money}")
         if self.state.money >= 8:
             self.buy(province, game.supply)
         elif self.state.money >= 6:

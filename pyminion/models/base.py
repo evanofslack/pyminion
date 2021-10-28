@@ -304,7 +304,7 @@ class Workshop(Action):
         while True:
             try:
                 gain_card = single_card_decision(
-                    prompt="Gain a card costing up to 4 money",
+                    prompt="Gain a card costing up to 4 money: ",
                     valid_cards=game.supply.avaliable_cards(),
                 )
                 if not gain_card:
