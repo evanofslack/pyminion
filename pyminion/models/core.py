@@ -274,10 +274,10 @@ class Trash(AbstractDeck):
 
 
 class Game:
-    def __init__(self, players: List[Player], supply: Supply, trash: Trash):
+    def __init__(self, players: List[Player], supply: Supply, trash: Trash = None):
         self.players = players
         self.supply = supply
-        self.trash = trash
+        self.trash = trash if trash else Trash()
 
     def start(self) -> None:
         for player in self.players:
