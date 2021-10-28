@@ -35,7 +35,7 @@ class AbstractDeck:
 
     def __init__(self, cards: List[Card] = None):
         if cards:
-            self.cards = cards
+            self.cards = cards.copy()
         else:
             self.cards = []
 
