@@ -17,32 +17,29 @@ from pyminion.models.base import (
 )
 from pyminion.bots.big_money import BigMoney
 from pyminion.bots.bm_smithy import BM_Smithy
+from pyminion.bots.human import Human
 
 
-player = Player(
-    deck=Deck(start_cards),
-    player_id="player",
-)
+human = Human(deck=Deck(start_cards))
 bm = BigMoney(deck=Deck(start_cards))
 bm_smithy = BM_Smithy(deck=Deck(start_cards))
 
 supply = Supply(piles=core_supply + kingdom_cards)
 trash = Trash()
-game = Game(players=[bm, bm_smithy], supply=supply, trash=trash)
+game = Game(players=[bm, human], supply=supply, trash=trash)
 
 if __name__ == "__main__":
-
-    bm.deck.shuffle()
-    bm.draw(5)
-    bm_smithy.deck.shuffle()
-    bm_smithy.draw(5)
+    game.start()
     while not game.is_over():
 
         bm.take_turn(game)
-        bm_smithy.take_turn(game)
+        human.take_turn(game)
+        print(bm.deck)
+        print(human.deck)
 
     winner = game.get_winner()
-    print(winner.player_id)
+    print("Winner: ", winner.player_id)
+    print("Turns: ", winner.turns)
 
     """
     with StringIO('yup') as f:
