@@ -35,3 +35,22 @@ def test_pile_not_found(supply: Supply):
     fake_card = Card(name="fake", cost=0, type="test")
     with pytest.raises(PileNotFound):
         supply.gain_card(fake_card)
+
+
+def test_avaliable_cards(supply: Supply):
+    cards = supply.avaliable_cards()
+    assert len(cards) == len(supply)
+    assert estate in cards
+    for card in cards:
+        assert isinstance(card, Card)
+
+
+def test_avaliable_cards_empty_pile(supply: Supply):
+    for i in range(8):
+        supply.piles[0].remove(estate)
+
+    cards = supply.avaliable_cards()
+    assert len(cards) == 5
+    assert estate not in cards
+    for card in cards:
+        assert isinstance(card, Card)

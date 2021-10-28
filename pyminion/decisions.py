@@ -25,7 +25,7 @@ def binary_decision(prompt: str) -> bool:
         raise InvalidBinaryInput("Invalid response, valid choices are 'y' or 'n'")
 
 
-def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[List[Card]]:
+def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[Card]:
     """
     Get user response when given the option to select one card
     Raise exception if user provided selection is not valid.
@@ -33,7 +33,7 @@ def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[List[
     """
     card_input = input(prompt)
     if not card_input:
-        return
+        return False
 
     selected_card = None
     for card in valid_cards:
@@ -43,7 +43,7 @@ def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[List[
 
     if not selected_card:
         raise InvalidSingleCardInput(
-            f"Invalid input, {card_input} does not match any card in your hand"
+            f"Invalid input, {card_input} is not a valid selection"
         )
 
     return selected_card
@@ -81,6 +81,6 @@ def multiple_card_decision(
     for element in selected_count:
         if selected_count[element] > valid_count[element]:
             raise InvalidMultiCardInput(
-                f"Invalid input, attemped to drop too many copies of {element}"
+                f"Invalid input, attempted to drop too many copies of {element}"
             )
     return selected_cards
