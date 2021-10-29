@@ -4,6 +4,7 @@ from pyminion.decisions import (
     binary_decision,
     multiple_card_decision,
     single_card_decision,
+    validate_input,
 )
 from pyminion.exceptions import (
     InvalidBinaryInput,
@@ -194,23 +195,25 @@ class Moneylender(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         You may trash a copper from your hand for + 3 money
 
         """
         super().common_play(player)
         if copper in player.hand.cards:
-            while True:
-                try:
-                    if binary_decision(
-                        prompt="Do you want to trash a copper from your hand? y/n?"
-                    ):
-                        player.trash(target_card=copper, trash=game.trash)
-                        player.state.money += 3
-                    return
-                except InvalidBinaryInput as e:
-                    print(e)
+
+            @validate_input(exceptions=InvalidBinaryInput)
+            def trash_decision():
+
+                if binary_decision(
+                    prompt="Do you want to trash a copper from your hand? y/n?"
+                ):
+                    player.trash(target_card=copper, trash=game.trash)
+                    player.state.money += 3
+                return
+
+            return trash_decision()
 
 
 class Cellar(Action):
@@ -222,7 +225,7 @@ class Cellar(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         +1 Action
 
@@ -235,18 +238,19 @@ class Cellar(Action):
         if not player.hand.cards:
             return
 
-        while True:
-            try:
-                if discard_cards := multiple_card_decision(
-                    prompt="Enter the cards you would like to discard seperated by commas: ",
-                    valid_cards=player.hand.cards,
-                ):
-                    for card in discard_cards:
-                        player.discard(card)
-                    player.draw(len(discard_cards))
-                return
-            except InvalidMultiCardInput as e:
-                print(e)
+        @validate_input(exceptions=InvalidMultiCardInput)
+        def discard_decision() -> None:
+
+            if discard_cards := multiple_card_decision(
+                prompt="Enter the cards you would like to discard seperated by commas: ",
+                valid_cards=player.hand.cards,
+            ):
+                for card in discard_cards:
+                    player.discard(card)
+                player.draw(len(discard_cards))
+            return
+
+        return discard_decision()
 
 
 class Chapel(Action):
@@ -258,7 +262,7 @@ class Chapel(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         Trash up to 4 cards from your hand
 
@@ -268,21 +272,19 @@ class Chapel(Action):
         if not player.hand.cards:
             return
 
-        while True:
-            try:
-                if discard_cards := multiple_card_decision(
-                    prompt="Enter up to 4 cards you would like to trash from your hand: ",
-                    valid_cards=player.hand.cards,
-                ):
-                    if len(discard_cards) > 4:
-                        raise InvalidMultiCardInput(
-                            "You cannot trash more than 4 cards"
-                        )
-                    for card in discard_cards:
-                        player.trash(card, game.trash)
-                return
-            except InvalidMultiCardInput as e:
-                print(e)
+        @validate_input(exceptions=InvalidMultiCardInput)
+        def trash_decisions() -> None:
+            if discard_cards := multiple_card_decision(
+                prompt="Enter up to 4 cards you would like to trash from your hand: ",
+                valid_cards=player.hand.cards,
+            ):
+                if len(discard_cards) > 4:
+                    raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+                for card in discard_cards:
+                    player.trash(card, game.trash)
+            return
+
+        return trash_decisions()
 
 
 class Workshop(Action):
@@ -294,27 +296,27 @@ class Workshop(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         Gain a card costing up to 4 money
 
         """
         super().common_play(player)
 
-        while True:
-            try:
-                gain_card = single_card_decision(
-                    prompt="Gain a card costing up to 4 money: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-                if not gain_card:
-                    raise InvalidSingleCardInput("You must gain a card")
-                if gain_card.cost > 4:
-                    raise InvalidSingleCardInput("Card must cost less than 4 money")
-                player.gain(gain_card, game.supply)
-                return
-            except InvalidSingleCardInput as e:
-                print(e)
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def gain_decision() -> None:
+            gain_card = single_card_decision(
+                prompt="Gain a card costing up to 4 money: ",
+                valid_cards=game.supply.avaliable_cards(),
+            )
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Card must cost less than 4 money")
+            player.gain(gain_card, game.supply)
+            return
+
+        return gain_decision
 
 
 copper = Copper()
