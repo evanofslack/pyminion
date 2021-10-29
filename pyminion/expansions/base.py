@@ -15,6 +15,7 @@ from pyminion.models.base import (
     chapel,
     workshop,
 )
+from pyminion.models.core import Deck
 
 COPPER_PILE = 60
 SILVER_PILE = 40
@@ -57,3 +58,4 @@ kingdom_cards = kingdom_maker(
 START_COPPER = 7
 START_ESTATE = 3
 start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
+start_deck = Deck(cards=start_cards)
