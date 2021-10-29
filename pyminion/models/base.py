@@ -117,7 +117,7 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         +3 cards
 
@@ -136,7 +136,7 @@ class Village(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         +1 card, +2 actions
 
@@ -155,7 +155,7 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         +2 cards, +1 action
 
@@ -174,7 +174,7 @@ class Market(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game):
+    def play(self, player: Player, game: Game) -> None:
         """
         +1 card, +1 action, +1 money, +1 buy
 
@@ -204,8 +204,7 @@ class Moneylender(Action):
         if copper in player.hand.cards:
 
             @validate_input(exceptions=InvalidBinaryInput)
-            def trash_decision():
-
+            def trash_decision() -> None:
                 if binary_decision(
                     prompt="Do you want to trash a copper from your hand? y/n?"
                 ):
@@ -316,7 +315,7 @@ class Workshop(Action):
             player.gain(gain_card, game.supply)
             return
 
-        return gain_decision
+        return gain_decision()
 
 
 copper = Copper()
