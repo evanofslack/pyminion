@@ -137,6 +137,9 @@ class Player:  # todo try  Player(enum)
         self.turns: int = 0
         self.shuffles: int = 0
 
+    def __repr__(self):
+        return f"{self.player_id}"
+
     def start_turn(self):
         self.turns += 1
         self.state.actions = 1

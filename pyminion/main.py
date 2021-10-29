@@ -1,18 +1,17 @@
 from pyminion.models.core import (
     Game,
     Supply,
-    Deck,
 )
 from pyminion.expansions.base import (
-    start_cards,
+    start_deck,
     core_supply,
     kingdom_cards,
 )
 from pyminion.players import BigMoney, Human
 
 
-human = Human(deck=Deck(start_cards))
-bm = BigMoney(deck=Deck(start_cards))
+human = Human(deck=start_deck)
+bm = BigMoney(deck=start_deck)
 
 supply = Supply(piles=core_supply + kingdom_cards)
 game = Game(players=[bm, human], supply=supply)
@@ -24,6 +23,5 @@ if __name__ == "__main__":
         bm.take_turn(game)
         human.take_turn(game)
 
-    winner = game.get_winner()
-    print("Winner: ", winner.player_id)
-    print("Turns: ", winner.turns)
+    print("\nWinner: ", game.get_winner())
+    print("Turns: ", game.get_winner().turns)
