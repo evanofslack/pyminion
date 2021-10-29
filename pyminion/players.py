@@ -1,7 +1,7 @@
 from pyminion.models.core import Player, Deck, Game
 from pyminion.expansions.base import silver, gold, province, smithy
-from pyminion.decisions import single_card_decision
-from pyminion.exceptions import InvalidSingleCardInput
+from pyminion.decisions import single_card_decision, validate_input
+from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
 
 
 class Human(Player):
@@ -18,36 +18,30 @@ class Human(Player):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
+    @validate_input(exceptions=InvalidSingleCardInput)
     def choose_action(self, game: Game) -> bool:
         print(self.hand)
-        while True:  # todo this could be a decorator
-            try:
-                card = single_card_decision(
-                    prompt="Choose an action card to play: ",
-                    valid_cards=self.hand.cards,
-                )
-                if not card:
-                    return False
-                self.play(card, game)
-                print(f"{self.player_id} played {card}")
-                return True
-            except InvalidSingleCardInput as e:
-                print(e)
+        card = single_card_decision(
+            prompt="Choose an action card to play: ",
+            valid_cards=self.hand.cards,
+        )
+        if not card:
+            return False
+        self.play(card, game)
+        print(f"{self.player_id} played {card}")
+        return True
 
+    @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
     def choose_buy(self, game: Game) -> bool:
-        while True:
-            try:
-                card = single_card_decision(
-                    prompt="Choose a card to buy: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-                if not card:
-                    return False
-                self.buy(card, game.supply)
-                print(f"{self.player_id} bought {card}")
-                return True
-            except InvalidSingleCardInput as e:
-                print(e)
+        card = single_card_decision(
+            prompt="Choose a card to buy: ",
+            valid_cards=game.supply.avaliable_cards(),
+        )
+        if not card:
+            return False
+        self.buy(card, game.supply)
+        print(f"{self.player_id} bought {card}")
+        return True
 
     def take_turn(self, game: Game) -> None:
         self.start_turn()

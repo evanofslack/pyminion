@@ -5,8 +5,35 @@ from pyminion.exceptions import (
     InvalidSingleCardInput,
 )
 
-from typing import List, Optional
+from typing import List, Optional, Callable, Tuple, Type
 from collections import Counter
+import functools
+
+
+def validate_input(
+    func: Callable = None, exceptions: Tuple[Type[Exception], ...] = Exception
+):
+    """
+    Decorator to ensure that a user enters valid input when prompted.
+    If input is invalid, the error is printed to the terminal and the user is prompted again
+
+    Accepts a tuple of exceptions to catch
+
+    """
+    assert callable(func) or func is None
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    print(e)
+
+        return wrapper
+
+    return decorator(func) if callable(func) else decorator
 
 
 def binary_decision(prompt: str) -> bool:
