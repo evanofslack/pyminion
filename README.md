@@ -1,8 +1,6 @@
 # Pyminion
 
-Dominion the Card Game, but make it python
-
-This library is currently under development. Coming soon to a pip near you.
+Pyminion is a library for executing and analyzing games of [Dominion](https://www.riograndegames.com/games/dominion/). At its core, pyminion aims to implement the rules and logic of Dominion and provide an API to interact with the core game engine. In addition, it enables interactive games through the command line and simulation of games between bots.
 
 ## Table of Contents
 
