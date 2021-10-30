@@ -1,17 +1,14 @@
-from pyminion.models.core import (
-    Game,
-    Supply,
-)
+from pyminion.models.core import Game, Supply, Deck
 from pyminion.expansions.base import (
-    start_deck,
+    start_cards,
     core_supply,
     kingdom_cards,
 )
 from pyminion.players import BigMoney, Human
 
 
-human = Human(deck=start_deck)
-bm = BigMoney(deck=start_deck)
+human = Human(deck=Deck(start_cards))
+bm = BigMoney(deck=Deck(start_cards))
 
 supply = Supply(piles=core_supply + kingdom_cards)
 game = Game(players=[bm, human], supply=supply)

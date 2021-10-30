@@ -1,7 +1,6 @@
 from typing import List, Optional
 import random
 from dataclasses import dataclass
-from copy import deepcopy
 
 from pyminion.exceptions import (
     InsufficientMoney,
@@ -114,7 +113,7 @@ class State:
     buys: int = 1
 
 
-class Player:  # todo try  Player(enum)
+class Player:
     """
     Collection of card piles associated with each player
 
@@ -129,7 +128,7 @@ class Player:  # todo try  Player(enum)
         state: State = None,
         player_id: str = None,
     ):
-        self.deck = deepcopy(deck)  # Make deck unique to player
+        self.deck = deck
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
