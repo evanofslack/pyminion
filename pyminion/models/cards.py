@@ -36,7 +36,7 @@ class Action(Card):
         """
         raise NotImplementedError(f"Play method must be implemented for {self.name}")
 
-    def common_play(self, player: Player):
+    def generic_play(self, player: Player):
         """
         Generic play method that gets executes for all action cards
 

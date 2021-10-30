@@ -11,7 +11,7 @@ def test_action_common_play(player: Player):
 
     player.hand.add(action)
     assert len(player.hand) == 1
-    player.hand.cards[0].common_play(player)
+    player.hand.cards[0].generic_play(player)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
     assert type(player.playmat.cards[0]) is Action
@@ -20,8 +20,8 @@ def test_action_common_play(player: Player):
 
 def test_action_draw_no_actions(player: Player):
     player.hand.add(action)
-    player.hand.cards[0].common_play(player)
+    player.hand.cards[0].generic_play(player)
     player.hand.add(action)
 
     with pytest.raises(InsufficientActions):
-        player.hand.cards[-1].common_play(player)
+        player.hand.cards[-1].generic_play(player)
