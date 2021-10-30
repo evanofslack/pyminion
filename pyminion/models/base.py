@@ -318,6 +318,61 @@ class Workshop(Action):
         return gain_decision()
 
 
+class Festival(Action):
+    def __init__(
+        self,
+        name: str = "Festival",
+        cost: int = 5,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
+
+    def play(self, player: Player, game: Game) -> None:
+        """
+        + 2 actions, + 1 buy, + 2 money
+
+        """
+        super().common_play(player)
+        player.state.actions += 2
+        player.state.money += 2
+        player.state.buys += 1
+
+
+class Harbinger(Action):
+    def __init__(
+        self,
+        name: str = "Harbinger",
+        cost: int = 3,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
+
+    def play(self, player: Player, game: Game) -> None:
+        """
+        Look through your discard pile. You may put a card from it onto your deck
+
+        """
+        super().common_play(player)
+        player.state.actions += 1
+        player.draw()
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def topdeck() -> None:
+            if not player.discard_pile:
+                return
+            print(player.discard_pile)
+            topdeck = single_card_decision(
+                prompt="You may select a card from your discard pile to put onto your deck: ",
+                valid_cards=player.discard_pile.cards,
+            )
+            if not topdeck:
+                return
+            player.deck.add(player.discard_pile.remove(topdeck))
+            return
+
+        return topdeck()
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -335,3 +390,5 @@ moneylender = Moneylender()
 cellar = Cellar()
 chapel = Chapel()
 workshop = Workshop()
+festival = Festival()
+harbinger = Harbinger()
