@@ -236,3 +236,9 @@ def test_player_gain_card(player: Player, supply: Supply):
     player.gain(card=copper, supply=supply)
     assert player.discard_pile.cards[0] == copper
     assert len(player.discard_pile) == 1
+
+
+def test_player_draw_to_discard(player: Player):
+    assert len(player.discard_pile) == 0
+    player.draw(num_cards=1, destination=player.discard_pile)
+    assert len(player.discard_pile) == 1

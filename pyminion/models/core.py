@@ -146,7 +146,9 @@ class Player:
         self.state.money = 0
         self.state.buys = 1
 
-    def draw(self, num_cards: int = 1) -> None:
+    def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
+        if destination == None:
+            destination = self.hand
         for i in range(num_cards):
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
@@ -155,9 +157,9 @@ class Player:
             elif len(self.deck) == 0:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
-                self.hand.add(self.deck.draw())
+                destination.add(self.deck.draw())
             else:
-                self.hand.add(self.deck.draw())
+                destination.add(self.deck.draw())
 
     def discard(self, target_card: Card) -> None:
         for card in self.hand.cards:
