@@ -11,7 +11,6 @@ from pyminion.exceptions import (
     InvalidMultiCardInput,
     InvalidSingleCardInput,
 )
-
 import math
 
 
@@ -87,6 +86,20 @@ class Province(Victory):
 
     def score(self, player: Player) -> int:
         VICTORY_POINTS = 6
+        return VICTORY_POINTS
+
+
+class Curse(Victory):
+    def __init__(
+        self,
+        name: str = "Curse",
+        cost: int = 0,
+        type: str = "Curse",
+    ):
+        super().__init__(name, cost, type)
+
+    def score(self, player: Player) -> int:
+        VICTORY_POINTS = -1
         return VICTORY_POINTS
 
 
@@ -380,6 +393,7 @@ gold = Gold()
 estate = Estate()
 duchy = Duchy()
 province = Province()
+curse = Curse()
 gardens = Gardens()
 
 smithy = Smithy()

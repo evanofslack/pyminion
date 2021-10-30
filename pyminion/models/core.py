@@ -226,7 +226,7 @@ class Player:
     def get_victory_points(self):
         total_vp: int = 0
         for card in self.get_all_cards():
-            if card.type == "Victory":
+            if card.type == "Victory" or card.type == "Curse":
                 total_vp += card.score(self)
         return total_vp
 

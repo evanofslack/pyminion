@@ -6,6 +6,7 @@ from pyminion.models.base import (
     estate,
     duchy,
     province,
+    curse,
     smithy,
     village,
     laboratory,
@@ -21,6 +22,7 @@ from pyminion.models.base import (
 COPPER_PILE = 60
 SILVER_PILE = 40
 GOLD_PILE = 30
+CURSE_PILE = 10
 VICTORY_PILE = 8
 
 copper_pile = pile_maker(card=copper, num_card=COPPER_PILE)
@@ -29,6 +31,7 @@ gold_pile = pile_maker(card=gold, num_card=GOLD_PILE)
 estate_pile = pile_maker(card=estate, num_card=VICTORY_PILE)
 duchy_pile = pile_maker(card=duchy, num_card=VICTORY_PILE)
 province_pile = pile_maker(card=province, num_card=VICTORY_PILE)
+curse_pile = pile_maker(card=curse, num_card=CURSE_PILE)
 
 
 core_supply = [
@@ -38,6 +41,7 @@ core_supply = [
     estate_pile,
     duchy_pile,
     province_pile,
+    curse_pile,
 ]
 
 KINGDOM_PILE = 10
