@@ -1,5 +1,5 @@
 from pyminion.models.core import Player, Game
-from pyminion.models.base import Workshop, Copper, Estate, workshop, copper, estate
+from pyminion.models.base import Estate, workshop
 
 
 def test_workshop_gain_valid(player: Player, game: Game, monkeypatch):
