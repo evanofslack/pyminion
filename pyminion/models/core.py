@@ -167,15 +167,22 @@ class Player:
                 self.discard_pile.add(self.hand.remove(card))
                 return
 
-    def play(self, target_card: Card, game: "Game") -> None:
+    def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         for card in self.hand.cards:
             try:
                 if card == target_card:
-                    card.play(player=self, game=game)
+                    card.play(player=self, game=game, generic_play=generic_play)
                     return
             except:
                 raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
+
+    def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
+        try:
+            card.play(player=self, game=game, generic_play=generic_play)
+            # return
+        except:
+            raise InvalidCardPlay(f"Invalid play, cannot play {card}")
 
     def autoplay_treasures(self) -> None:
         i = 0  # Pythonic way to pop in loop?
