@@ -67,3 +67,9 @@ def test_topdeck_deck(deck: Deck):
     deck.add(estate)
     assert len(deck.cards) == 12
     assert type(deck.cards[-1]) is Estate
+
+
+def test_deck_remove(deck: Deck):
+    assert len(deck) == 10
+    deck.remove(copper)
+    assert len(deck) == 9

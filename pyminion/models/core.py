@@ -113,7 +113,7 @@ class State:
     buys: int = 1
 
 
-class Player:  # todo try  Player(enum)
+class Player:
     """
     Collection of card piles associated with each player
 
@@ -146,7 +146,9 @@ class Player:  # todo try  Player(enum)
         self.state.money = 0
         self.state.buys = 1
 
-    def draw(self, num_cards: int = 1) -> None:
+    def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
+        if destination == None:
+            destination = self.hand
         for i in range(num_cards):
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
@@ -155,9 +157,9 @@ class Player:  # todo try  Player(enum)
             elif len(self.deck) == 0:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
-                self.hand.add(self.deck.draw())
+                destination.add(self.deck.draw())
             else:
-                self.hand.add(self.deck.draw())
+                destination.add(self.deck.draw())
 
     def discard(self, target_card: Card) -> None:
         for card in self.hand.cards:
@@ -165,15 +167,22 @@ class Player:  # todo try  Player(enum)
                 self.discard_pile.add(self.hand.remove(card))
                 return
 
-    def play(self, target_card: Card, game: "Game") -> None:
+    def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         for card in self.hand.cards:
             try:
                 if card == target_card:
-                    card.play(player=self, game=game)
+                    card.play(player=self, game=game, generic_play=generic_play)
                     return
             except:
                 raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
+
+    def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
+        try:
+            card.play(player=self, game=game, generic_play=generic_play)
+            # return
+        except:
+            raise InvalidCardPlay(f"Invalid play, cannot play {card}")
 
     def autoplay_treasures(self) -> None:
         i = 0  # Pythonic way to pop in loop?
@@ -226,7 +235,7 @@ class Player:  # todo try  Player(enum)
     def get_victory_points(self):
         total_vp: int = 0
         for card in self.get_all_cards():
-            if card.type == "Victory":
+            if card.type == "Victory" or card.type == "Curse":
                 total_vp += card.score(self)
         return total_vp
 
