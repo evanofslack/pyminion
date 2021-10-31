@@ -54,3 +54,15 @@ def test_avaliable_cards_empty_pile(supply: Supply):
     assert estate not in cards
     for card in cards:
         assert isinstance(card, Card)
+
+
+def test_empty_piles(supply: Supply):
+    for i in range(8):
+        supply.gain_card(card=estate)
+    assert supply.num_empty_piles() == 1
+    for i in range(8):
+        supply.gain_card(card=duchy)
+    assert supply.num_empty_piles() == 2
+    for i in range(30):
+        supply.gain_card(card=gold)
+    assert supply.num_empty_piles() == 3

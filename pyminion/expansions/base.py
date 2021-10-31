@@ -18,6 +18,8 @@ from pyminion.models.base import (
     festival,
     harbinger,
     vassal,
+    artisan,
+    poacher,
 )
 
 COPPER_PILE = 60
@@ -59,6 +61,8 @@ kingdom_cards = kingdom_maker(
         festival,
         harbinger,
         vassal,
+        artisan,
+        poacher,
     ],
     pile_length=KINGDOM_PILE,
 )
