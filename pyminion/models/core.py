@@ -147,7 +147,7 @@ class Player:
         self.state.buys = 1
 
     def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
-        if destination == None:
+        if destination is None:
             destination = self.hand
         for i in range(num_cards):
             # Both deck and discard empty -> do nothing
@@ -207,9 +207,14 @@ class Player:
         self.discard_pile.add(card)
         supply.gain_card(card)
 
-    def gain(self, card: Card, supply: "Supply") -> None:
+    def gain(
+        self, card: Card, supply: "Supply", destination: AbstractDeck = None
+    ) -> None:
+        if destination is None:
+            destination = self.discard_pile
+
         gain_card = supply.gain_card(card)
-        self.discard_pile.add(gain_card)
+        destination.add(gain_card)
 
     def cleanup(self) -> None:
         self.discard_pile.cards += self.hand.cards
@@ -278,6 +283,17 @@ class Supply:
         """
         cards = [pile.cards[0] for pile in self.piles if pile]
         return cards
+
+    def num_empty_piles(self) -> int:
+        """
+        Returns the number of empty piles in the supply
+
+        """
+        empty_piles: int = 0
+        for pile in self.piles:
+            if len(pile) == 0:
+                empty_piles += 1
+        return empty_piles
 
 
 class Trash(AbstractDeck):
