@@ -454,6 +454,96 @@ class Vassal(Action):
         play()
 
 
+class Artisan(Action):
+    def __init__(
+        self,
+        name: str = "Artisan",
+        cost: int = 6,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
+
+    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        """
+        Gain a card to your hand costing up to 5 money.
+
+        Put a card from your hand onto your deck
+
+        """
+        if generic_play:
+            super().generic_play(player)
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def gain_decision() -> None:
+            gain_card = single_card_decision(
+                prompt="Gain a card costing up to 5 money: ",
+                valid_cards=game.supply.avaliable_cards(),
+            )
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > 5:
+                raise InvalidSingleCardInput("Card must cost less than 5 money")
+            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
+            return
+
+        gain_decision()
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def topdeck_decision() -> None:
+            topdeck_card = single_card_decision(
+                prompt="Put a card from your hand onto your deck: ",
+                valid_cards=player.hand.cards,
+            )
+            if not topdeck_card:
+                raise InvalidSingleCardInput("You must put a card onto your deck")
+            for card in player.hand.cards:
+                if card == topdeck_card:
+                    player.deck.add(player.hand.remove(card))
+                    return
+
+        return topdeck_decision()
+
+
+class Poacher(Action):
+    def __init__(
+        self,
+        name: str = "Poacher",
+        cost: int = 4,
+        type: str = "Action",
+    ):
+        super().__init__(name, cost, type)
+
+    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        """
+        +1 card, +1 action, + 1 money
+
+        Discard a card per empty Supply pile
+
+        """
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw()
+        player.state.actions += 1
+        player.state.money += 1
+
+        if game.supply.num_empty_piles == 0:
+            return
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def discard() -> None:
+            discard_card = single_card_decision(
+                prompt=" Discard a card from your hand: ", valid_cards=player.hand.cards
+            )
+            if not discard_card:
+                raise InvalidSingleCardInput("You must discard a card")
+            player.discard(discard_card)
+            return
+
+        for i in range(game.supply.num_empty_piles()):
+            discard()
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -475,3 +565,5 @@ workshop = Workshop()
 festival = Festival()
 harbinger = Harbinger()
 vassal = Vassal()
+artisan = Artisan()
+poacher = Poacher()
