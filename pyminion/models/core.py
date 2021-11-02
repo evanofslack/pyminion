@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import random
 from dataclasses import dataclass
 
@@ -8,7 +8,10 @@ from pyminion.exceptions import (
     PileNotFound,
     EmptyPile,
     InvalidCardPlay,
+    InvalidPlayerCount,
+    InvalidGameSetup,
 )
+import copy
 
 
 class Card:
@@ -35,7 +38,7 @@ class AbstractDeck:
 
     def __init__(self, cards: List[Card] = None):
         if cards:
-            self.cards = cards.copy()
+            self.cards = cards
         else:
             self.cards = []
 
@@ -58,7 +61,7 @@ class AbstractDeck:
 
 
 class Deck(AbstractDeck):
-    def __init__(self, cards: List[Card]):
+    def __init__(self, cards: List[Card] = None):
         super().__init__(cards)
 
     def draw(self) -> Card:
@@ -121,14 +124,14 @@ class Player:
 
     def __init__(
         self,
-        deck: Deck,
+        deck: Deck = None,
         discard_pile: DiscardPile = None,
         hand: Hand = None,
         playmat: Playmat = None,
         state: State = None,
         player_id: str = None,
     ):
-        self.deck = deck
+        self.deck = deck if deck else Deck()
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
@@ -302,13 +305,97 @@ class Trash(AbstractDeck):
 
 
 class Game:
-    def __init__(self, players: List[Player], supply: Supply, trash: Trash = None):
+    def __init__(
+        self,
+        players: List[Player],
+        expansions: List[List[Card]],
+        basic_cards: List[Card] = None,
+        start_cards: List[Card] = None,
+        kingdom_cards: List[Card] = None,
+    ):
+        if len(players) < 1:
+            raise InvalidPlayerCount("Game must have at least one player")
+        if len(players) > 4:
+            raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
-        self.supply = supply
-        self.trash = trash if trash else Trash()
+        self.expansions = expansions
+        self.basic_cards = basic_cards
+        self.start_cards = start_cards
+        self.kingdom_cards = kingdom_cards
+        self.trash = Trash()
+
+    def _create_supply(self) -> Supply:
+        """
+        Create the supply. The supply consists of two parts.
+
+        1.) The basic card piles avaliable in every game of dominion
+        2.) The kingdom cards, a set of 10 piles of cards that change from game to game
+
+        Returns a fully populated supply
+
+        """
+
+        if len(self.players) == 1:
+            VICTORY_LENGTH = 5
+            CURSE_LENGTH = 10
+            COPPER_LENGTH = 53
+
+        if len(self.players) == 2:
+            VICTORY_LENGTH = 8
+            CURSE_LENGTH = 10
+            COPPER_LENGTH = 46
+
+        elif len(self.players) == 3:
+            VICTORY_LENGTH = 12
+            CURSE_LENGTH = 20
+            COPPER_LENGTH = 39
+
+        elif len(self.players) == 4:
+            VICTORY_LENGTH = 12
+            CURSE_LENGTH = 30
+            COPPER_LENGTH = 32
+
+        SILVER_LENGTH = 40
+        GOLD_LENGTH = 30
+
+        basic_piles = []
+        for card in self.basic_cards:
+            if card.name == "Copper":
+                basic_piles.append(Pile([card] * COPPER_LENGTH))
+            elif card.name == "Silver":
+                basic_piles.append(Pile([card] * SILVER_LENGTH))
+            elif card.name == "Gold":
+                basic_piles.append(Pile([card] * GOLD_LENGTH))
+            elif card.type == "Victory":
+                basic_piles.append(Pile([card] * VICTORY_LENGTH))
+            elif card.name == "Curse":
+                basic_piles.append(Pile([card] * CURSE_LENGTH))
+            else:
+                raise InvalidGameSetup(f"Invalid basic card: {card}")
+
+        PILE_LENGTH: int = 10
+        KINGDOM_PILES: int = 10
+
+        # If user chooses kingdom cards, put them in the supply
+        chosen_cards = len(self.kingdom_cards) if self.kingdom_cards else 0
+        chosen_piles = (
+            [Pile([card] * PILE_LENGTH) for card in self.kingdom_cards]
+            if chosen_cards
+            else []
+        )
+        # The rest of the supply is random cards
+        kingdom_options = [card for expansion in self.expansions for card in expansion]
+        for card in self.kingdom_cards:
+            kingdom_options.remove(card)  # Do not duplicate any user chosen cards
+        kingdom_ten = random.sample(kingdom_options, KINGDOM_PILES - chosen_cards)
+        random_piles = [Pile([card] * PILE_LENGTH) for card in kingdom_ten]
+
+        return Supply(basic_piles + chosen_piles + random_piles)
 
     def start(self) -> None:
+        self.supply = self._create_supply()
         for player in self.players:
+            player.deck = Deck(copy.deepcopy(self.start_cards))
             player.deck.shuffle()
             player.draw(5)
 
@@ -350,7 +437,7 @@ class Game:
             score = player.get_victory_points()
             if score > high_score:
                 high_score = score
-                winner = player  # todo try enum
+                winner = player
 
             elif score == high_score:
                 if player.turns < winner.turns:

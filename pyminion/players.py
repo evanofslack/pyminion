@@ -13,7 +13,7 @@ class Human(Player):
 
     def __init__(
         self,
-        deck: Deck,
+        deck: Deck = None,
         player_id: str = "human",
     ):
         super().__init__(deck=deck, player_id=player_id)
@@ -71,7 +71,7 @@ class BigMoney(Player):
 
     def __init__(
         self,
-        deck: Deck,
+        deck: Deck = None,
         player_id: str = "big_money",
     ):
         super().__init__(deck=deck, player_id=player_id)
@@ -97,7 +97,7 @@ class BM_Smithy(Player):
 
     def __init__(
         self,
-        deck: Deck,
+        deck: Deck = None,
         player_id: str = "bm_smithy",
     ):
         super().__init__(deck=deck, player_id=player_id)

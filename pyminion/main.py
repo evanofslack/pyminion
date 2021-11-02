@@ -1,23 +1,34 @@
-from pyminion.models.core import Game, Supply, Deck
+from pyminion.models.core import Game
 from pyminion.expansions.base import (
     start_cards,
-    core_supply,
-    kingdom_cards,
+    base_cards,
+    basic_cards,
+    vassal,
+    chapel,
 )
 from pyminion.players import BigMoney, Human
 
+human = Human()
+bot = BigMoney()
 
-human = Human(deck=Deck(start_cards))
-bm = BigMoney(deck=Deck(start_cards))
+players = [bot, human]
+expansions = [base_cards]
 
-supply = Supply(piles=core_supply + kingdom_cards)
-game = Game(players=[bm, human], supply=supply)
+
+game = Game(
+    players,
+    expansions,
+    basic_cards,
+    start_cards,
+    kingdom_cards=[vassal],
+)
+
 
 if __name__ == "__main__":
     game.start()
     while not game.is_over():
 
-        bm.take_turn(game)
+        bot.take_turn(game)
         human.take_turn(game)
 
     print("\nWinner: ", game.get_winner())
