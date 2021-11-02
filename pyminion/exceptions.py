@@ -66,3 +66,17 @@ class InvalidMultiCardInput(InvalidInput):
     Invalid response, that input cannot be discarded
 
     """
+
+
+class InvalidPlayerCount(Exception):
+    """
+    Invalid number of players in game
+
+    """
+
+
+class InvalidGameSetup(Exception):
+    """
+    Invalid game setup
+
+    """
