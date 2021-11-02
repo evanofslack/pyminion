@@ -1,6 +1,16 @@
 import pytest
 
-from pyminion.expansions.base import copper, silver, gold, estate, duchy, province
+from pyminion.expansions.base import (
+    start_cards,
+    base_cards,
+    basic_cards,
+    copper,
+    estate,
+    duchy,
+    province,
+    silver,
+    gold,
+)
 from pyminion.models.core import (
     Pile,
     Deck,
@@ -50,18 +60,31 @@ def supply():
 
 
 @pytest.fixture
-def game(player, supply, trash):
-    game = Game(players=[player], supply=supply, trash=trash)
+def game(player):
+    game = Game(
+        players=[player],
+        expansions=[base_cards],
+        basic_cards=basic_cards,
+        start_cards=start_cards,
+    )
+    game.supply = game._create_supply()
     return game
 
 
 @pytest.fixture
-def multiplayer_game(player, supply, trash):
+def multiplayer_game(player, supply):
 
     player2 = Player(
         deck=Deck(start_cards),
         player_id="Test_2",
     )
 
-    game = Game(players=[player, player2], supply=supply, trash=trash)
+    game = Game(
+        players=[player, player2],
+        expansions=[base_cards],
+        basic_cards=basic_cards,
+        start_cards=start_cards,
+    )
+    game.supply = game._create_supply()
+
     return game

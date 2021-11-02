@@ -14,4 +14,4 @@ def test_workshop_gain_valid(player: Player, game: Game, monkeypatch):
     assert len(player.discard_pile) == 1
     assert player.state.actions == 0
     assert type(player.discard_pile.cards[0]) is Estate
-    assert len(game.supply.piles[0]) == 7
+    assert len(game.supply.piles[3]) == 4

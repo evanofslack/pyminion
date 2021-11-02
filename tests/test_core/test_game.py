@@ -1,5 +1,4 @@
 from pyminion.models.core import (
-    Player,
     Supply,
     Trash,
     Game,
@@ -14,12 +13,8 @@ def test_game_fixture(game: Game):
     assert not game.trash
 
 
-def test_create_game_one_player(player: Player, trash: Trash, supply: Supply):
-    game = Game(players=[player], supply=supply, trash=trash)
-    assert len(game.players) == 1
-    assert isinstance(game.supply, Supply)
-    assert isinstance(game.trash, Trash)
-    assert not game.trash
+def test_game_create_supply(game: Game):
+    assert len(game.supply.piles) == 17
 
 
 def test_game_is_over_false(game: Game):
