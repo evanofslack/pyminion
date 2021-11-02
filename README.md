@@ -22,17 +22,20 @@ python3 -m pip install pyminion
 To play a game against a bot through the command line:
 
 ```python
-from pyminion.expansions.base import start_cards, core_supply, kingdom_cards
-from pyminion.players import BigMoney, Human, Deck
-from pyminion.models.core import Game, Supply
+from pyminion.expansions.base import start_cards, base_cards, basic_cards
+from pyminion.players import BigMoney, Human
+from pyminion.models.core import Game
 
 # Initialize player and bot
-human = Human(deck=Deck(start_cards))
-bot = BigMoney(deck=Deck(start_cards))
+human = Human()
+bot = BigMoney()
+players = [human, bot]
+
+# Choose expansions to play with
+expansions = [base_cards]
 
 # Setup the game
-supply = Supply(piles=core_supply + kingdom_cards)
-game = Game(players=[bot, human], supply=supply)
+game = Game(players, expansions, basic_cards, start_cards)
 
 # Play game
 game.start()
