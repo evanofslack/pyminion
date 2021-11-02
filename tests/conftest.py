@@ -66,7 +66,6 @@ def game(player):
         expansions=[base_cards],
         basic_cards=basic_cards,
         start_cards=start_cards,
-        random_kingdom=True,
     )
     game.supply = game._create_supply()
     return game
@@ -85,7 +84,6 @@ def multiplayer_game(player, supply):
         expansions=[base_cards],
         basic_cards=basic_cards,
         start_cards=start_cards,
-        random_kingdom=True,
     )
     game.supply = game._create_supply()
 

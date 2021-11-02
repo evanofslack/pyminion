@@ -385,8 +385,9 @@ class Game:
         )
         # The rest of the supply is random cards
         kingdom_options = [card for expansion in self.expansions for card in expansion]
-        for card in self.kingdom_cards:
-            kingdom_options.remove(card)  # Do not duplicate any user chosen cards
+        if chosen_cards:
+            for card in self.kingdom_cards:
+                kingdom_options.remove(card)  # Do not duplicate any user chosen cards
         kingdom_ten = random.sample(kingdom_options, KINGDOM_PILES - chosen_cards)
         random_piles = [Pile([card] * PILE_LENGTH) for card in kingdom_ten]
 
