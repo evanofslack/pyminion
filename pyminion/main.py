@@ -3,8 +3,6 @@ from pyminion.expansions.base import (
     start_cards,
     base_cards,
     basic_cards,
-    vassal,
-    chapel,
 )
 from pyminion.players import BigMoney, Human
 
@@ -20,7 +18,6 @@ game = Game(
     expansions,
     basic_cards,
     start_cards,
-    kingdom_cards=[vassal],
 )
 
 
