@@ -80,10 +80,10 @@ def test_draw_multiple(player: Player):
     assert len(player.deck) == 7
 
 
-def test_play_copper(player: Player):
+def test_play_copper(player: Player, game: Game):
     player.hand.add(copper)
     assert len(player.hand) == 1
-    player.hand.cards[0].play(player)
+    player.hand.cards[0].play(player, game)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
 
@@ -104,20 +104,6 @@ def test_player_play_invalid_play(player: Player, game: Game):
 def test_player_play_not_in_hand(player: Player, game: Game):
     with pytest.raises(InvalidCardPlay):
         player.play(target_card=smithy, game=game)
-
-
-def test_autoplay_treasures(player: Player):
-    for i in range(3):
-        player.hand.add(estate)
-        player.hand.add(copper)
-        player.hand.add(copper)
-    assert len(player.hand) == 9
-
-    player.autoplay_treasures()
-
-    assert len(player.hand) == 3
-    assert len(player.playmat) == 6
-    assert player.state.money == 6
 
 
 def test_buy_card_add_to_discard_pile(player: Player, supply: Supply):
@@ -143,19 +129,6 @@ def test_buy_insufficient_buys(player: Player, supply: Supply):
 def test_buy_insufficient_money(player: Player, supply: Supply):
     with pytest.raises(InsufficientMoney):
         player.buy(estate, supply)
-
-
-def test_player_cleanup(player: Player):
-    player.draw(5)
-    assert len(player.hand) == 5
-    assert len(player.discard_pile) == 0
-    assert len(player.playmat) == 0
-    player.autoplay_treasures()
-    assert len(player.playmat) > 0
-    player.cleanup()
-    assert len(player.discard_pile) == 5
-    assert len(player.hand) == 5
-    assert len(player.playmat) == 0
 
 
 def test_player_trash(player: Player, trash: Trash):
@@ -209,10 +182,10 @@ def test_player_get_vp(player: Player):
     assert player.get_victory_points() == 14
 
 
-def test_play_treasure_increment_money(player: Player):
+def test_play_treasure_increment_money(player: Player, game: Game):
     player.hand.add(copper)
     assert player.state.money == 0
-    player.hand.cards[0].play(player)
+    player.hand.cards[0].play(player, game)
     assert player.state.money == 1
 
 
