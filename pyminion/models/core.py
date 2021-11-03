@@ -143,12 +143,6 @@ class Player:
     def __repr__(self):
         return f"{self.player_id}"
 
-    def start_turn(self):
-        self.turns += 1
-        self.state.actions = 1
-        self.state.money = 0
-        self.state.buys = 1
-
     def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
         if destination is None:
             destination = self.hand
@@ -173,7 +167,7 @@ class Player:
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         for card in self.hand.cards:
             try:
-                if card == target_card:
+                if card == target_card and card.type == "Action":
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
             except:
@@ -182,18 +176,12 @@ class Player:
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
         try:
-            card.play(player=self, game=game, generic_play=generic_play)
-            # return
+            if card.type == "Action":
+                card.play(player=self, game=game, generic_play=generic_play)
+            elif card.type == "Treasure":
+                card.play(player=self, game=game)
         except:
             raise InvalidCardPlay(f"Invalid play, cannot play {card}")
-
-    def autoplay_treasures(self) -> None:
-        i = 0  # Pythonic way to pop in loop?
-        while i < len(self.hand):
-            if self.hand.cards[i].type == "Treasure":
-                self.hand.cards[i].play(self)
-            else:
-                i += 1
 
     def buy(self, card: Card, supply: "Supply") -> None:
         assert isinstance(card, Card)
@@ -218,13 +206,6 @@ class Player:
 
         gain_card = supply.gain_card(card)
         destination.add(gain_card)
-
-    def cleanup(self) -> None:
-        self.discard_pile.cards += self.hand.cards
-        self.discard_pile.cards += self.playmat.cards
-        self.hand.cards = []
-        self.playmat.cards = []
-        self.draw(5)
 
     def trash(self, target_card: Card, trash: "Trash") -> None:
         for card in self.hand.cards:
