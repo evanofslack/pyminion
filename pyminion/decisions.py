@@ -5,7 +5,7 @@ from pyminion.exceptions import (
     InvalidSingleCardInput,
 )
 
-from typing import List, Optional, Callable, Tuple, Type
+from typing import List, Optional, Callable, Tuple, Type, Union
 from collections import Counter
 import functools
 
@@ -52,15 +52,24 @@ def binary_decision(prompt: str) -> bool:
         raise InvalidBinaryInput("Invalid response, valid choices are 'y' or 'n'")
 
 
-def single_card_decision(prompt: str, valid_cards: List[Card]) -> Optional[Card]:
+def single_card_decision(
+    prompt: str, valid_cards: List[Card], valid_mixin: str = "placeholder"
+) -> Optional[Union[Card, str]]:
     """
     Get user response when given the option to select one card
+
+    valid_mixin allows for options other than a card to be selected i.e. "auto"
+    to autoplay treasures when deciding treasures to play
+
     Raise exception if user provided selection is not valid.
 
     """
     card_input = input(prompt)
     if not card_input:
         return False
+
+    if card_input == valid_mixin:
+        return valid_mixin
 
     selected_card = None
     for card in valid_cards:
