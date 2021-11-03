@@ -20,9 +20,11 @@ class Treasure(Card):
         self.money = money
 
     def play(self, player: Player):
-        player.state.money += self.money
-        player.playmat.add(self)
-        player.hand.remove(self)
+        """
+        Specific play method unique to each treasure card
+
+        """
+        raise NotImplementedError(f"Play method must be implemented for {self.name}")
 
 
 class Action(Card):

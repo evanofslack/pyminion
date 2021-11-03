@@ -24,6 +24,11 @@ class Copper(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
+    def play(self, player: Player, game: Game) -> int:
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
+
 
 class Silver(Treasure):
     def __init__(
@@ -35,6 +40,11 @@ class Silver(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
+    def play(self, player: Player, game: Game) -> int:
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
+
 
 class Gold(Treasure):
     def __init__(
@@ -45,6 +55,11 @@ class Gold(Treasure):
         money: int = 3,
     ):
         super().__init__(name, cost, type, money)
+
+    def play(self, player: Player, game: Game) -> int:
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
 
 
 class Estate(Victory):
