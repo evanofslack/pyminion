@@ -4,6 +4,34 @@ from pyminion.decisions import single_card_decision, validate_input
 from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
 import sys
 from io import StringIO
+from typing import List
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def input_redirect(input: str):
+    saved_input = sys.stdin
+    sys.stdin = StringIO(input)
+    yield
+    sys.stdin = saved_input
+
+
+class InputRedirect:
+    """
+    Context manager to mock the input() calls required to make decisions
+
+    """
+
+    def __init__(self, input: str):
+        self.input = input
+
+    def __enter__(self):
+        self.saved_input = sys.stdin
+        sys.stdin = StringIO(self.input)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdin = self.saved_input
 
 
 class Human(Player):
@@ -127,12 +155,8 @@ class BigMoney(Human):
     def take_turn(self, game: Game):
         self.start_turn()
         self.start_action_phase(game)
-
-        with StringIO("all") as input:
-            stdin = sys.stdin
-            sys.stdin = input
+        with input_redirect(input="all"):
             self.start_treasure_phase(game)
-            sys.stdin = stdin
 
         if self.state.money >= 8:
             buy_card = "Province"
@@ -140,11 +164,9 @@ class BigMoney(Human):
             buy_card = "Gold"
         elif self.state.money >= 3:
             buy_card = "Silver"
-
-        with StringIO(buy_card) as input:
-            stdin = sys.stdin
-            sys.stdin = input
+        else:
+            buy_card = None
+        with InputRedirect(input=buy_card):
             self.start_buy_phase(game)
-            sys.stdin = stdin
 
         self.start_cleanup_phase()
