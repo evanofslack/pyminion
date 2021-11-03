@@ -2,6 +2,8 @@ from pyminion.models.core import Player, Deck, Game
 from pyminion.expansions.base import silver, gold, province, smithy
 from pyminion.decisions import single_card_decision, validate_input
 from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
+import sys
+from io import StringIO
 
 
 class Human(Player):
@@ -18,52 +20,98 @@ class Human(Player):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    @validate_input(exceptions=InvalidSingleCardInput)
-    def choose_action(self, game: Game) -> bool:
-        print(self.hand)
-        card = single_card_decision(
-            prompt="Choose an action card to play: ",
-            valid_cards=self.hand.cards,
-        )
-        if not card:
-            return False
-        self.play(card, game)
-        print(f"{self.player_id} played {card}")
-        return True
+    def start_turn(self):
+        print(f"\nTurn {self.turns} ({self.player_id})")
+        self.turns += 1
+        self.state.actions = 1
+        self.state.money = 0
+        self.state.buys = 1
 
-    @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
-    def choose_buy(self, game: Game) -> bool:
-        card = single_card_decision(
-            prompt="Choose a card to buy: ",
-            valid_cards=game.supply.avaliable_cards(),
-        )
-        if not card:
-            return False
-        self.buy(card, game.supply)
-        print(f"{self.player_id} bought {card}")
-        return True
+    def start_action_phase(self, game: Game):
+        viable_actions = [card for card in self.hand.cards if card.type == "Action"]
+        while viable_actions and self.state.actions:
+
+            @validate_input(exceptions=InvalidSingleCardInput)
+            def choose_action(game: Game) -> bool:
+                print(self.hand)
+                card = single_card_decision(
+                    prompt="Choose an action card to play: ",
+                    valid_cards=viable_actions,
+                )
+                if not card:
+                    return False
+                self.play(card, game)
+                print(f"{self.player_id} played {card}")
+                viable_actions.remove(card)
+                return True
+
+            if not choose_action(game):
+                return
+
+    def start_treasure_phase(self, game: Game):
+        viable_treasures = [card for card in self.hand.cards if card.type == "Treasure"]
+        while viable_treasures:
+
+            @validate_input(exceptions=InvalidSingleCardInput)
+            def choose_treasure(game: Game):
+                print(self.hand)
+                card = single_card_decision(
+                    prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
+                    valid_cards=viable_treasures,
+                    valid_mixin="all",
+                )
+                if not card:
+                    return False
+                if card == "all":
+                    i = 0
+                    while i < len(viable_treasures):
+                        self.exact_play(viable_treasures[i], game)
+                        viable_treasures.remove(viable_treasures[i])
+                    return True
+                self.exact_play(card, game)
+                print(f"{self.player_id} played {card}")
+                viable_treasures.remove(card)
+                return True
+
+            if not choose_treasure(game):
+                return
+
+    def start_buy_phase(self, game: Game):
+        while self.state.buys and self.state.money:
+            print("Money: ", self.state.money)
+            print("Buys: ", self.state.buys)
+
+            @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
+            def choose_buy(game: Game) -> bool:
+                card = single_card_decision(
+                    prompt="Choose a card to buy: ",
+                    valid_cards=game.supply.avaliable_cards(),
+                )
+                if not card:
+                    return False
+                self.buy(card, game.supply)
+                print(f"{self.player_id} bought {card}")
+                return True
+
+            if not choose_buy(game):
+                return
+
+    def start_cleanup_phase(self):
+        self.discard_pile.cards += self.hand.cards
+        self.discard_pile.cards += self.playmat.cards
+        self.hand.cards = []
+        self.playmat.cards = []
+        self.draw(5)
 
     def take_turn(self, game: Game) -> None:
         self.start_turn()
-        print("\nTurn: ", self.turns)
-        play_actions = True
-        while play_actions:
-            print("Actions: ", self.state.actions)
-            play_actions = self.choose_action(game)
-            if self.state.actions < 1:
-                break
-        self.autoplay_treasures()
-        make_buys = True
-        while make_buys:
-            print("\nMoney: ", self.state.money)
-            print("Buys: ", self.state.buys)
-            make_buys = self.choose_buy(game)
-            if self.state.buys < 1:
-                break
-        self.cleanup()
+        self.start_action_phase(game)
+        self.start_treasure_phase(game)
+        self.start_buy_phase(game)
+        self.start_cleanup_phase()
 
 
-class BigMoney(Player):
+class BigMoney(Human):
     """
     Only buys money and provinces
 
@@ -78,46 +126,25 @@ class BigMoney(Player):
 
     def take_turn(self, game: Game):
         self.start_turn()
+        self.start_action_phase(game)
 
-        self.autoplay_treasures()
+        with StringIO("all") as input:
+            stdin = sys.stdin
+            sys.stdin = input
+            self.start_treasure_phase(game)
+            sys.stdin = stdin
+
         if self.state.money >= 8:
-            self.buy(province, game.supply)
+            buy_card = "Province"
         elif self.state.money >= 6:
-            self.buy(gold, game.supply)
+            buy_card = "Gold"
         elif self.state.money >= 3:
-            self.buy(silver, game.supply)
-        self.cleanup()
+            buy_card = "Silver"
 
+        with StringIO(buy_card) as input:
+            stdin = sys.stdin
+            sys.stdin = input
+            self.start_buy_phase(game)
+            sys.stdin = stdin
 
-class BM_Smithy(Player):
-    """
-    Same as big money except tries to buy and play smithy too
-
-    """
-
-    def __init__(
-        self,
-        deck: Deck = None,
-        player_id: str = "bm_smithy",
-    ):
-        super().__init__(deck=deck, player_id=player_id)
-
-    def take_turn(self, game: Game):
-
-        self.start_turn()
-
-        try:
-            self.play(smithy, game)
-        except:
-            pass
-
-        self.autoplay_treasures()
-        if self.state.money >= 8:
-            self.buy(province, game.supply)
-        elif self.state.money >= 6:
-            self.buy(gold, game.supply)
-        elif self.state.money >= 4:
-            self.buy(smithy, game.supply)
-        elif self.state.money >= 3:
-            self.buy(silver, game.supply)
-        self.cleanup()
+        self.start_cleanup_phase()
