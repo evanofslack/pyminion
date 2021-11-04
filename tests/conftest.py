@@ -20,6 +20,7 @@ from pyminion.models.core import (
     Game,
 )
 from pyminion.expansions.base import start_cards
+from pyminion.players import Human
 
 START_COPPER = 7
 START_ESTATE = 3
@@ -34,11 +35,14 @@ def deck():
 
 @pytest.fixture
 def player(deck):
-    player = Player(
-        deck=deck,
-        player_id="test",
-    )
+    player = Player(deck=deck, player_id="test")
     return player
+
+
+@pytest.fixture
+def human(deck):
+    human = Human(deck=deck, player_id="human")
+    return human
 
 
 @pytest.fixture
