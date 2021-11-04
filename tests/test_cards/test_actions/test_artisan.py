@@ -1,5 +1,6 @@
-from pyminion.models.core import Player, Game
-from pyminion.models.base import Estate, artisan, silver
+from pyminion.models.core import Player
+from pyminion.game import Game
+from pyminion.models.base import artisan, silver
 
 
 def test_artisan_valid_gain_same_topdeck(player: Player, game: Game, monkeypatch):

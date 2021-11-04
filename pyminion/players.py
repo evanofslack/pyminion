@@ -1,10 +1,9 @@
-from pyminion.models.core import Player, Deck, Game
-from pyminion.expansions.base import silver, gold, province, smithy
+from pyminion.models.core import Player, Deck
+from pyminion.game import Game
 from pyminion.decisions import single_card_decision, validate_input
 from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
 import sys
 from io import StringIO
-from typing import List
 
 from contextlib import contextmanager
 

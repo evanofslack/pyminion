@@ -5,8 +5,8 @@ from pyminion.models.core import (
     Playmat,
     Supply,
     Trash,
-    Game,
 )
+from pyminion.game import Game
 from pyminion.models.base import (
     Estate,
     Copper,

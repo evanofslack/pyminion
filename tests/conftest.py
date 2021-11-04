@@ -17,8 +17,8 @@ from pyminion.models.core import (
     Player,
     Supply,
     Trash,
-    Game,
 )
+from pyminion.game import Game
 from pyminion.expansions.base import start_cards
 from pyminion.players import Human
 

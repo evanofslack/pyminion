@@ -1,5 +1,6 @@
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import Player, Trash, Game
+from pyminion.models.core import Player
+from pyminion.game import Game
 from pyminion.decisions import (
     binary_decision,
     multiple_card_decision,

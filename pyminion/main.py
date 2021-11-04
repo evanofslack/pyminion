@@ -1,4 +1,4 @@
-from pyminion.models.core import Game
+from pyminion.game import Game
 from pyminion.expansions.base import (
     start_cards,
     base_cards,
