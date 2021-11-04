@@ -164,7 +164,7 @@ class BigMoney(Human):
         elif self.state.money >= 3:
             buy_card = "Silver"
         else:
-            buy_card = None
+            buy_card = "\n"
         with InputRedirect(input=buy_card):
             self.start_buy_phase(game)
 
