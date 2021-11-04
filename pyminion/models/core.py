@@ -24,7 +24,8 @@ class Card:
         self.type = type
 
     def __repr__(self):
-        return f"{self.name} ({self.type})"
+        # return f"{self.name} ({self.type})"
+        return f"{self.name}"
 
 
 class AbstractDeck:
@@ -218,12 +219,19 @@ class Player:
             + self.hand.cards
         )
 
-    def get_victory_points(self):
+    def get_victory_points(self) -> int:
         total_vp: int = 0
         for card in self.get_all_cards():
             if card.type == "Victory" or card.type == "Curse":
                 total_vp += card.score(self)
         return total_vp
+
+    def get_treasure_money(self) -> int:
+        total_money: int = 0
+        for card in self.get_all_cards():
+            if card.type == "Treasure":
+                total_money += card.money
+        return total_money
 
 
 class Supply:
