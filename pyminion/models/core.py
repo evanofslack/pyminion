@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 import random
 from dataclasses import dataclass
 
@@ -9,6 +9,9 @@ from pyminion.exceptions import (
     EmptyPile,
     InvalidCardPlay,
 )
+
+if TYPE_CHECKING:
+    from pyminion.game import Game
 
 
 class Card:
