@@ -119,6 +119,14 @@ class Game:
             if empty_piles >= 3:
                 return True
 
+    def play(self):
+        self.start()
+        while True:
+            for player in self.players:
+                player.take_turn(self)
+                if self.is_over():
+                    return
+
     def get_winner(self) -> Optional[Player]:
         """
         The player with the most victory points wins.
@@ -149,3 +157,14 @@ class Game:
                 elif player.turns == winner.turns:
                     tie = True
         return None if tie else winner  # todo return just the players that tie
+
+    def get_stats(self):
+        if winner := self.get_winner():
+            print(f"\n{winner} won in {winner.turns} turns!")
+        else:
+            print(f"\nGame ended in a tie after {self.players[0].turns} turns")
+
+        for player in self.players:
+            print(
+                f"\n\nPlayer: {player} \nScore: {player.get_victory_points()} \nDeck: {player.get_all_cards()}"
+            )
