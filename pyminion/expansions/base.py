@@ -1,4 +1,3 @@
-from pyminion.util import pile_maker, kingdom_maker
 from pyminion.models.base import (
     copper,
     silver,

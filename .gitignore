@@ -139,3 +139,5 @@ cython_debug/
 
 .vscode
 pyminion/todo.txt
+tests/.DS_Store
+tests/test_core/.DS_Store

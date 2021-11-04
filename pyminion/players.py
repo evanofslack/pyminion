@@ -1,10 +1,9 @@
-from pyminion.models.core import Player, Deck, Game
-from pyminion.expansions.base import silver, gold, province, smithy
+from pyminion.models.core import Player, Deck
+from pyminion.game import Game
 from pyminion.decisions import single_card_decision, validate_input
 from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
 import sys
 from io import StringIO
-from typing import List
 
 from contextlib import contextmanager
 
@@ -165,7 +164,7 @@ class BigMoney(Human):
         elif self.state.money >= 3:
             buy_card = "Silver"
         else:
-            buy_card = None
+            buy_card = "\n"
         with InputRedirect(input=buy_card):
             self.start_buy_phase(game)
 

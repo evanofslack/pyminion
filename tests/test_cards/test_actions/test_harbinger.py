@@ -1,5 +1,6 @@
-from pyminion.models.core import Player, Game
-from pyminion.models.base import Silver, Estate, harbinger, silver
+from pyminion.models.core import Player
+from pyminion.game import Game
+from pyminion.models.base import Silver, harbinger, silver
 
 
 def test_harbinger_valid_topdeck(player: Player, game: Game, monkeypatch):

@@ -1,8 +1,8 @@
 from pyminion.models.core import (
     Supply,
     Trash,
-    Game,
 )
+from pyminion.game import Game
 from pyminion.models.base import province, duchy, estate, gold
 
 

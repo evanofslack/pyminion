@@ -1,4 +1,4 @@
-from pyminion.models.core import Game
+from pyminion.game import Game
 from pyminion.expansions.base import (
     start_cards,
     base_cards,
@@ -7,9 +7,10 @@ from pyminion.expansions.base import (
 from pyminion.players import BigMoney, Human
 
 human = Human()
-bot = BigMoney()
+bot_1 = BigMoney(player_id="Bot 1")
+bot_2 = BigMoney(player_id="Bot 2")
 
-players = [bot, human]
+players = [bot_1, bot_2]
 expansions = [base_cards]
 
 
@@ -22,11 +23,5 @@ game = Game(
 
 
 if __name__ == "__main__":
-    game.start()
-    while not game.is_over():
-
-        bot.take_turn(game)
-        human.take_turn(game)
-
-    print("\nWinner: ", game.get_winner())
-    print("Turns: ", game.get_winner().turns)
+    game.play()
+    game.get_stats()
