@@ -98,6 +98,7 @@ class Game:
     def start(self) -> None:
         self.supply = self._create_supply()
         for player in self.players:
+            player.reset()
             player.deck = Deck(copy.deepcopy(self.start_cards))
             player.deck.shuffle()
             player.draw(5)
