@@ -8,9 +8,8 @@ from pyminion.players import BigMoney, Human
 
 human = Human()
 bot_1 = BigMoney(player_id="Bot 1")
-bot_2 = BigMoney(player_id="Bot 2")
 
-players = [bot_1]
+players = [bot_1, human]
 expansions = [base_cards]
 
 

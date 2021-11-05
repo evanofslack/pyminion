@@ -144,6 +144,12 @@ class Player:
     def __repr__(self):
         return f"{self.player_id}"
 
+    def reset(self):
+        self.turns = 0
+        self.deck.cards = []
+        self.discard_pile.cards = []
+        self.hand.cards = []
+
     def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
         if destination is None:
             destination = self.hand
