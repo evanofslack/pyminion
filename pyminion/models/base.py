@@ -1,5 +1,5 @@
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import Player
+from pyminion.models.core import Player, Card
 from pyminion.game import Game
 from pyminion.decisions import (
     binary_decision,
@@ -7,12 +7,15 @@ from pyminion.decisions import (
     single_card_decision,
     validate_input,
 )
+from pyminion.validations import single_card_validation, multiple_card_validation
 from pyminion.exceptions import (
     InvalidBinaryInput,
     InvalidMultiCardInput,
     InvalidSingleCardInput,
 )
+
 import math
+from typing import Optional, List
 
 
 class Copper(Treasure):
@@ -120,6 +123,11 @@ class Curse(Victory):
 
 
 class Gardens(Victory):
+    """
+    Worth 1VP for every 10 cards you have (round down)
+
+    """
+
     def __init__(
         self,
         name: str = "Gardens",
@@ -129,15 +137,16 @@ class Gardens(Victory):
         super().__init__(name, cost, type)
 
     def score(self, player: Player) -> int:
-        """
-        Worth 1VP for every 10 cards you have (round down)
-
-        """
         total_count = len(player.get_all_cards())
         return math.floor(total_count / 10)
 
 
 class Smithy(Action):
+    """
+    + 3 cards
+
+    """
+
     def __init__(
         self,
         name: str = "Smithy",
@@ -147,17 +156,22 @@ class Smithy(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +3 cards
 
-        """
         if generic_play:
             super().generic_play(player)
 
         player.draw(3)
 
+    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        self.play(player, game, generic_play)
+
 
 class Village(Action):
+    """
+    + 1 card, + 2 actions
+
+    """
+
     def __init__(
         self,
         name: str = "Village",
@@ -167,18 +181,23 @@ class Village(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +1 card, +2 actions
 
-        """
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 2
         player.draw()
 
+    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        self.play(player, game, generic_play)
+
 
 class Laboratory(Action):
+    """
+    +2 cards, +1 action
+
+    """
+
     def __init__(
         self,
         name: str = "Laboratory",
@@ -188,18 +207,23 @@ class Laboratory(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +2 cards, +1 action
 
-        """
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 1
         player.draw(2)
 
+    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        self.play(player, game, generic_play)
+
 
 class Market(Action):
+    """
+    +1 card, +1 action, +1 money, +1 buy
+
+    """
+
     def __init__(
         self,
         name: str = "Market",
@@ -209,10 +233,7 @@ class Market(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +1 card, +1 action, +1 money, +1 buy
 
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -221,8 +242,16 @@ class Market(Action):
         player.state.money += 1
         player.state.buys += 1
 
+    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+        self.play(player, game, generic_play)
+
 
 class Moneylender(Action):
+    """
+    You may trash a copper from your hand for + 3 money
+
+    """
+
     def __init__(
         self,
         name: str = "Moneylender",
@@ -231,11 +260,13 @@ class Moneylender(Action):
     ):
         super().__init__(name, cost, type)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        You may trash a copper from your hand for + 3 money
+    def play(
+        self,
+        player: Player,
+        game: Game,
+        generic_play: bool = True,
+    ) -> None:
 
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -252,8 +283,31 @@ class Moneylender(Action):
 
             return trash_decision()
 
+    def bot_play(
+        self,
+        player: Player,
+        game: Game,
+        generic_play: bool = True,
+        decision: bool = True,
+    ) -> None:
+
+        if generic_play:
+            super().generic_play
+
+        if copper in player.hand.cards and decision:
+            player.trash(target_card=copper, trash=game.trash)
+            player.state.money += 3
+            return
+
 
 class Cellar(Action):
+    """
+    +1 Action
+
+    Discard any number of cards, then draw that many
+
+    """
+
     def __init__(
         self,
         name: str = "Cellar",
@@ -263,12 +317,7 @@ class Cellar(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +1 Action
 
-        Discard any number of cards, then draw that many
-
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -291,8 +340,35 @@ class Cellar(Action):
 
         return discard_decision()
 
+    def bot_play(
+        self,
+        player: Player,
+        game: Game,
+        generic_play: bool = True,
+        discards: Optional[List[Card]] = None,
+    ) -> None:
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.actions += 1
+
+        if not discards:
+            return
+
+        if multiple_card_validation(
+            target_cards=discards, valid_cards=player.hand.cards
+        ):
+            for card in discards:
+                player.discard(card)
+            player.draw(len(discards))
+
 
 class Chapel(Action):
+    """
+    Trash up to 4 cards from your hand
+
+    """
+
     def __init__(
         self,
         name: str = "Chapel",
@@ -302,10 +378,6 @@ class Chapel(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        Trash up to 4 cards from your hand
-
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -326,8 +398,32 @@ class Chapel(Action):
 
         return trash_decisions()
 
+    def bot_play(
+        self,
+        player: Player,
+        game: Game,
+        generic_play: bool = True,
+        trash_cards: Optional[List[Card]] = None,
+    ) -> None:
+        if generic_play:
+            super().generic_play(player)
+
+        if not trash_cards:
+            return
+
+        if multiple_card_validation(
+            target_cards=trash_cards, valid_cards=player.hand.cards
+        ):
+            for card in trash_cards:
+                player.trash(card, trash=game.trash)
+
 
 class Workshop(Action):
+    """
+    Gain a card costing up to 4 money
+
+    """
+
     def __init__(
         self,
         name: str = "Workshop",
@@ -337,10 +433,7 @@ class Workshop(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        Gain a card costing up to 4 money
 
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -359,8 +452,31 @@ class Workshop(Action):
 
         return gain_decision()
 
+    def bot_play(
+        self,
+        player: Player,
+        game: Game,
+        generic_play: bool = True,
+        gain_card: Card = None,
+    ) -> None:
+        if generic_play:
+            super().generic_play(player)
+
+        if not gain_card:
+            raise InvalidSingleCardInput("You must gain a card")
+        if gain_card.cost > 4:
+            raise InvalidSingleCardInput("Card must cost less than 4 money")
+
+        if single_card_validation(gain_card, valid_cards=game.supply.avaliable_cards()):
+            player.gain(gain_card, game.supply)
+
 
 class Festival(Action):
+    """
+    + 2 actions, + 1 buy, + 2 money
+
+    """
+
     def __init__(
         self,
         name: str = "Festival",
@@ -370,10 +486,7 @@ class Festival(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        + 2 actions, + 1 buy, + 2 money
 
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -383,6 +496,13 @@ class Festival(Action):
 
 
 class Harbinger(Action):
+    """
+    +1 card, +1 action
+
+    Look through your discard pile. You may put a card from it onto your deck
+
+    """
+
     def __init__(
         self,
         name: str = "Harbinger",
@@ -392,10 +512,7 @@ class Harbinger(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        Look through your discard pile. You may put a card from it onto your deck
 
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -420,6 +537,13 @@ class Harbinger(Action):
 
 
 class Vassal(Action):
+    """
+    +2 money
+
+    Discard the top card of your deck. If it's an action card you may play it.
+
+    """
+
     def __init__(
         self,
         name: str = "Vassal",
@@ -429,12 +553,7 @@ class Vassal(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +2 money
 
-        Discard the top card of your deck. If it's an action card you may play it.
-
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -471,6 +590,13 @@ class Vassal(Action):
 
 
 class Artisan(Action):
+    """
+    Gain a card to your hand costing up to 5 money.
+
+    Put a card from your hand onto your deck
+
+    """
+
     def __init__(
         self,
         name: str = "Artisan",
@@ -480,12 +606,7 @@ class Artisan(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        Gain a card to your hand costing up to 5 money.
 
-        Put a card from your hand onto your deck
-
-        """
         if generic_play:
             super().generic_play(player)
 
@@ -521,6 +642,13 @@ class Artisan(Action):
 
 
 class Poacher(Action):
+    """
+    +1 card, +1 action, + 1 money
+
+    Discard a card per empty Supply pile
+
+    """
+
     def __init__(
         self,
         name: str = "Poacher",
@@ -530,12 +658,7 @@ class Poacher(Action):
         super().__init__(name, cost, type)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        """
-        +1 card, +1 action, + 1 money
 
-        Discard a card per empty Supply pile
-
-        """
         if generic_play:
             super().generic_play(player)
 
