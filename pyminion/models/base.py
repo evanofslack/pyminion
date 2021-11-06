@@ -153,8 +153,11 @@ class Smithy(Action):
         name: str = "Smithy",
         cost: int = 4,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 3,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -178,8 +181,11 @@ class Village(Action):
         name: str = "Village",
         cost: int = 3,
         type: str = "Action",
+        actions: int = 2,
+        draw: int = 1,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -204,8 +210,11 @@ class Laboratory(Action):
         name: str = "Laboratory",
         cost: int = 5,
         type: str = "Action",
+        actions: int = 1,
+        draw: int = 2,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -230,8 +239,11 @@ class Market(Action):
         name: str = "Market",
         cost: int = 5,
         type: str = "Action",
+        actions: int = 1,
+        draw: int = 1,
+        money: int = 1,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -258,8 +270,11 @@ class Moneylender(Action):
         name: str = "Moneylender",
         cost: int = 4,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 3,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(
         self,
@@ -288,8 +303,8 @@ class Moneylender(Action):
         self,
         bot: Bot,
         game: Game,
-        generic_play: bool = True,
         decision: bool = True,
+        generic_play: bool = True,
     ) -> None:
 
         if generic_play:
@@ -314,8 +329,11 @@ class Cellar(Action):
         name: str = "Cellar",
         cost: int = 2,
         type: str = "Action",
+        actions: int = 1,
+        draw: int = 0,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -345,8 +363,8 @@ class Cellar(Action):
         self,
         bot: Bot,
         game: Game,
-        generic_play: bool = True,
         discards: Optional[List[Card]] = None,
+        generic_play: bool = True,
     ) -> None:
         if generic_play:
             super().generic_play(bot)
@@ -373,8 +391,11 @@ class Chapel(Action):
         name: str = "Chapel",
         cost: int = 2,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
         if generic_play:
@@ -401,8 +422,8 @@ class Chapel(Action):
         self,
         bot: Bot,
         game: Game,
-        generic_play: bool = True,
         trash_cards: Optional[List[Card]] = None,
+        generic_play: bool = True,
     ) -> None:
         if generic_play:
             super().generic_play(bot)
@@ -428,8 +449,11 @@ class Workshop(Action):
         name: str = "Workshop",
         cost: int = 3,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -455,8 +479,8 @@ class Workshop(Action):
         self,
         bot: Bot,
         game: Game,
-        generic_play: bool = True,
         gain_card: Card = None,
+        generic_play: bool = True,
     ) -> None:
         if generic_play:
             super().generic_play(bot)
@@ -481,8 +505,11 @@ class Festival(Action):
         name: str = "Festival",
         cost: int = 5,
         type: str = "Action",
+        actions: int = 2,
+        draw: int = 0,
+        money: int = 2,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -510,8 +537,11 @@ class Harbinger(Action):
         name: str = "Harbinger",
         cost: int = 3,
         type: str = "Action",
+        actions: int = 1,
+        draw: int = 1,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -541,8 +571,8 @@ class Harbinger(Action):
         self,
         bot: Bot,
         game: Game,
-        generic_play: bool = True,
         topdeck: Optional[Card] = None,
+        generic_play: bool = True,
     ) -> None:
 
         if generic_play:
@@ -571,8 +601,11 @@ class Vassal(Action):
         name: str = "Vassal",
         cost: int = 3,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 2,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -590,9 +623,7 @@ class Vassal(Action):
         if player.discard_pile.cards[-1].type != "Action":
             return
 
-        @validate_input(
-            exceptions=(InvalidBinaryInput, Exception)
-        )  # Stuck in loop if discard pile is empty
+        @validate_input(exceptions=(InvalidBinaryInput, Exception))
         def play() -> None:
             card = player.discard_pile.cards[-1]
             decision = binary_decision(
@@ -605,13 +636,16 @@ class Vassal(Action):
             player.exact_play(
                 card=player.playmat.cards[-1], game=game, generic_play=False
             )
-
             return
 
         play()
 
     def bot_play(
-        self, bot: Bot, game: Game, generic_play: bool = True, decision: bool = True
+        self,
+        bot: Bot,
+        game: Game,
+        decision: bool = True,
+        generic_play: bool = True,
     ) -> None:
 
         if generic_play:
@@ -647,8 +681,11 @@ class Artisan(Action):
         name: str = "Artisan",
         cost: int = 6,
         type: str = "Action",
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -685,6 +722,33 @@ class Artisan(Action):
 
         return topdeck_decision()
 
+    def bot_play(
+        bot: Bot,
+        game: Game,
+        gain_card: Card = None,
+        topdeck_card: Card = None,
+        generic_play: bool = True,
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(bot)
+
+        gain_card = silver if not gain_card else gain_card
+
+        if gain_card.cost > 5:
+            raise InvalidSingleCardInput("Card must cost less than 5 money")
+
+        if single_card_validation(
+            target_card=gain_card, valid_cards=game.supply.avaliable_cards()
+        ):
+            bot.gain(card=gain_card, supply=game.supply, destination=bot.hand)
+
+        topdeck_card = gain_card if not topdeck_card else topdeck_card
+
+        for card in bot.hand.cards:
+            if card == topdeck_card:
+                bot.deck.add(bot.hand.remove(card))
+
 
 class Poacher(Action):
     """
@@ -699,8 +763,11 @@ class Poacher(Action):
         name: str = "Poacher",
         cost: int = 4,
         type: str = "Action",
+        actions: int = 1,
+        draw: int = 1,
+        money: int = 1,
     ):
-        super().__init__(name, cost, type)
+        super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
 
@@ -725,7 +792,36 @@ class Poacher(Action):
             return
 
         for i in range(game.supply.num_empty_piles()):
+            if not player.hand:
+                return
             discard()
+
+    def bot_play(
+        bot: Bot, game: Game, discard_cards: List[Card], generic_play: bool = False
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(bot)
+
+        bot.draw()
+        bot.state.actions += 1
+        bot.state.money += 1
+
+        if game.supply.num_empty_piles() == 0:
+            return
+
+        if multiple_card_validation(
+            target_cards=discard_cards, valid_cards=bot.hand.cards
+        ):
+            for i in range(game.supply.num_empty_piles()):
+                if not bot.hand:
+                    return
+                try:
+                    bot.discard(discard_cards[i])
+                except:
+                    bot.discard(
+                        bot.hand.cards[-1]
+                    )  # default to discarding the last card in hand
 
 
 copper = Copper()
