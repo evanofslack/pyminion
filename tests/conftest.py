@@ -21,6 +21,7 @@ from pyminion.models.core import (
 from pyminion.game import Game
 from pyminion.expansions.base import start_cards
 from pyminion.players import Human
+from pyminion.bots import Bot
 
 START_COPPER = 7
 START_ESTATE = 3
@@ -43,6 +44,12 @@ def player(deck):
 def human(deck):
     human = Human(deck=deck, player_id="human")
     return human
+
+
+@pytest.fixture
+def bot(deck):
+    bot = Bot(deck=deck, player_id="bot")
+    return bot
 
 
 @pytest.fixture

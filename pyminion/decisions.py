@@ -107,7 +107,7 @@ def multiple_card_decision(
 
     if not selected_cards:
         raise InvalidMultiCardInput(
-            f"Invalid input, {card_strings[0]} does not match any card in your hand"
+            f"Invalid input, {card_strings[0]} is not a valid card"
         )
 
     # TODO This can be abstracted into function

@@ -53,3 +53,32 @@ def test_chapel_trash_none(player: Player, game: Game, monkeypatch):
     player.hand.cards[0].play(player, game)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
+
+
+def test_chapel_bot_trash_one(player: Player, game: Game):
+    player.hand.add(chapel)
+    player.hand.add(copper)
+    player.hand.cards[0].bot_play(player, game, trash_cards=[copper])
+    assert len(player.hand) == 0
+    assert len(player.playmat) == 1
+    assert len(game.trash.cards) == 1
+
+
+def test_chapel_bot_trash_multiple(player: Player, game: Game):
+    player.hand.add(chapel)
+    player.hand.add(copper)
+    player.hand.add(estate)
+    player.hand.cards[0].bot_play(player, game, trash_cards=[copper, estate])
+    assert len(player.hand) == 0
+    assert len(player.playmat) == 1
+    assert len(game.trash.cards) == 2
+
+
+def test_chapel_bot_trash_none(player: Player, game: Game):
+    player.hand.add(chapel)
+    player.hand.add(copper)
+    player.hand.add(estate)
+    player.hand.cards[0].bot_play(player, game)
+    assert len(player.hand) == 2
+    assert len(player.playmat) == 1
+    assert len(game.trash.cards) == 0

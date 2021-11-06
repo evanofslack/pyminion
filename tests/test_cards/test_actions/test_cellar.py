@@ -1,6 +1,8 @@
 from pyminion.models.core import Player
 from pyminion.game import Game
 from pyminion.models.base import Cellar, Copper, Estate, cellar, copper, estate
+from pyminion.exceptions import InvalidMultiCardInput
+import pytest
 
 
 def test_cellar_discard_one(player: Player, game: Game, monkeypatch):
@@ -56,5 +58,35 @@ def test_cellar_discard_none(player: Player, game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "")
     player.hand.cards[0].play(player, game)
     assert len(player.hand) == 0
+    assert len(player.playmat) == 1
+    assert player.state.actions == 1
+
+
+def test_bot_play_valid(player: Player, game: Game):
+    player.hand.add(cellar)
+    player.hand.add(copper)
+    player.hand.add(estate)
+    player.hand.cards[0].bot_play(player, game, discards=[copper, estate])
+    assert len(player.hand) == 2
+    assert len(player.discard_pile) == 2
+    assert len(player.playmat) == 1
+    assert player.state.actions == 1
+
+
+def test_bot_play_invalid(player: Player, game: Game):
+    player.hand.add(cellar)
+    player.hand.add(copper)
+    player.hand.add(estate)
+    with pytest.raises(InvalidMultiCardInput):
+        player.hand.cards[0].bot_play(player, game, discards=[copper, copper])
+
+
+def test_bot_play_none(player: Player, game: Game):
+    player.hand.add(cellar)
+    player.hand.add(copper)
+    player.hand.add(estate)
+    player.hand.cards[0].bot_play(player, game)
+    assert len(player.hand) == 2
+    assert len(player.discard_pile) == 0
     assert len(player.playmat) == 1
     assert player.state.actions == 1

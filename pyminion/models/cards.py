@@ -28,15 +28,29 @@ class Treasure(Card):
 
 
 class Action(Card):
-    def __init__(self, name: str, cost: int, type: str):
+    def __init__(
+        self, name: str, cost: int, type: str, actions: int, draw: int, money: int
+    ):
         super().__init__(name, cost, type)
+        self.actions = actions
+        self.draw = draw
+        self.money = money
 
     def play(self):
         """
         Specific play method unique to each action card
 
         """
-        raise NotImplementedError(f"Play method must be implemented for {self.name}")
+        raise NotImplementedError(f"play method must be implemented for {self.name}")
+
+    def bot_play(self):
+        """
+        Specific play method for bots to execute, unique to each action card
+
+        """
+        raise NotImplementedError(
+            f"bot_play method must be implemented for {self.name}"
+        )
 
     def generic_play(self, player: Player):
         """
