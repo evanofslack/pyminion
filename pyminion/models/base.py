@@ -1,5 +1,6 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Player, Card
+from pyminion.bots import Bot
 from pyminion.game import Game
 from pyminion.decisions import (
     binary_decision,
@@ -162,8 +163,8 @@ class Smithy(Action):
 
         player.draw(3)
 
-    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        self.play(player, game, generic_play)
+    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
+        self.play(bot, game, generic_play)
 
 
 class Village(Action):
@@ -188,8 +189,8 @@ class Village(Action):
         player.state.actions += 2
         player.draw()
 
-    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        self.play(player, game, generic_play)
+    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
+        self.play(bot, game, generic_play)
 
 
 class Laboratory(Action):
@@ -214,8 +215,8 @@ class Laboratory(Action):
         player.state.actions += 1
         player.draw(2)
 
-    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        self.play(player, game, generic_play)
+    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
+        self.play(bot, game, generic_play)
 
 
 class Market(Action):
@@ -242,8 +243,8 @@ class Market(Action):
         player.state.money += 1
         player.state.buys += 1
 
-    def bot_play(self, player: Player, game: Game, generic_play: bool = True) -> None:
-        self.play(player, game, generic_play)
+    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
+        self.play(bot, game, generic_play)
 
 
 class Moneylender(Action):
@@ -285,18 +286,18 @@ class Moneylender(Action):
 
     def bot_play(
         self,
-        player: Player,
+        bot: Bot,
         game: Game,
         generic_play: bool = True,
         decision: bool = True,
     ) -> None:
 
         if generic_play:
-            super().generic_play
+            super().generic_play(bot)
 
-        if copper in player.hand.cards and decision:
-            player.trash(target_card=copper, trash=game.trash)
-            player.state.money += 3
+        if copper in bot.hand.cards and decision:
+            bot.trash(target_card=copper, trash=game.trash)
+            bot.state.money += 3
             return
 
 
@@ -342,25 +343,23 @@ class Cellar(Action):
 
     def bot_play(
         self,
-        player: Player,
+        bot: Bot,
         game: Game,
         generic_play: bool = True,
         discards: Optional[List[Card]] = None,
     ) -> None:
         if generic_play:
-            super().generic_play(player)
+            super().generic_play(bot)
 
-        player.state.actions += 1
+        bot.state.actions += 1
 
         if not discards:
             return
 
-        if multiple_card_validation(
-            target_cards=discards, valid_cards=player.hand.cards
-        ):
+        if multiple_card_validation(target_cards=discards, valid_cards=bot.hand.cards):
             for card in discards:
-                player.discard(card)
-            player.draw(len(discards))
+                bot.discard(card)
+            bot.draw(len(discards))
 
 
 class Chapel(Action):
@@ -400,22 +399,22 @@ class Chapel(Action):
 
     def bot_play(
         self,
-        player: Player,
+        bot: Bot,
         game: Game,
         generic_play: bool = True,
         trash_cards: Optional[List[Card]] = None,
     ) -> None:
         if generic_play:
-            super().generic_play(player)
+            super().generic_play(bot)
 
         if not trash_cards:
             return
 
         if multiple_card_validation(
-            target_cards=trash_cards, valid_cards=player.hand.cards
+            target_cards=trash_cards, valid_cards=bot.hand.cards
         ):
             for card in trash_cards:
-                player.trash(card, trash=game.trash)
+                bot.trash(card, trash=game.trash)
 
 
 class Workshop(Action):
@@ -454,13 +453,13 @@ class Workshop(Action):
 
     def bot_play(
         self,
-        player: Player,
+        bot: Bot,
         game: Game,
         generic_play: bool = True,
         gain_card: Card = None,
     ) -> None:
         if generic_play:
-            super().generic_play(player)
+            super().generic_play(bot)
 
         if not gain_card:
             raise InvalidSingleCardInput("You must gain a card")
@@ -468,7 +467,7 @@ class Workshop(Action):
             raise InvalidSingleCardInput("Card must cost less than 4 money")
 
         if single_card_validation(gain_card, valid_cards=game.supply.avaliable_cards()):
-            player.gain(gain_card, game.supply)
+            bot.gain(gain_card, game.supply)
 
 
 class Festival(Action):
@@ -493,6 +492,9 @@ class Festival(Action):
         player.state.actions += 2
         player.state.money += 2
         player.state.buys += 1
+
+    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
+        self.play(bot, game, generic_play)
 
 
 class Harbinger(Action):
@@ -534,6 +536,26 @@ class Harbinger(Action):
             return
 
         return topdeck()
+
+    def bot_play(
+        self,
+        bot: Bot,
+        game: Game,
+        generic_play: bool = True,
+        topdeck: Optional[Card] = None,
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(bot)
+
+        bot.state.actions += 1
+        bot.draw()
+
+        if not bot.discard_pile or not topdeck:
+            return
+
+        if single_card_validation(topdeck, valid_cards=bot.discard_pile.cards):
+            bot.deck.add(bot.discard_pile.remove(topdeck))
 
 
 class Vassal(Action):
@@ -587,6 +609,29 @@ class Vassal(Action):
             return
 
         play()
+
+    def bot_play(
+        self, bot: Bot, game: Game, generic_play: bool = True, decision: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(bot)
+
+        bot.state.money += 2
+        bot.draw(destination=bot.discard_pile)
+
+        if not bot.discard_pile:
+            return
+
+        if bot.discard_pile.cards[-1].type != "Action":
+            return
+
+        if not decision:
+            return
+
+        played_card = bot.discard_pile.cards.pop()
+        bot.playmat.add(played_card)
+        bot.exact_play(card=bot.playmat.cards[-1], game=game, generic_play=False)
 
 
 class Artisan(Action):
