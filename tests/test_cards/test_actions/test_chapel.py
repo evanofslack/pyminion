@@ -1,84 +1,56 @@
 from pyminion.models.core import Player
+from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.models.base import Chapel, Copper, Estate, chapel, copper, estate
 
 
-def test_chapel_trash_one(player: Player, game: Game, monkeypatch):
-    player.hand.add(chapel)
-    player.hand.add(copper)
-    player.hand.add(copper)
-    assert len(player.hand) == 3
+def test_chapel_trash_one(human: Human, game: Game, monkeypatch):
+    human.hand.add(chapel)
+    human.hand.add(copper)
+    human.hand.add(copper)
+    assert len(human.hand) == 3
     assert len(game.trash) == 0
 
     monkeypatch.setattr("builtins.input", lambda _: "Copper")
 
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 1
-    assert len(player.playmat) == 1
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 1
+    assert len(human.playmat) == 1
     assert len(game.trash) == 1
-    assert type(player.playmat.cards[0]) is Chapel
-    assert player.state.actions == 0
+    assert type(human.playmat.cards[0]) is Chapel
+    assert human.state.actions == 0
     assert type(game.trash.cards[0]) is Copper
 
 
-def test_chapel_trash_multiple(player: Player, game: Game, monkeypatch):
-    player.hand.add(chapel)
-    player.hand.add(copper)
-    player.hand.add(copper)
-    player.hand.add(estate)
-    assert len(player.hand) == 4
+def test_chapel_trash_multiple(human: Human, game: Game, monkeypatch):
+    human.hand.add(chapel)
+    human.hand.add(copper)
+    human.hand.add(copper)
+    human.hand.add(estate)
+    assert len(human.hand) == 4
     assert len(game.trash) == 0
 
     monkeypatch.setattr("builtins.input", lambda _: "Copper, Estate")
 
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 1
-    assert len(player.playmat) == 1
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 1
+    assert len(human.playmat) == 1
     assert len(game.trash) == 2
-    assert type(player.playmat.cards[0]) is Chapel
+    assert type(human.playmat.cards[0]) is Chapel
     assert type(game.trash.cards[0]) is Copper
     assert type(game.trash.cards[1]) is Estate
 
 
-def test_chapel_empty_hand(player: Player, game: Game):
-    player.hand.add(chapel)
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 0
-    assert len(player.playmat) == 1
+def test_chapel_empty_hand(human: Human, game: Game):
+    human.hand.add(chapel)
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert len(human.playmat) == 1
 
 
-def test_chapel_trash_none(player: Player, game: Game, monkeypatch):
-    player.hand.add(chapel)
+def test_chapel_trash_none(human: Human, game: Game, monkeypatch):
+    human.hand.add(chapel)
     monkeypatch.setattr("builtins.input", lambda _: "")
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 0
-    assert len(player.playmat) == 1
-
-
-def test_chapel_bot_trash_one(player: Player, game: Game):
-    player.hand.add(chapel)
-    player.hand.add(copper)
-    player.hand.cards[0].bot_play(player, game, trash_cards=[copper])
-    assert len(player.hand) == 0
-    assert len(player.playmat) == 1
-    assert len(game.trash.cards) == 1
-
-
-def test_chapel_bot_trash_multiple(player: Player, game: Game):
-    player.hand.add(chapel)
-    player.hand.add(copper)
-    player.hand.add(estate)
-    player.hand.cards[0].bot_play(player, game, trash_cards=[copper, estate])
-    assert len(player.hand) == 0
-    assert len(player.playmat) == 1
-    assert len(game.trash.cards) == 2
-
-
-def test_chapel_bot_trash_none(player: Player, game: Game):
-    player.hand.add(chapel)
-    player.hand.add(copper)
-    player.hand.add(estate)
-    player.hand.cards[0].bot_play(player, game)
-    assert len(player.hand) == 2
-    assert len(player.playmat) == 1
-    assert len(game.trash.cards) == 0
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert len(human.playmat) == 1

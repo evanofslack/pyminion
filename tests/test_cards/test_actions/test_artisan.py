@@ -1,5 +1,6 @@
 from pyminion.models.core import Player
 from pyminion.game import Game
+from pyminion.bots import Bot
 from pyminion.models.base import artisan, silver
 
 
