@@ -173,12 +173,15 @@ class Player:
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         for card in self.hand.cards:
-            try:
-                if card == target_card and card.type == "Action":
+            if card == target_card and card.type == "Action":
+                try:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
-            except:
-                raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
+
+                except:
+                    raise InvalidCardPlay(
+                        f"Invalid play, {target_card} has no play method"
+                    )
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
