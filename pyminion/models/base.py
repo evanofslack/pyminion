@@ -1,6 +1,7 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Player, Card
 from pyminion.bots import Bot
+from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.decisions import (
     binary_decision,
@@ -16,7 +17,7 @@ from pyminion.exceptions import (
 )
 
 import math
-from typing import Optional, List
+from typing import Optional, List, Union
 
 
 class Copper(Treasure):
@@ -278,7 +279,7 @@ class Moneylender(Action):
 
     def play(
         self,
-        player: Player,
+        player: Union[Human, Bot],
         game: Game,
         generic_play: bool = True,
     ) -> None:
@@ -286,34 +287,20 @@ class Moneylender(Action):
         if generic_play:
             super().generic_play(player)
 
-        if copper in player.hand.cards:
-
-            @validate_input(exceptions=InvalidBinaryInput)
-            def trash_decision() -> None:
-                if binary_decision(
-                    prompt="Do you want to trash a copper from your hand? y/n?"
-                ):
-                    player.trash(target_card=copper, trash=game.trash)
-                    player.state.money += 3
-                return
-
-            return trash_decision()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        decision: bool = True,
-        generic_play: bool = True,
-    ) -> None:
-
-        if generic_play:
-            super().generic_play(bot)
-
-        if copper in bot.hand.cards and decision:
-            bot.trash(target_card=copper, trash=game.trash)
-            bot.state.money += 3
+        if copper not in player.hand.cards:
             return
+
+        if isinstance(player, Human):
+            response = player.binary_decision(
+                prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
+            )
+
+        if isinstance(player, Bot):
+            response = player.binary_decision(card=self)
+
+        if response:
+            player.trash(target_card=copper, trash=game.trash)
+            player.state.money += 3
 
 
 class Cellar(Action):
@@ -335,7 +322,12 @@ class Cellar(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self,
+        player: Union[Human, Bot],
+        game: Game,
+        generic_play: bool = True,
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -345,39 +337,21 @@ class Cellar(Action):
         if not player.hand.cards:
             return
 
-        @validate_input(exceptions=InvalidMultiCardInput)
-        def discard_decision() -> None:
-
-            if discard_cards := multiple_card_decision(
+        if isinstance(player, Human):
+            discard_cards = player.multiple_card_decision(
                 prompt="Enter the cards you would like to discard seperated by commas: ",
                 valid_cards=player.hand.cards,
-            ):
-                for card in discard_cards:
-                    player.discard(card)
-                player.draw(len(discard_cards))
-            return
+            )
 
-        return discard_decision()
+        if isinstance(player, Bot):
+            discard_cards = player.multiple_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
 
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        discards: Optional[List[Card]] = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
-
-        bot.state.actions += 1
-
-        if not discards:
-            return
-
-        if multiple_card_validation(target_cards=discards, valid_cards=bot.hand.cards):
-            for card in discards:
-                bot.discard(card)
-            bot.draw(len(discards))
+        if discard_cards:
+            for card in discard_cards:
+                player.discard(card)
+            player.draw(len(discard_cards))
 
 
 class Chapel(Action):
@@ -397,45 +371,35 @@ class Chapel(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
         if generic_play:
             super().generic_play(player)
 
         if not player.hand.cards:
             return
 
-        @validate_input(exceptions=InvalidMultiCardInput)
-        def trash_decisions() -> None:
-            if discard_cards := multiple_card_decision(
+        if isinstance(player, Human):
+            trash_cards = player.multiple_card_decision(
                 prompt="Enter up to 4 cards you would like to trash from your hand: ",
                 valid_cards=player.hand.cards,
-            ):
-                if len(discard_cards) > 4:
-                    raise InvalidMultiCardInput("You cannot trash more than 4 cards")
-                for card in discard_cards:
-                    player.trash(card, game.trash)
-            return
+            )
 
-        return trash_decisions()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        trash_cards: Optional[List[Card]] = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
+        if isinstance(player, Bot):
+            trash_cards = player.multiple_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
 
         if not trash_cards:
             return
 
-        if multiple_card_validation(
-            target_cards=trash_cards, valid_cards=bot.hand.cards
-        ):
-            for card in trash_cards:
-                bot.trash(card, trash=game.trash)
+        if len(trash_cards) > 4:
+            raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+
+        for card in trash_cards:
+            player.trash(card, game.trash)
 
 
 class Workshop(Action):
