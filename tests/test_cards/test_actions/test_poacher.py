@@ -1,45 +1,63 @@
-from pyminion.models.core import Player
+from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.models.base import poacher, estate, duchy
 
 
-def test_poacher_no_empty_pile(player: Player, game: Game):
-    player.hand.add(poacher)
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 1
-    assert len(player.playmat) == 1
-    assert len(player.discard_pile) == 0
-    assert player.state.actions == 1
-    assert player.state.money == 1
+def test_poacher_no_empty_pile(human: Human, game: Game):
+    human.hand.add(poacher)
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 1
+    assert len(human.playmat) == 1
+    assert len(human.discard_pile) == 0
+    assert human.state.actions == 1
+    assert human.state.money == 1
 
 
-def test_poacher_one_empty_pile(player: Player, game: Game, monkeypatch):
+def test_poacher_one_empty_pile(human: Human, game: Game, monkeypatch):
     for i in range(8):
         game.supply.gain_card(card=estate)
     assert game.supply.num_empty_piles() == 1
-    player.hand.add(poacher)
-    player.hand.add(estate)
+    human.hand.add(poacher)
+    human.hand.add(estate)
     monkeypatch.setattr("builtins.input", lambda _: "estate")
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 1
-    assert len(player.playmat) == 1
-    assert len(player.discard_pile) == 1
-    assert player.state.actions == 1
-    assert player.state.money == 1
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 1
+    assert len(human.playmat) == 1
+    assert len(human.discard_pile) == 1
+    assert human.state.actions == 1
+    assert human.state.money == 1
 
 
-def test_poacher_two_empty_piles(player: Player, game: Game, monkeypatch):
+def test_poacher_two_empty_piles(human: Human, game: Game, monkeypatch):
     for i in range(8):
         game.supply.gain_card(card=estate)
     for i in range(8):
         game.supply.gain_card(card=duchy)
     assert game.supply.num_empty_piles() == 2
-    player.hand.add(poacher)
-    player.hand.add(estate)
+    human.hand.add(poacher)
+    human.hand.add(estate)
+    assert len(human.hand) == 2
+    monkeypatch.setattr("builtins.input", lambda _: "estate, estate")
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert len(human.playmat) == 1
+    assert len(human.discard_pile) == 2
+    assert human.state.actions == 1
+    assert human.state.money == 1
+
+
+def test_poacher_two_empty_piles_one_in_hand(human: Human, game: Game, monkeypatch):
+    for i in range(8):
+        game.supply.gain_card(card=estate)
+    for i in range(8):
+        game.supply.gain_card(card=duchy)
+    assert game.supply.num_empty_piles() == 2
+    human.hand.add(poacher)
+    assert len(human.hand) == 1
     monkeypatch.setattr("builtins.input", lambda _: "estate")
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 0
-    assert len(player.playmat) == 1
-    assert len(player.discard_pile) == 2
-    assert player.state.actions == 1
-    assert player.state.money == 1
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert len(human.playmat) == 1
+    assert len(human.discard_pile) == 1
+    assert human.state.actions == 1
+    assert human.state.money == 1

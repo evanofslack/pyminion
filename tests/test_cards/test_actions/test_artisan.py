@@ -1,56 +1,54 @@
-from pyminion.models.core import Player
+from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.bots import Bot
 from pyminion.models.base import artisan, silver
 
 
-def test_artisan_valid_gain_same_topdeck(player: Player, game: Game, monkeypatch):
-    player.hand.add(artisan)
+def test_artisan_valid_gain_same_topdeck(human: Human, game: Game, monkeypatch):
+    human.hand.add(artisan)
     assert len(game.supply.piles[1]) == 40
-    assert len(player.hand) == 1
+    assert len(human.hand) == 1
 
-    # mock decision = input() as "Copper" to discard
     responses = iter(["silver", "silver"])
     monkeypatch.setattr("builtins.input", lambda input: next(responses))
 
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 0
-    assert player.deck.cards[-1] is silver
-    assert len(player.playmat) == 1
-    assert player.state.actions == 0
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert human.deck.cards[-1] is silver
+    assert len(human.playmat) == 1
+    assert human.state.actions == 0
     assert len(game.supply.piles[1]) == 39
 
 
-def test_artisan_invalid_gain(player: Player, game: Game, monkeypatch):
-    player.hand.add(artisan)
+def test_artisan_invalid_gain(human: Human, game: Game, monkeypatch):
+    human.hand.add(artisan)
     assert len(game.supply.piles[1]) == 40
-    assert len(player.hand) == 1
+    assert len(human.hand) == 1
 
     # mock decision = input() as "Copper" to discard
     responses = iter(["gold", "silver", "silver"])
     monkeypatch.setattr("builtins.input", lambda input: next(responses))
 
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 0
-    assert player.deck.cards[-1] is silver
-    assert len(player.playmat) == 1
-    assert player.state.actions == 0
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 0
+    assert human.deck.cards[-1] is silver
+    assert len(human.playmat) == 1
+    assert human.state.actions == 0
     assert len(game.supply.piles[1]) == 39
 
 
-def test_artisan_valid_gain_diff_topdeck(player: Player, game: Game, monkeypatch):
-    player.hand.add(artisan)
-    player.hand.add(artisan)
+def test_artisan_valid_gain_diff_topdeck(human: Human, game: Game, monkeypatch):
+    human.hand.add(artisan)
+    human.hand.add(artisan)
     assert len(game.supply.piles[1]) == 40
-    assert len(player.hand) == 2
+    assert len(human.hand) == 2
 
-    # mock decision = input() as "Copper" to discard
     responses = iter(["silver", "artisan"])
     monkeypatch.setattr("builtins.input", lambda input: next(responses))
 
-    player.hand.cards[0].play(player, game)
-    assert len(player.hand) == 1
-    assert player.deck.cards[-1] is artisan
-    assert len(player.playmat) == 1
-    assert player.state.actions == 0
+    human.hand.cards[0].play(human, game)
+    assert len(human.hand) == 1
+    assert human.deck.cards[-1] is artisan
+    assert len(human.playmat) == 1
+    assert human.state.actions == 0
     assert len(game.supply.piles[1]) == 39

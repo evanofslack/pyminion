@@ -17,7 +17,7 @@ class Bot(Player):
         for card in self.hand.cards:
             try:
                 if card == target_card and card.type == "Action":
-                    card.bot_play(bot=self, game=game, generic_play=generic_play)
+                    card.play(player=self, game=game, generic_play=generic_play)
                     return
             except Exception as e:
                 print(e)
@@ -29,9 +29,9 @@ class Bot(Player):
     def exact_play(self, card: Card, game: Game, generic_play: bool = True) -> None:
         try:
             if card.type == "Action":
-                card.bot_play(bot=self, game=game, generic_play=generic_play)
+                card.play(player=self, game=game, generic_play=generic_play)
             elif card.type == "Treasure":
-                card.bot(player=self, game=game)
+                card.play(player=self, game=game)
         except:
             raise InvalidCardPlay(f"Invalid play, cannot play {card}")
 
@@ -50,3 +50,8 @@ class Bot(Player):
                 for card in valid_cards
                 if card.name == "Estate" or card.name == "Copper"
             ]
+
+    def single_card_decision(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[Card]:
+        pass
