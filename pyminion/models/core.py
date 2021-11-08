@@ -105,6 +105,11 @@ class Playmat(AbstractDeck):
         super().__init__(cards)
 
 
+class Trash(AbstractDeck):
+    def __init__(self, cards: List[Card] = None):
+        super().__init__(cards)
+
+
 @dataclass
 class State:
     """
@@ -119,7 +124,8 @@ class State:
 
 class Player:
     """
-    Collection of card piles associated with each player
+    Basic representation of a player including the piles of cards they own
+    and the basic actions they can take to manipulate the state of the game
 
     """
 
@@ -295,8 +301,3 @@ class Supply:
             if len(pile) == 0:
                 empty_piles += 1
         return empty_piles
-
-
-class Trash(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
-        super().__init__(cards)
