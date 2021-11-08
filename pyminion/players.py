@@ -7,41 +7,26 @@ from pyminion.exceptions import (
     InvalidMultiCardInput,
 )
 from pyminion.decisions import (
-    binary_decision,
-    multiple_card_decision,
     single_card_decision,
     validate_input,
 )
 import sys
 from io import StringIO
 from contextlib import contextmanager
-from typing import List, Union, Optional
+from typing import List, Optional
 from collections import Counter
 
 
 @contextmanager
 def input_redirect(input: str):
+    """
+    Outdated context manager to mock the input() calls required to make decisions
+
+    """
     saved_input = sys.stdin
     sys.stdin = StringIO(input)
     yield
     sys.stdin = saved_input
-
-
-class InputRedirect:
-    """
-    Context manager to mock the input() calls required to make decisions
-
-    """
-
-    def __init__(self, input: str):
-        self.input = input
-
-    def __enter__(self):
-        self.saved_input = sys.stdin
-        sys.stdin = StringIO(self.input)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdin = self.saved_input
 
 
 class Human(Player):
@@ -63,6 +48,7 @@ class Human(Player):
     def binary_decision(prompt: str) -> bool:
         """
         Get user response to a binary "yes" or "no" question.
+
         Raise exception is input is anything other than 'y' or 'n'
 
         """
@@ -106,6 +92,7 @@ class Human(Player):
     ) -> Optional[List[Card]]:
         """
         Get user response when given the option to select multiple cards
+
         Raise exception if user provided selection is not valid.
 
         """
@@ -224,37 +211,4 @@ class Human(Player):
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
-        self.start_cleanup_phase()
-
-
-class BigMoney(Human):
-    """
-    Only buys money and provinces
-
-    """
-
-    def __init__(
-        self,
-        deck: Deck = None,
-        player_id: str = "big_money",
-    ):
-        super().__init__(deck=deck, player_id=player_id)
-
-    def take_turn(self, game: Game):
-        self.start_turn()
-        self.start_action_phase(game)
-        with input_redirect(input="all"):
-            self.start_treasure_phase(game)
-
-        if self.state.money >= 8:
-            buy_card = "Province"
-        elif self.state.money >= 6:
-            buy_card = "Gold"
-        elif self.state.money >= 3:
-            buy_card = "Silver"
-        else:
-            buy_card = "\n"
-        with InputRedirect(input=buy_card):
-            self.start_buy_phase(game)
-
         self.start_cleanup_phase()

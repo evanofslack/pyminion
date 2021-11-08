@@ -21,9 +21,9 @@ class Bot(Player):
                     return
             except Exception as e:
                 print(e)
-                # raise InvalidCardPlay(
-                #     f"Invalid play, {target_card} could not be played"
-                # )
+                raise InvalidCardPlay(
+                    f"Invalid play, {target_card} could not be played"
+                )
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def exact_play(self, card: Card, game: Game, generic_play: bool = True) -> None:
@@ -55,3 +55,28 @@ class Bot(Player):
         self, card: Card, valid_cards: List[Card]
     ) -> Optional[Card]:
         pass
+
+
+class BigMoney(Bot):
+    """
+    Only buys money and provinces
+
+    """
+
+    def __init__(
+        self,
+        deck: Deck = None,
+        player_id: str = "big_money",
+    ):
+        super().__init__(deck=deck, player_id=player_id)
+
+    def take_turn(self, game: Game):
+
+        if self.state.money >= 8:
+            buy_card = "Province"
+        elif self.state.money >= 6:
+            buy_card = "Gold"
+        elif self.state.money >= 3:
+            buy_card = "Silver"
+        else:
+            buy_card = "\n"
