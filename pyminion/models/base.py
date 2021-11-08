@@ -160,15 +160,14 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.draw(3)
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Village(Action):
@@ -188,16 +187,15 @@ class Village(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 2
         player.draw()
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Laboratory(Action):
@@ -217,16 +215,15 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 1
         player.draw(2)
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Market(Action):
@@ -246,7 +243,9 @@ class Market(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -255,9 +254,6 @@ class Market(Action):
         player.draw()
         player.state.money += 1
         player.state.buys += 1
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Moneylender(Action):
@@ -381,23 +377,30 @@ class Chapel(Action):
         if not player.hand.cards:
             return
 
-        if isinstance(player, Human):
+        @validate_input(exceptions=InvalidMultiCardInput)
+        def get_trash_cards() -> Optional[List[Card]]:
+
             trash_cards = player.multiple_card_decision(
                 prompt="Enter up to 4 cards you would like to trash from your hand: ",
                 valid_cards=player.hand.cards,
             )
 
+            if len(trash_cards) > 4:
+                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+
+            return trash_cards
+
+        if isinstance(player, Human):
+            trash_cards = get_trash_cards()
+
         if isinstance(player, Bot):
             trash_cards = player.multiple_card_decision(
                 card=self, valid_cards=player.hand.cards
             )
+            if len(trash_cards) > 4:
+                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
 
-        if not trash_cards:
-            return
-
-        if len(trash_cards) > 4:
-            raise InvalidMultiCardInput("You cannot trash more than 4 cards")
-
+        trash_cards = get_trash_cards()
         for card in trash_cards:
             player.trash(card, game.trash)
 
@@ -425,37 +428,33 @@ class Workshop(Action):
             super().generic_play(player)
 
         @validate_input(exceptions=InvalidSingleCardInput)
-        def gain_decision() -> None:
-            gain_card = single_card_decision(
+        def get_gain_card() -> Card:
+
+            gain_card = player.single_card_decision(
                 prompt="Gain a card costing up to 4 money: ",
                 valid_cards=game.supply.avaliable_cards(),
+            )
+
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Card must cost less than 4 money")
+
+            return gain_card
+
+        if isinstance(player, Human):
+            gain_card = get_gain_card()
+
+        if isinstance(player, Bot):
+            gain_card = player.single_card_decision(
+                card=self, valid_cards=game.supply.avaliable_cards()
             )
             if not gain_card:
                 raise InvalidSingleCardInput("You must gain a card")
             if gain_card.cost > 4:
                 raise InvalidSingleCardInput("Card must cost less than 4 money")
-            player.gain(gain_card, game.supply)
-            return
 
-        return gain_decision()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        gain_card: Card = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
-
-        if not gain_card:
-            raise InvalidSingleCardInput("You must gain a card")
-        if gain_card.cost > 4:
-            raise InvalidSingleCardInput("Card must cost less than 4 money")
-
-        if single_card_validation(gain_card, valid_cards=game.supply.avaliable_cards()):
-            bot.gain(gain_card, game.supply)
+        player.gain(gain_card, game.supply)
 
 
 class Festival(Action):
@@ -475,7 +474,9 @@ class Festival(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -483,9 +484,6 @@ class Festival(Action):
         player.state.actions += 2
         player.state.money += 2
         player.state.buys += 1
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Harbinger(Action):
