@@ -1,36 +1,32 @@
-from pyminion.models.core import Player, Deck
+from pyminion.models.core import Player, Deck, Card
 from pyminion.game import Game
-from pyminion.decisions import single_card_decision, validate_input
-from pyminion.exceptions import InvalidSingleCardInput, InsufficientMoney
+from pyminion.exceptions import (
+    InvalidSingleCardInput,
+    InsufficientMoney,
+    InvalidBinaryInput,
+    InvalidMultiCardInput,
+)
+from pyminion.decisions import (
+    single_card_decision,
+    validate_input,
+)
 import sys
 from io import StringIO
-
 from contextlib import contextmanager
+from typing import List, Optional
+from collections import Counter
 
 
 @contextmanager
 def input_redirect(input: str):
+    """
+    Outdated context manager to mock the input() calls required to make decisions
+
+    """
     saved_input = sys.stdin
     sys.stdin = StringIO(input)
     yield
     sys.stdin = saved_input
-
-
-class InputRedirect:
-    """
-    Context manager to mock the input() calls required to make decisions
-
-    """
-
-    def __init__(self, input: str):
-        self.input = input
-
-    def __enter__(self):
-        self.saved_input = sys.stdin
-        sys.stdin = StringIO(self.input)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdin = self.saved_input
 
 
 class Human(Player):
@@ -46,6 +42,86 @@ class Human(Player):
         player_id: str = "human",
     ):
         super().__init__(deck=deck, player_id=player_id)
+
+    @staticmethod
+    @validate_input(exceptions=InvalidBinaryInput)
+    def binary_decision(prompt: str) -> bool:
+        """
+        Get user response to a binary "yes" or "no" question.
+
+        Raise exception is input is anything other than 'y' or 'n'
+
+        """
+        decision = input(prompt)
+        if decision == "y" or decision == "yes":
+            return True
+        elif decision == "n" or decision == "no":
+            return False
+        else:
+            raise InvalidBinaryInput("Invalid response, valid choices are 'y' or 'n'")
+
+    @staticmethod
+    @validate_input(exceptions=InvalidSingleCardInput)
+    def single_card_decision(
+        prompt: str,
+        valid_cards: List[Card],
+    ) -> Optional[Card]:
+        """
+        Get user response when given the option to select one card
+
+        Raise exception if user provided selection is not valid.
+
+        """
+        card_input = input(prompt)
+        if not card_input:
+            return None
+
+        for valid_card in valid_cards:
+            if card_input.casefold() == valid_card.name.casefold():
+                return valid_card
+
+        raise InvalidSingleCardInput(
+            f"Invalid input, {card_input} is not a valid selection"
+        )
+
+    @staticmethod
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def multiple_card_decision(
+        prompt: str,
+        valid_cards: List[Card],
+    ) -> Optional[List[Card]]:
+        """
+        Get user response when given the option to select multiple cards
+
+        Raise exception if user provided selection is not valid.
+
+        """
+        card_input = input(prompt)
+        if not card_input:
+            return
+        card_strings = [x.strip() for x in card_input.split(",")]
+        selected_cards = []
+        for card_string in card_strings:
+            for valid_card in valid_cards:
+                # compare strings regardless of case i.e. 'Copper' = 'copper'
+                if card_string.casefold() == valid_card.name.casefold():
+                    selected_cards.append(valid_card)
+                    break
+
+        if not selected_cards:
+            raise InvalidMultiCardInput(
+                f"Invalid input, {card_strings[0]} is not a valid card"
+            )
+
+        selected_count = Counter(selected_cards)
+        valid_count = Counter(valid_cards)
+
+        for element in selected_count:
+            if selected_count[element] > valid_count[element]:
+                raise InvalidMultiCardInput(
+                    f"Invalid input, attempted to select too many copies of {element}"
+                )
+        return selected_cards
 
     def start_turn(self):
         print(f"\nTurn {self.turns} ({self.player_id})")
@@ -135,37 +211,4 @@ class Human(Player):
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
-        self.start_cleanup_phase()
-
-
-class BigMoney(Human):
-    """
-    Only buys money and provinces
-
-    """
-
-    def __init__(
-        self,
-        deck: Deck = None,
-        player_id: str = "big_money",
-    ):
-        super().__init__(deck=deck, player_id=player_id)
-
-    def take_turn(self, game: Game):
-        self.start_turn()
-        self.start_action_phase(game)
-        with input_redirect(input="all"):
-            self.start_treasure_phase(game)
-
-        if self.state.money >= 8:
-            buy_card = "Province"
-        elif self.state.money >= 6:
-            buy_card = "Gold"
-        elif self.state.money >= 3:
-            buy_card = "Silver"
-        else:
-            buy_card = "\n"
-        with InputRedirect(input=buy_card):
-            self.start_buy_phase(game)
-
         self.start_cleanup_phase()

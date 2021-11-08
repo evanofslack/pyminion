@@ -1,22 +1,13 @@
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import Player, Card
 from pyminion.bots import Bot
+from pyminion.players import Human
 from pyminion.game import Game
-from pyminion.decisions import (
-    binary_decision,
-    multiple_card_decision,
-    single_card_decision,
-    validate_input,
-)
-from pyminion.validations import single_card_validation, multiple_card_validation
-from pyminion.exceptions import (
-    InvalidBinaryInput,
-    InvalidMultiCardInput,
-    InvalidSingleCardInput,
-)
+from pyminion.decisions import validate_input
+from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
 
 import math
-from typing import Optional, List
+from typing import Optional, List, Union
 
 
 class Copper(Treasure):
@@ -159,15 +150,14 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.draw(3)
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Village(Action):
@@ -187,16 +177,15 @@ class Village(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 2
         player.draw()
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Laboratory(Action):
@@ -216,16 +205,15 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         player.state.actions += 1
         player.draw(2)
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Market(Action):
@@ -245,7 +233,9 @@ class Market(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -254,9 +244,6 @@ class Market(Action):
         player.draw()
         player.state.money += 1
         player.state.buys += 1
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Moneylender(Action):
@@ -272,13 +259,13 @@ class Moneylender(Action):
         type: str = "Action",
         actions: int = 0,
         draw: int = 0,
-        money: int = 3,
+        money: int = 0,
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
         self,
-        player: Player,
+        player: Union[Human, Bot],
         game: Game,
         generic_play: bool = True,
     ) -> None:
@@ -286,34 +273,20 @@ class Moneylender(Action):
         if generic_play:
             super().generic_play(player)
 
-        if copper in player.hand.cards:
-
-            @validate_input(exceptions=InvalidBinaryInput)
-            def trash_decision() -> None:
-                if binary_decision(
-                    prompt="Do you want to trash a copper from your hand? y/n?"
-                ):
-                    player.trash(target_card=copper, trash=game.trash)
-                    player.state.money += 3
-                return
-
-            return trash_decision()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        decision: bool = True,
-        generic_play: bool = True,
-    ) -> None:
-
-        if generic_play:
-            super().generic_play(bot)
-
-        if copper in bot.hand.cards and decision:
-            bot.trash(target_card=copper, trash=game.trash)
-            bot.state.money += 3
+        if copper not in player.hand.cards:
             return
+
+        if isinstance(player, Human):
+            response = player.binary_decision(
+                prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
+            )
+
+        if isinstance(player, Bot):
+            response = player.binary_decision(card=self)
+
+        if response:
+            player.trash(target_card=copper, trash=game.trash)
+            player.state.money += 3
 
 
 class Cellar(Action):
@@ -335,7 +308,12 @@ class Cellar(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self,
+        player: Union[Human, Bot],
+        game: Game,
+        generic_play: bool = True,
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -345,39 +323,21 @@ class Cellar(Action):
         if not player.hand.cards:
             return
 
-        @validate_input(exceptions=InvalidMultiCardInput)
-        def discard_decision() -> None:
-
-            if discard_cards := multiple_card_decision(
+        if isinstance(player, Human):
+            discard_cards = player.multiple_card_decision(
                 prompt="Enter the cards you would like to discard seperated by commas: ",
                 valid_cards=player.hand.cards,
-            ):
-                for card in discard_cards:
-                    player.discard(card)
-                player.draw(len(discard_cards))
-            return
+            )
 
-        return discard_decision()
+        if isinstance(player, Bot):
+            discard_cards = player.multiple_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
 
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        discards: Optional[List[Card]] = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
-
-        bot.state.actions += 1
-
-        if not discards:
-            return
-
-        if multiple_card_validation(target_cards=discards, valid_cards=bot.hand.cards):
-            for card in discards:
-                bot.discard(card)
-            bot.draw(len(discards))
+        if discard_cards:
+            for card in discard_cards:
+                player.discard(card)
+            player.draw(len(discard_cards))
 
 
 class Chapel(Action):
@@ -397,7 +357,10 @@ class Chapel(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
         if generic_play:
             super().generic_play(player)
 
@@ -405,37 +368,31 @@ class Chapel(Action):
             return
 
         @validate_input(exceptions=InvalidMultiCardInput)
-        def trash_decisions() -> None:
-            if discard_cards := multiple_card_decision(
+        def get_trash_cards() -> Optional[List[Card]]:
+
+            trash_cards = player.multiple_card_decision(
                 prompt="Enter up to 4 cards you would like to trash from your hand: ",
                 valid_cards=player.hand.cards,
-            ):
-                if len(discard_cards) > 4:
-                    raise InvalidMultiCardInput("You cannot trash more than 4 cards")
-                for card in discard_cards:
-                    player.trash(card, game.trash)
-            return
+            )
 
-        return trash_decisions()
+            if len(trash_cards) > 4:
+                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
 
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        trash_cards: Optional[List[Card]] = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
+            return trash_cards
 
-        if not trash_cards:
-            return
+        if isinstance(player, Human):
+            trash_cards = get_trash_cards()
 
-        if multiple_card_validation(
-            target_cards=trash_cards, valid_cards=bot.hand.cards
-        ):
-            for card in trash_cards:
-                bot.trash(card, trash=game.trash)
+        if isinstance(player, Bot):
+            trash_cards = player.multiple_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
+            if len(trash_cards) > 4:
+                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+
+        trash_cards = get_trash_cards()
+        for card in trash_cards:
+            player.trash(card, game.trash)
 
 
 class Workshop(Action):
@@ -461,37 +418,33 @@ class Workshop(Action):
             super().generic_play(player)
 
         @validate_input(exceptions=InvalidSingleCardInput)
-        def gain_decision() -> None:
-            gain_card = single_card_decision(
+        def get_gain_card() -> Card:
+
+            gain_card = player.single_card_decision(
                 prompt="Gain a card costing up to 4 money: ",
                 valid_cards=game.supply.avaliable_cards(),
+            )
+
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Card must cost less than 4 money")
+
+            return gain_card
+
+        if isinstance(player, Human):
+            gain_card = get_gain_card()
+
+        if isinstance(player, Bot):
+            gain_card = player.single_card_decision(
+                card=self, valid_cards=game.supply.avaliable_cards()
             )
             if not gain_card:
                 raise InvalidSingleCardInput("You must gain a card")
             if gain_card.cost > 4:
                 raise InvalidSingleCardInput("Card must cost less than 4 money")
-            player.gain(gain_card, game.supply)
-            return
 
-        return gain_decision()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        gain_card: Card = None,
-        generic_play: bool = True,
-    ) -> None:
-        if generic_play:
-            super().generic_play(bot)
-
-        if not gain_card:
-            raise InvalidSingleCardInput("You must gain a card")
-        if gain_card.cost > 4:
-            raise InvalidSingleCardInput("Card must cost less than 4 money")
-
-        if single_card_validation(gain_card, valid_cards=game.supply.avaliable_cards()):
-            bot.gain(gain_card, game.supply)
+        player.gain(gain_card, game.supply)
 
 
 class Festival(Action):
@@ -511,7 +464,9 @@ class Festival(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -519,9 +474,6 @@ class Festival(Action):
         player.state.actions += 2
         player.state.money += 2
         player.state.buys += 1
-
-    def bot_play(self, bot: Bot, game: Game, generic_play: bool = True) -> None:
-        self.play(bot, game, generic_play)
 
 
 class Harbinger(Action):
@@ -543,7 +495,9 @@ class Harbinger(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -551,41 +505,24 @@ class Harbinger(Action):
         player.state.actions += 1
         player.draw()
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def topdeck() -> None:
-            if not player.discard_pile:
-                return
-            print(player.discard_pile)
-            topdeck = single_card_decision(
+        if not player.discard_pile:
+            return
+
+        if isinstance(player, Human):
+            topdeck_card = player.single_card_decision(
                 prompt="You may select a card from your discard pile to put onto your deck: ",
                 valid_cards=player.discard_pile.cards,
             )
-            if not topdeck:
-                return
-            player.deck.add(player.discard_pile.remove(topdeck))
+
+        if isinstance(player, Bot):
+            topdeck_card = player.single_card_decision(
+                card=self, valid_cards=player.discard_pile.cards
+            )
+
+        if not topdeck_card:
             return
 
-        return topdeck()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        topdeck: Optional[Card] = None,
-        generic_play: bool = True,
-    ) -> None:
-
-        if generic_play:
-            super().generic_play(bot)
-
-        bot.state.actions += 1
-        bot.draw()
-
-        if not bot.discard_pile or not topdeck:
-            return
-
-        if single_card_validation(topdeck, valid_cards=bot.discard_pile.cards):
-            bot.deck.add(bot.discard_pile.remove(topdeck))
+        player.deck.add(player.discard_pile.remove(topdeck_card))
 
 
 class Vassal(Action):
@@ -607,7 +544,9 @@ class Vassal(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -618,54 +557,25 @@ class Vassal(Action):
         if not player.discard_pile:
             return
 
-        print("player discarded ", player.discard_pile.cards[-1])
+        discard_card = player.discard_pile.cards[-1]
 
-        if player.discard_pile.cards[-1].type != "Action":
+        if discard_card.type != "Action":
             return
 
-        @validate_input(exceptions=(InvalidBinaryInput, Exception))
-        def play() -> None:
-            card = player.discard_pile.cards[-1]
-            decision = binary_decision(
-                prompt=f"You discarded {card.name}, would you like to play it? (y/n):  ",
+        if isinstance(player, Human):
+            decision = player.binary_decision(
+                prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  "
             )
-            if not decision:
-                return
-            played_card = player.discard_pile.cards.pop()
-            player.playmat.add(played_card)
-            player.exact_play(
-                card=player.playmat.cards[-1], game=game, generic_play=False
-            )
-            return
-
-        play()
-
-    def bot_play(
-        self,
-        bot: Bot,
-        game: Game,
-        decision: bool = True,
-        generic_play: bool = True,
-    ) -> None:
-
-        if generic_play:
-            super().generic_play(bot)
-
-        bot.state.money += 2
-        bot.draw(destination=bot.discard_pile)
-
-        if not bot.discard_pile:
-            return
-
-        if bot.discard_pile.cards[-1].type != "Action":
-            return
+        if isinstance(player, Bot):
+            decision = player.binary_decision(card=self)
 
         if not decision:
             return
 
-        played_card = bot.discard_pile.cards.pop()
-        bot.playmat.add(played_card)
-        bot.exact_play(card=bot.playmat.cards[-1], game=game, generic_play=False)
+        played_card = player.discard_pile.cards.pop()
+        player.playmat.add(played_card)
+        player.exact_play(card=player.playmat.cards[-1], game=game, generic_play=False)
+        return
 
 
 class Artisan(Action):
@@ -687,67 +597,61 @@ class Artisan(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
 
         @validate_input(exceptions=InvalidSingleCardInput)
-        def gain_decision() -> None:
-            gain_card = single_card_decision(
+        def get_gain_card() -> Card:
+            gain_card = player.single_card_decision(
                 prompt="Gain a card costing up to 5 money: ",
                 valid_cards=game.supply.avaliable_cards(),
             )
             if not gain_card:
                 raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 5:
-                raise InvalidSingleCardInput("Card must cost less than 5 money")
-            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
-            return
-
-        gain_decision()
+            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Card must cost at most 5 money")
+            return gain_card
 
         @validate_input(exceptions=InvalidSingleCardInput)
-        def topdeck_decision() -> None:
-            topdeck_card = single_card_decision(
+        def get_topdeck_card() -> Card:
+            topdeck_card = player.single_card_decision(
                 prompt="Put a card from your hand onto your deck: ",
                 valid_cards=player.hand.cards,
             )
             if not topdeck_card:
-                raise InvalidSingleCardInput("You must put a card onto your deck")
-            for card in player.hand.cards:
-                if card == topdeck_card:
-                    player.deck.add(player.hand.remove(card))
-                    return
+                raise InvalidSingleCardInput("You must topdeck a card")
+            return topdeck_card
 
-        return topdeck_decision()
+        if isinstance(player, Human):
+            gain_card = get_gain_card()
 
-    def bot_play(
-        bot: Bot,
-        game: Game,
-        gain_card: Card = None,
-        topdeck_card: Card = None,
-        generic_play: bool = True,
-    ) -> None:
+            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
-        if generic_play:
-            super().generic_play(bot)
+            topdeck_card = get_topdeck_card()
 
-        gain_card = silver if not gain_card else gain_card
+        if isinstance(player, Bot):
+            gain_card = player.single_card_decision(
+                card=self, valid_cards=game.supply.avaliable_cards()
+            )
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Card must cost at most 5 money")
 
-        if gain_card.cost > 5:
-            raise InvalidSingleCardInput("Card must cost less than 5 money")
+            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
-        if single_card_validation(
-            target_card=gain_card, valid_cards=game.supply.avaliable_cards()
-        ):
-            bot.gain(card=gain_card, supply=game.supply, destination=bot.hand)
+            topdeck_card = player.single_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
 
-        topdeck_card = gain_card if not topdeck_card else topdeck_card
-
-        for card in bot.hand.cards:
+        for card in player.hand.cards:
             if card == topdeck_card:
-                bot.deck.add(bot.hand.remove(card))
+                player.deck.add(player.hand.remove(card))
+                return
 
 
 class Poacher(Action):
@@ -769,7 +673,9 @@ class Poacher(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
 
         if generic_play:
             super().generic_play(player)
@@ -778,50 +684,36 @@ class Poacher(Action):
         player.state.actions += 1
         player.state.money += 1
 
-        if game.supply.num_empty_piles == 0:
+        empty_piles = game.supply.num_empty_piles()
+
+        if empty_piles == 0:
             return
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def discard() -> None:
-            discard_card = single_card_decision(
-                prompt=" Discard a card from your hand: ", valid_cards=player.hand.cards
+        discard_num = min(empty_piles, len(player.hand))
+
+        @validate_input(exceptions=InvalidMultiCardInput)
+        def get_discard_cards() -> List[Card]:
+            discard_cards = player.multiple_card_decision(
+                prompt=f"Discard {discard_num} card(s) from your hand: ",
+                valid_cards=player.hand.cards,
             )
-            if not discard_card:
-                raise InvalidSingleCardInput("You must discard a card")
+            if len(discard_cards) != discard_num:
+                raise InvalidMultiCardInput(f"You must discard {discard_num} card(s)")
+
+            return discard_cards
+
+        if isinstance(player, Human):
+            discard_cards = get_discard_cards()
+
+        if isinstance(player, Bot):
+            discard_cards = player.multi_card_decision(
+                card=self, valid_cards=player.hand.cards
+            )
+            if len(discard_cards) != discard_num:
+                raise InvalidMultiCardInput(f"You must discard {discard_num} card(s)")
+
+        for discard_card in discard_cards:
             player.discard(discard_card)
-            return
-
-        for i in range(game.supply.num_empty_piles()):
-            if not player.hand:
-                return
-            discard()
-
-    def bot_play(
-        bot: Bot, game: Game, discard_cards: List[Card], generic_play: bool = False
-    ) -> None:
-
-        if generic_play:
-            super().generic_play(bot)
-
-        bot.draw()
-        bot.state.actions += 1
-        bot.state.money += 1
-
-        if game.supply.num_empty_piles() == 0:
-            return
-
-        if multiple_card_validation(
-            target_cards=discard_cards, valid_cards=bot.hand.cards
-        ):
-            for i in range(game.supply.num_empty_piles()):
-                if not bot.hand:
-                    return
-                try:
-                    bot.discard(discard_cards[i])
-                except:
-                    bot.discard(
-                        bot.hand.cards[-1]
-                    )  # default to discarding the last card in hand
 
 
 copper = Copper()

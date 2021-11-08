@@ -105,6 +105,11 @@ class Playmat(AbstractDeck):
         super().__init__(cards)
 
 
+class Trash(AbstractDeck):
+    def __init__(self, cards: List[Card] = None):
+        super().__init__(cards)
+
+
 @dataclass
 class State:
     """
@@ -119,7 +124,8 @@ class State:
 
 class Player:
     """
-    Collection of card piles associated with each player
+    Basic representation of a player including the piles of cards they own
+    and the basic actions they can take to manipulate the state of the game
 
     """
 
@@ -145,12 +151,24 @@ class Player:
         return f"{self.player_id}"
 
     def reset(self):
+        """
+        Reset the state of the player to a pre-game state
+
+        Required for resetting players between games when running simulations
+
+        """
         self.turns = 0
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
 
     def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
+        """
+        Draw cards from deck and add them to the specified destination
+
+        Defaults to drawing one card and adding to the player's hand
+
+        """
         if destination is None:
             destination = self.hand
         for i in range(num_cards):
@@ -166,22 +184,43 @@ class Player:
                 destination.add(self.deck.draw())
 
     def discard(self, target_card: Card) -> None:
+        """
+        Move specified card from the player's hand to the player's discard pile
+
+        """
         for card in self.hand.cards:
             if card == target_card:
                 self.discard_pile.add(self.hand.remove(card))
                 return
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
+        """
+        Find target card in player's hand and play it
+
+        If generic_play is true, card is moved from player's hand to playmat
+        and player action count decreased by 1. This is the default behavior
+        but is overridden for cards like vassal and throne room
+
+        """
         for card in self.hand.cards:
-            try:
-                if card == target_card and card.type == "Action":
+            if card == target_card and card.type == "Action":
+                try:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
-            except:
-                raise InvalidCardPlay(f"Invalid play, {target_card} has no play method")
+
+                except:
+                    raise InvalidCardPlay(
+                        f"Invalid play, {target_card} has no play method"
+                    )
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
+        """
+        Similar to previous play method, except exact card to play must be specified
+
+        This is method is necessary when playing cards not in the player's hand, such as vassal
+
+        """
         try:
             if card.type == "Action":
                 card.play(player=self, game=game, generic_play=generic_play)
@@ -191,6 +230,12 @@ class Player:
             raise InvalidCardPlay(f"Invalid play, cannot play {card}")
 
     def buy(self, card: Card, supply: "Supply") -> None:
+        """
+        Buy a card from the supply and add to player's discard pile.
+
+        Assert that player has sufficient money and buys to gain the card
+
+        """
         assert isinstance(card, Card)
         if card.cost > self.state.money:
             raise InsufficientMoney(
@@ -208,6 +253,12 @@ class Player:
     def gain(
         self, card: Card, supply: "Supply", destination: AbstractDeck = None
     ) -> None:
+        """
+        Gain a card from the supply and add to destination
+
+        Defaults to adding the card to the player's discard pile
+
+        """
         if destination is None:
             destination = self.discard_pile
 
@@ -215,12 +266,20 @@ class Player:
         destination.add(gain_card)
 
     def trash(self, target_card: Card, trash: "Trash") -> None:
+        """
+        Move card from player's hand to the trash
+
+        """
         for card in self.hand.cards:
             if card == target_card:
                 trash.add(self.hand.remove(card))
                 break
 
     def get_all_cards(self) -> List[Card]:
+        """
+        Get a list of all the cards the player has in their possesion
+
+        """
         return (
             self.deck.cards
             + self.discard_pile.cards
@@ -242,6 +301,18 @@ class Player:
                 total_money += card.money
         return total_money
 
+    def get_action_money(self) -> int:
+        total_money: int = 0
+        for card in self.get_all_cards():
+            if card.type == "Action":
+                total_money += card.money
+        return total_money
+
+    def get_deck_money(self) -> int:
+        treasure_money = self.get_treasure_money()
+        action_money = self.get_action_money()
+        return treasure_money + action_money
+
 
 class Supply:
     """
@@ -259,6 +330,10 @@ class Supply:
         return len(self.piles)
 
     def gain_card(self, card: Card) -> Optional[Card]:
+        """
+        Gain a card from the supply
+
+        """
         for pile in self.piles:
             if card.name == pile.name:
                 try:
@@ -270,6 +345,10 @@ class Supply:
         raise PileNotFound
 
     def return_card(self, card: Card):
+        """
+        Return a card to the supply
+
+        """
         for pile in self.piles:
             if card.name == pile.name:
                 pile.add(card)
@@ -292,8 +371,3 @@ class Supply:
             if len(pile) == 0:
                 empty_piles += 1
         return empty_piles
-
-
-class Trash(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
-        super().__init__(cards)
