@@ -259,7 +259,7 @@ class Moneylender(Action):
         type: str = "Action",
         actions: int = 0,
         draw: int = 0,
-        money: int = 3,
+        money: int = 0,
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
