@@ -1,7 +1,6 @@
-from pyminion.models.core import Player
-from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.models.base import Estate, workshop
+from pyminion.players import Human
 
 
 def test_workshop_gain_valid(human: Human, game: Game, monkeypatch):

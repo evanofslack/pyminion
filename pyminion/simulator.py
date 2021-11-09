@@ -1,7 +1,8 @@
+import copy
+from typing import List
+
 from pyminion.game import Game
 from pyminion.players import Player
-from typing import List
-import copy
 
 
 class Simulator:

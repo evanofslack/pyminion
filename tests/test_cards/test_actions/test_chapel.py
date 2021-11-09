@@ -1,7 +1,6 @@
-from pyminion.models.core import Player
-from pyminion.players import Human
 from pyminion.game import Game
 from pyminion.models.base import Chapel, Copper, Estate, chapel, copper, estate
+from pyminion.players import Human
 
 
 def test_chapel_trash_one(human: Human, game: Game, monkeypatch):

@@ -1,6 +1,6 @@
-from pyminion.players import Human
 from pyminion.game import Game
-from pyminion.models.base import poacher, estate, duchy
+from pyminion.models.base import duchy, estate, poacher
+from pyminion.players import Human
 
 
 def test_poacher_no_empty_pile(human: Human, game: Game):

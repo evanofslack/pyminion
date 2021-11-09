@@ -1,5 +1,5 @@
-from pyminion.models.core import Card, Player
 from pyminion.exceptions import InsufficientActions
+from pyminion.models.core import Card, Player
 
 
 class Victory(Card):

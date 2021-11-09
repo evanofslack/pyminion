@@ -1,7 +1,8 @@
+import pytest
+
 from pyminion.decisions import single_card_decision
 from pyminion.exceptions import InvalidSingleCardInput
 from pyminion.models.base import copper, estate
-import pytest
 
 valid_cards = [copper, copper, estate]
 

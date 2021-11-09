@@ -1,9 +1,6 @@
-from pyminion.models.core import Player
 from pyminion.game import Game
-from pyminion.players import Human
 from pyminion.models.base import Cellar, Copper, Estate, cellar, copper, estate
-from pyminion.exceptions import InvalidMultiCardInput
-import pytest
+from pyminion.players import Human
 
 
 def test_cellar_discard_one(human: Human, game: Game, monkeypatch):
@@ -13,7 +10,6 @@ def test_cellar_discard_one(human: Human, game: Game, monkeypatch):
     assert len(human.hand) == 3
     assert len(human.discard_pile) == 0
 
-    # mock decision = input() as "Copper" to discard
     monkeypatch.setattr("builtins.input", lambda _: "Copper")
 
     human.play(target_card=cellar, game=game)

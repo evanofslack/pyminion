@@ -1,9 +1,9 @@
-from pyminion.models.core import Card, Supply, Trash, Pile, Deck, Player
-from pyminion.exceptions import InvalidPlayerCount, InvalidGameSetup
-
-from typing import List, Optional
-import random
 import copy
+import random
+from typing import List, Optional
+
+from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
+from pyminion.models.core import Card, Deck, Pile, Player, Supply, Trash
 
 
 class Game:

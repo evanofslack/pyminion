@@ -1,6 +1,7 @@
+from pyminion.bots import BigMoney
+from pyminion.expansions.base import base_cards, basic_cards, chapel, start_cards
 from pyminion.game import Game
-from pyminion.expansions.base import start_cards, base_cards, basic_cards, chapel
-from pyminion.players import BigMoney, Human
+from pyminion.players import Human
 
 human = Human()
 bot_1 = BigMoney(player_id="Bot 1")
