@@ -1,5 +1,13 @@
-from pyminion.bots import BigMoney
-from pyminion.expansions.base import base_cards, basic_cards, chapel, start_cards
+from pyminion.bots.big_money import BigMoney
+from pyminion.expansions.base import (
+    base_cards,
+    basic_cards,
+    chapel,
+    moat,
+    start_cards,
+    village,
+    witch,
+)
 from pyminion.game import Game
 from pyminion.players import Human
 
@@ -10,7 +18,9 @@ players = [bot_1, human]
 expansions = [base_cards]
 
 
-game = Game(players, expansions, basic_cards, start_cards, kingdom_cards=[chapel])
+game = Game(
+    players, expansions, basic_cards, start_cards, kingdom_cards=[witch, village]
+)
 
 
 if __name__ == "__main__":

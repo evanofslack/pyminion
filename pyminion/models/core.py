@@ -274,6 +274,13 @@ class Player:
                 trash.add(self.hand.remove(card))
                 break
 
+    def start_turn(self):
+        print(f"\nTurn {self.turns} ({self.player_id})")
+        self.turns += 1
+        self.state.actions = 1
+        self.state.money = 0
+        self.state.buys = 1
+
     def get_all_cards(self) -> List[Card]:
         """
         Get a list of all the cards the player has in their possesion

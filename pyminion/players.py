@@ -8,6 +8,7 @@ from pyminion.decisions import single_card_decision, validate_input
 from pyminion.exceptions import (
     InsufficientMoney,
     InvalidBinaryInput,
+    InvalidCardPlay,
     InvalidMultiCardInput,
     InvalidSingleCardInput,
 )
@@ -130,16 +131,12 @@ class Human(Player):
                 return not block
         return True
 
-    def start_turn(self):
-        print(f"\nTurn {self.turns} ({self.player_id})")
-        self.turns += 1
-        self.state.actions = 1
-        self.state.money = 0
-        self.state.buys = 1
-
     def start_action_phase(self, game: Game):
-        viable_actions = [card for card in self.hand.cards if card.type == "Action"]
-        while viable_actions and self.state.actions:
+        while self.state.actions:
+
+            viable_actions = [card for card in self.hand.cards if "Action" in card.type]
+            if not viable_actions:
+                return
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_action(game: Game) -> bool:
@@ -152,14 +149,13 @@ class Human(Player):
                     return False
                 self.play(card, game)
                 print(f"{self.player_id} played {card}")
-                viable_actions.remove(card)
                 return True
 
             if not choose_action(game):
                 return
 
     def start_treasure_phase(self, game: Game):
-        viable_treasures = [card for card in self.hand.cards if card.type == "Treasure"]
+        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
         while viable_treasures:
 
             @validate_input(exceptions=InvalidSingleCardInput)
@@ -205,6 +201,102 @@ class Human(Player):
 
             if not choose_buy(game):
                 return
+
+    def start_cleanup_phase(self):
+        self.discard_pile.cards += self.hand.cards
+        self.discard_pile.cards += self.playmat.cards
+        self.hand.cards = []
+        self.playmat.cards = []
+        self.draw(5)
+
+    def take_turn(self, game: Game) -> None:
+        self.start_turn()
+        self.start_action_phase(game)
+        self.start_treasure_phase(game)
+        self.start_buy_phase(game)
+        self.start_cleanup_phase()
+
+
+class Bot(Player):
+    def __init__(
+        self,
+        deck: Deck = None,
+        player_id: str = "bot",
+    ):
+        super().__init__(deck=deck, player_id=player_id)
+
+    def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
+        for card in self.hand.cards:
+            try:
+                if card == target_card and card.type == "Action":
+                    card.play(player=self, game=game, generic_play=generic_play)
+                    return
+            except Exception as e:
+                print(e)
+                raise InvalidCardPlay(
+                    f"Invalid play, {target_card} could not be played"
+                )
+        raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
+
+    def exact_play(self, card: Card, game: Game, generic_play: bool = True) -> None:
+        try:
+            if "Action" in card.type:
+                card.play(player=self, game=game, generic_play=generic_play)
+            elif "Treasure" in card.type:
+                card.play(player=self, game=game)
+        except:
+            raise InvalidCardPlay(f"Invalid play, cannot play {card}")
+
+    def binary_decision(self, card: Card) -> bool:
+        if card.name == "Moneylender":
+            return True
+        else:
+            return False
+
+    def multiple_card_decision(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[List[Card]]:
+        if card.name == "Cellar":
+            return [
+                card
+                for card in valid_cards
+                if card.name == "Estate" or card.name == "Copper"
+            ]
+
+    def single_card_decision(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[Card]:
+        pass
+
+    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+        for card in self.hand.cards:
+            if card.name == "Moat":
+                return False
+        return True
+
+    def start_action_phase(self, game: Game):
+        viable_actions = [card for card in self.hand.cards if "Action" in card.type]
+        print(f"{self.player_id}'s hand: {self.hand}")
+        while viable_actions and self.state.actions:
+
+            # Add logic for playing action cards here
+
+            return
+
+    def start_treasure_phase(self, game: Game):
+        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
+        i = 0
+        while i < len(viable_treasures):
+            self.exact_play(viable_treasures[i], game)
+            viable_treasures.remove(viable_treasures[i])
+        print(f"{self.player_id} has {self.state.money} money")
+
+    def start_buy_phase(self, game: Game):
+        while self.state.buys and self.state.money:
+
+            # Add logic for buying cards here
+
+            return
 
     def start_cleanup_phase(self):
         self.discard_pile.cards += self.hand.cards
