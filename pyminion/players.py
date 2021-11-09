@@ -10,6 +10,7 @@ from pyminion.decisions import (
     single_card_decision,
     validate_input,
 )
+
 import sys
 from io import StringIO
 from contextlib import contextmanager
@@ -122,6 +123,15 @@ class Human(Player):
                     f"Invalid input, attempted to select too many copies of {element}"
                 )
         return selected_cards
+
+    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+        for card in self.hand.cards:
+            if card.name == "Moat":
+                block = self.binary_decision(
+                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: "
+                )
+                return not block
+        return True
 
     def start_turn(self):
         print(f"\nTurn {self.turns} ({self.player_id})")
