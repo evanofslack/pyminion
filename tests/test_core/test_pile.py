@@ -1,8 +1,8 @@
-from pyminion.models.core import Pile
-from pyminion.expansions.base import copper, estate
-from pyminion.exceptions import EmptyPile
-
 import pytest
+
+from pyminion.exceptions import EmptyPile
+from pyminion.expansions.base import copper, estate
+from pyminion.models.core import Pile
 
 
 def make_empty_pile():

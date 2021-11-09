@@ -1,13 +1,13 @@
-from pyminion.models.core import Card
+import functools
+from collections import Counter
+from typing import Callable, List, Optional, Tuple, Type, Union
+
 from pyminion.exceptions import (
     InvalidBinaryInput,
     InvalidMultiCardInput,
     InvalidSingleCardInput,
 )
-
-from typing import List, Optional, Callable, Tuple, Type, Union
-from collections import Counter
-import functools
+from pyminion.models.core import Card
 
 
 def validate_input(

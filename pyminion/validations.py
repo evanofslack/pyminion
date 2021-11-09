@@ -1,7 +1,8 @@
-from pyminion.models.core import Card
-from pyminion.exceptions import InvalidSingleCardInput, InvalidMultiCardInput
-from typing import List
 from collections import Counter
+from typing import List
+
+from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
+from pyminion.models.core import Card
 
 
 def single_card_validation(target_card: Card, valid_cards: List[Card]) -> bool:

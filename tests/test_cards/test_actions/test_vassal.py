@@ -1,6 +1,6 @@
-from pyminion.players import Human
 from pyminion.game import Game
-from pyminion.models.base import Silver, Estate, vassal, smithy, estate, village
+from pyminion.models.base import estate, smithy, vassal, village
+from pyminion.players import Human
 
 
 def test_vassal_not_action_play(human: Human, game: Game):

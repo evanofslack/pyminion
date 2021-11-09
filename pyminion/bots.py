@@ -1,8 +1,8 @@
-from pyminion.models.core import Player, Deck, Card
-from pyminion.game import Game
-from pyminion.exceptions import InvalidCardPlay
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
+from pyminion.exceptions import InvalidCardPlay
+from pyminion.game import Game
+from pyminion.models.core import Card, Deck, Player
 
 if TYPE_CHECKING:
     from pyminion.players import Human

@@ -9,6 +9,7 @@ pyminion = {editable = true, path = "."}
 [dev-packages]
 black = "*"
 pytest = "*"
+isort = "*"
 
 [requires]
 python_version = "3.8"

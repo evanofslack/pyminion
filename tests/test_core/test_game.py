@@ -1,9 +1,6 @@
-from pyminion.models.core import (
-    Supply,
-    Trash,
-)
 from pyminion.game import Game
-from pyminion.models.base import province, duchy, estate, gold
+from pyminion.models.base import duchy, estate, gold, province
+from pyminion.models.core import Supply, Trash
 
 
 def test_game_fixture(game: Game):
