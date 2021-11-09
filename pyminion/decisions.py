@@ -110,7 +110,6 @@ def multiple_card_decision(
             f"Invalid input, {card_strings[0]} is not a valid card"
         )
 
-    # TODO This can be abstracted into function
     selected_count = Counter(selected_cards)
     valid_count = Counter(valid_cards)
 

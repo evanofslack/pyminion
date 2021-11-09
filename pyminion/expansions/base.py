@@ -3,6 +3,7 @@ from pyminion.models.base import (
     cellar,
     chapel,
     copper,
+    council_room,
     curse,
     duchy,
     estate,
@@ -11,6 +12,7 @@ from pyminion.models.base import (
     harbinger,
     laboratory,
     market,
+    moat,
     moneylender,
     poacher,
     province,
@@ -18,6 +20,7 @@ from pyminion.models.base import (
     smithy,
     vassal,
     village,
+    witch,
     workshop,
 )
 
@@ -26,19 +29,22 @@ START_ESTATE = 3
 start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
 
 base_cards = [
-    smithy,
-    village,
-    market,
-    laboratory,
-    moneylender,
+    artisan,
     cellar,
     chapel,
-    workshop,
+    council_room,
     festival,
     harbinger,
-    vassal,
-    artisan,
+    laboratory,
+    market,
+    moat,
+    moneylender,
     poacher,
+    smithy,
+    vassal,
+    village,
+    witch,
+    workshop,
 ]
 
 basic_cards = [copper, silver, gold, estate, duchy, province, curse]
