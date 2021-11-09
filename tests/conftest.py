@@ -83,19 +83,19 @@ def game(player):
 
 
 @pytest.fixture
-def multiplayer_game(player, supply):
+def multiplayer_game():
 
-    player2 = Player(
-        deck=Deck(start_cards),
-        player_id="Test_2",
-    )
+    human1 = Human(player_id="human_1")
+
+    human2 = Human(player_id="human_2")
 
     game = Game(
-        players=[player, player2],
+        players=[human1, human2],
         expansions=[base_cards],
         basic_cards=basic_cards,
         start_cards=start_cards,
     )
-    game.supply = game._create_supply()
+    # game.supply = game._create_supply()
+    game.start()
 
     return game

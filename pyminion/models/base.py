@@ -7,7 +7,7 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
 
 import math
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 
 class Copper(Treasure):
@@ -15,7 +15,7 @@ class Copper(Treasure):
         self,
         name: str = "Copper",
         cost: int = 0,
-        type: str = "Treasure",
+        type: Tuple[str] = ("Treasure",),
         money: int = 1,
     ):
         super().__init__(name, cost, type, money)
@@ -31,7 +31,7 @@ class Silver(Treasure):
         self,
         name: str = "Silver",
         cost: int = 3,
-        type: str = "Treasure",
+        type: Tuple[str] = ("Treasure",),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money)
@@ -47,7 +47,7 @@ class Gold(Treasure):
         self,
         name: str = "Gold",
         cost: int = 6,
-        type: str = "Treasure",
+        type: Tuple[str] = ("Treasure",),
         money: int = 3,
     ):
         super().__init__(name, cost, type, money)
@@ -63,7 +63,7 @@ class Estate(Victory):
         self,
         name: str = "Estate",
         cost: int = 2,
-        type: str = "Victory",
+        type: Tuple[str] = ("Victory",),
     ):
         super().__init__(name, cost, type)
 
@@ -77,7 +77,7 @@ class Duchy(Victory):
         self,
         name: str = "Duchy",
         cost: int = 5,
-        type: str = "Victory",
+        type: Tuple[str] = ("Victory",),
     ):
         super().__init__(name, cost, type)
 
@@ -91,7 +91,7 @@ class Province(Victory):
         self,
         name: str = "Province",
         cost: int = 8,
-        type: str = "Victory",
+        type: Tuple[str] = ("Victory",),
     ):
         super().__init__(name, cost, type)
 
@@ -105,7 +105,7 @@ class Curse(Victory):
         self,
         name: str = "Curse",
         cost: int = 0,
-        type: str = "Curse",
+        type: Tuple[str] = ("Curse",),
     ):
         super().__init__(name, cost, type)
 
@@ -124,7 +124,7 @@ class Gardens(Victory):
         self,
         name: str = "Gardens",
         cost: int = 4,
-        type: str = "Victory",
+        type: Tuple[str] = ("Victory",),
     ):
         super().__init__(name, cost, type)
 
@@ -143,7 +143,7 @@ class Smithy(Action):
         self,
         name: str = "Smithy",
         cost: int = 4,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 3,
         money: int = 0,
@@ -170,7 +170,7 @@ class Village(Action):
         self,
         name: str = "Village",
         cost: int = 3,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 2,
         draw: int = 1,
         money: int = 0,
@@ -198,7 +198,7 @@ class Laboratory(Action):
         self,
         name: str = "Laboratory",
         cost: int = 5,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 2,
         money: int = 0,
@@ -226,7 +226,7 @@ class Market(Action):
         self,
         name: str = "Market",
         cost: int = 5,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -256,7 +256,7 @@ class Moneylender(Action):
         self,
         name: str = "Moneylender",
         cost: int = 4,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -301,7 +301,7 @@ class Cellar(Action):
         self,
         name: str = "Cellar",
         cost: int = 2,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 0,
         money: int = 0,
@@ -350,7 +350,7 @@ class Chapel(Action):
         self,
         name: str = "Chapel",
         cost: int = 2,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -405,7 +405,7 @@ class Workshop(Action):
         self,
         name: str = "Workshop",
         cost: int = 3,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -457,7 +457,7 @@ class Festival(Action):
         self,
         name: str = "Festival",
         cost: int = 5,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 2,
         draw: int = 0,
         money: int = 2,
@@ -488,7 +488,7 @@ class Harbinger(Action):
         self,
         name: str = "Harbinger",
         cost: int = 3,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 1,
         money: int = 0,
@@ -537,7 +537,7 @@ class Vassal(Action):
         self,
         name: str = "Vassal",
         cost: int = 3,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 0,
         money: int = 2,
@@ -559,7 +559,7 @@ class Vassal(Action):
 
         discard_card = player.discard_pile.cards[-1]
 
-        if discard_card.type != "Action":
+        if "Action" not in discard_card.type:
             return
 
         if isinstance(player, Human):
@@ -590,7 +590,7 @@ class Artisan(Action):
         self,
         name: str = "Artisan",
         cost: int = 6,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -666,7 +666,7 @@ class Poacher(Action):
         self,
         name: str = "Poacher",
         cost: int = 4,
-        type: str = "Action",
+        type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -716,6 +716,107 @@ class Poacher(Action):
             player.discard(discard_card)
 
 
+class CouncilRoom(Action):
+    """
+    +4 cards, +1 buy
+
+    Each other player draws a card
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Council Room",
+        cost: int = 5,
+        type: Tuple[str] = ("Action",),
+        actions: int = 0,
+        draw: int = 4,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(4)
+        player.state.buys += 1
+
+        for p in game.players:
+            if p is not player:
+                p.draw()
+
+
+class Witch(Action):
+    """
+    +2 cards
+
+    Each other player gains a curse
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Witch",
+        cost: int = 5,
+        type: Tuple[str] = ("Action", "Attack"),
+        actions: int = 0,
+        draw: int = 2,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(2)
+
+        for opponent in game.players:
+            if opponent is not player:
+                if opponent.is_attacked(player=player, attack_card=self):
+                    opponent.gain(
+                        card=curse,
+                        supply=game.supply,
+                    )
+
+
+class Moat(Action):
+    """
+    +2 cards
+
+    When another player plays an attack card, you may first
+    reveal this from your hand, to be unaffected by it
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Moat",
+        cost: int = 2,
+        type: Tuple[str] = ("Action", "Reaction"),
+        actions: int = 0,
+        draw: int = 2,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(2)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -739,3 +840,6 @@ harbinger = Harbinger()
 vassal = Vassal()
 artisan = Artisan()
 poacher = Poacher()
+council_room = CouncilRoom()
+witch = Witch()
+moat = Moat()

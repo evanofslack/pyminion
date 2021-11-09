@@ -68,7 +68,7 @@ class Game:
                 basic_piles.append(Pile([card] * SILVER_LENGTH))
             elif card.name == "Gold":
                 basic_piles.append(Pile([card] * GOLD_LENGTH))
-            elif card.type == "Victory":
+            elif "Victory" in card.type:
                 basic_piles.append(Pile([card] * VICTORY_LENGTH))
             elif card.name == "Curse":
                 basic_piles.append(Pile([card] * CURSE_LENGTH))

@@ -1,8 +1,11 @@
 from pyminion.models.core import Player, Deck, Card
 from pyminion.game import Game
 from pyminion.exceptions import InvalidCardPlay
+from typing import List, Optional, Union, TYPE_CHECKING
 
-from typing import List, Optional
+
+if TYPE_CHECKING:
+    from pyminion.players import Human
 
 
 class Bot(Player):
@@ -55,6 +58,12 @@ class Bot(Player):
         self, card: Card, valid_cards: List[Card]
     ) -> Optional[Card]:
         pass
+
+    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+        for card in self.hand.cards:
+            if card.name == "Moat":
+                return False
+        return True
 
 
 class BigMoney(Bot):

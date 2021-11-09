@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Tuple
 import random
 from dataclasses import dataclass
 
@@ -21,13 +21,12 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int, type: str):
+    def __init__(self, name: str, cost: int, type: Tuple[str]):
         self.name = name
         self.cost = cost
         self.type = type
 
     def __repr__(self):
-        # return f"{self.name} ({self.type})"
         return f"{self.name}"
 
 
@@ -203,7 +202,7 @@ class Player:
 
         """
         for card in self.hand.cards:
-            if card == target_card and card.type == "Action":
+            if card == target_card and "Action" in card.type:
                 try:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
@@ -222,9 +221,9 @@ class Player:
 
         """
         try:
-            if card.type == "Action":
+            if "Action" in card.type:
                 card.play(player=self, game=game, generic_play=generic_play)
-            elif card.type == "Treasure":
+            elif "Treasure" in card.type:
                 card.play(player=self, game=game)
         except:
             raise InvalidCardPlay(f"Invalid play, cannot play {card}")
@@ -290,21 +289,21 @@ class Player:
     def get_victory_points(self) -> int:
         total_vp: int = 0
         for card in self.get_all_cards():
-            if card.type == "Victory" or card.type == "Curse":
+            if "Victory" in card.type or "Curse" in card.type:
                 total_vp += card.score(self)
         return total_vp
 
     def get_treasure_money(self) -> int:
         total_money: int = 0
         for card in self.get_all_cards():
-            if card.type == "Treasure":
+            if "Treasure" in card.type:
                 total_money += card.money
         return total_money
 
     def get_action_money(self) -> int:
         total_money: int = 0
         for card in self.get_all_cards():
-            if card.type == "Action":
+            if "Action" in card.type:
                 total_money += card.money
         return total_money
 
