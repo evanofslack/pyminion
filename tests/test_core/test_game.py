@@ -44,7 +44,7 @@ def test_game_is_over_true_three_piles(game: Game):
 
 
 def test_game_tie(multiplayer_game: Game):
-    assert not multiplayer_game.get_winner()
+    assert multiplayer_game.get_winner() is None
 
 
 def test_game_win(multiplayer_game: Game):
