@@ -36,6 +36,14 @@ class Silver(Treasure):
         super().__init__(name, cost, type, money)
 
     def play(self, player: Player, game: Game) -> int:
+
+        # check if this is the first silver played and if there are any merchants in play
+        if self not in player.playmat.cards:
+            if num_merchants := len(
+                [card for card in player.playmat.cards if card.name == "Merchant"]
+            ):
+                player.state.money += num_merchants
+
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -816,6 +824,36 @@ class Moat(Action):
         player.draw(2)
 
 
+class Merchant(Action):
+    """
+    +1 card, +1 action
+
+    The first time you play a Silver this turn, +1 money
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Merchant",
+        cost: int = 3,
+        type: Tuple[str] = ("Action",),
+        actions: int = 1,
+        draw: int = 1,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(1)
+        player.state.actions += 1
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -842,3 +880,4 @@ poacher = Poacher()
 council_room = CouncilRoom()
 witch = Witch()
 moat = Moat()
+merchant = Merchant()
