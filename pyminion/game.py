@@ -1,9 +1,12 @@
 import copy
+import logging
 import random
 from typing import List, Optional
 
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.models.core import Card, Deck, Pile, Player, Supply, Trash
+
+logger = logging.getLogger()
 
 
 class Game:
@@ -161,11 +164,11 @@ class Game:
 
     def get_stats(self):
         if winner := self.get_winner():
-            print(f"\n{winner} won in {winner.turns} turns!")
+            logger.info(f"\n{winner} won in {winner.turns} turns!")
         else:
-            print(f"\nGame ended in a tie after {self.players[0].turns} turns")
+            logger.info(f"\nGame ended in a tie after {self.players[0].turns} turns")
 
         for player in self.players:
-            print(
+            logger.info(
                 f"\n\nPlayer: {player} \nScore: {player.get_victory_points()} \nDeck: {player.get_all_cards()}"
             )

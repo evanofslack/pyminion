@@ -1,8 +1,11 @@
 import copy
+import logging
 from typing import List, Union
 
 from pyminion.game import Game
 from pyminion.players import Bot, Human, Player
+
+logger = logging.getLogger()
 
 
 class Simulator:
@@ -23,7 +26,7 @@ class Simulator:
         return winners
 
     def get_stats(self):
-        print(f"\n\nSimulation of {self.iterations} games")
+        logger.info(f"\n\nSimulation of {self.iterations} games")
         for player in self.game.players:
-            print(f"{player.player_id} wins: {self.winners.count(player)}")
-        print(f"Ties: {self.winners.count('tie')}")
+            logger.info(f"{player.player_id} wins: {self.winners.count(player)}")
+        logger.info(f"Ties: {self.winners.count('tie')}")

@@ -1,3 +1,4 @@
+import logging
 import sys
 from collections import Counter
 from contextlib import contextmanager
@@ -14,6 +15,8 @@ from pyminion.exceptions import (
 )
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck, Player
+
+logger = logging.getLogger()
 
 
 @contextmanager
@@ -140,7 +143,7 @@ class Human(Player):
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_action(game: Game) -> bool:
-                print(self.hand)
+                logger.info(self.hand)
                 card = single_card_decision(
                     prompt="Choose an action card to play: ",
                     valid_cards=viable_actions,
@@ -148,7 +151,7 @@ class Human(Player):
                 if not card:
                     return False
                 self.play(card, game)
-                print(f"{self.player_id} played {card}")
+                logger.info(f"{self.player_id} played {card}")
                 return True
 
             if not choose_action(game):
@@ -160,7 +163,7 @@ class Human(Player):
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_treasure(game: Game):
-                print(self.hand)
+                logger.info(self.hand)
                 card = single_card_decision(
                     prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
                     valid_cards=viable_treasures,
@@ -175,7 +178,7 @@ class Human(Player):
                         viable_treasures.remove(viable_treasures[i])
                     return True
                 self.exact_play(card, game)
-                print(f"{self.player_id} played {card}")
+                logger.info(f"{self.player_id} played {card}")
                 viable_treasures.remove(card)
                 return True
 
@@ -184,8 +187,8 @@ class Human(Player):
 
     def start_buy_phase(self, game: Game):
         while self.state.buys and self.state.money:
-            print("Money: ", self.state.money)
-            print("Buys: ", self.state.buys)
+            logger.info("Money: ", self.state.money)
+            logger.info("Buys: ", self.state.buys)
 
             @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
             def choose_buy(game: Game) -> bool:
@@ -196,7 +199,7 @@ class Human(Player):
                 if not card:
                     return False
                 self.buy(card, game.supply)
-                print(f"{self.player_id} bought {card}")
+                logger.info(f"{self.player_id} bought {card}")
                 return True
 
             if not choose_buy(game):
@@ -232,7 +235,7 @@ class Bot(Player):
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
             except Exception as e:
-                print(e)
+                logging.error(e)
                 raise InvalidCardPlay(
                     f"Invalid play, {target_card} could not be played"
                 )
@@ -276,7 +279,7 @@ class Bot(Player):
 
     def start_action_phase(self, game: Game):
         viable_actions = [card for card in self.hand.cards if "Action" in card.type]
-        print(f"{self.player_id}'s hand: {self.hand}")
+        logger.info(f"{self.player_id}'s hand: {self.hand}")
         while viable_actions and self.state.actions:
 
             # Add logic for playing action cards here
@@ -289,7 +292,7 @@ class Bot(Player):
         while i < len(viable_treasures):
             self.exact_play(viable_treasures[i], game)
             viable_treasures.remove(viable_treasures[i])
-        print(f"{self.player_id} has {self.state.money} money")
+        logger.info(f"{self.player_id} has {self.state.money} money")
 
     def start_buy_phase(self, game: Game):
         while self.state.buys and self.state.money:
