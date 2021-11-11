@@ -19,18 +19,6 @@ from pyminion.models.core import Card, Deck, Player
 logger = logging.getLogger()
 
 
-@contextmanager
-def input_redirect(input: str):
-    """
-    Outdated context manager to mock the input() calls required to make decisions
-
-    """
-    saved_input = sys.stdin
-    sys.stdin = StringIO(input)
-    yield
-    sys.stdin = saved_input
-
-
 class Human(Player):
     """
     Human player can make choices as to which cards
@@ -213,6 +201,7 @@ class Human(Player):
         self.draw(5)
 
     def take_turn(self, game: Game) -> None:
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
         self.start_action_phase(game)
         self.start_treasure_phase(game)
@@ -298,6 +287,8 @@ class Bot(Player):
         while self.state.buys and self.state.money:
 
             # Add logic for buying cards here
+            if self.buy:
+                logger.info(f"{self.player_id} buys **card**")
 
             return
 
@@ -309,8 +300,21 @@ class Bot(Player):
         self.draw(5)
 
     def take_turn(self, game: Game) -> None:
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase()
+
+
+@contextmanager
+def input_redirect(input: str):
+    """
+    Outdated context manager to mock the input() calls required to make decisions
+
+    """
+    saved_input = sys.stdin
+    sys.stdin = StringIO(input)
+    yield
+    sys.stdin = saved_input
