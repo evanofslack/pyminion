@@ -1,7 +1,11 @@
+import logging
+
 from pyminion.expansions.base import gold, province, silver
 from pyminion.game import Game
 from pyminion.models.core import Deck
 from pyminion.players import Bot
+
+logger = logging.getLogger()
 
 
 class BigMoney(Bot):
@@ -19,7 +23,7 @@ class BigMoney(Bot):
 
     def start_action_phase(self, game: Game):
         viable_actions = [card for card in self.hand.cards if "Action" in card.type]
-        print(f"{self.player_id}'s hand: {self.hand}")
+        logger.info(f"{self.player_id}'s hand: {self.hand}")
         while viable_actions and self.state.actions:
 
             # Add logic for playing action cards here
@@ -37,4 +41,4 @@ class BigMoney(Bot):
             else:
                 return
             self.buy(buy_card, supply=game.supply)
-            print(f"{self.player_id} bought {buy_card}")
+            logger.info(f"{self.player_id} bought {buy_card}")

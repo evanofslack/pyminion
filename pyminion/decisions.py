@@ -1,4 +1,5 @@
 import functools
+import logging
 from collections import Counter
 from typing import Callable, List, Optional, Tuple, Type, Union
 
@@ -8,6 +9,8 @@ from pyminion.exceptions import (
     InvalidSingleCardInput,
 )
 from pyminion.models.core import Card
+
+logger = logging.getLogger()
 
 
 def validate_input(
@@ -29,7 +32,7 @@ def validate_input(
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
-                    print(e)
+                    logger.error(e)
 
         return wrapper
 

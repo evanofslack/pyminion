@@ -1,3 +1,5 @@
+import logging
+
 from pyminion.bots.big_money import BigMoney
 from pyminion.expansions.base import (
     base_cards,
@@ -13,8 +15,9 @@ from pyminion.players import Human
 
 human = Human()
 bot_1 = BigMoney(player_id="Bot 1")
+bot_2 = BigMoney(player_id="Bot 2")
 
-players = [bot_1, human]
+players = [bot_1, bot_2]
 expansions = [base_cards]
 
 

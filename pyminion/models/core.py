@@ -1,3 +1,4 @@
+import logging
 import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Tuple
@@ -12,6 +13,9 @@ from pyminion.exceptions import (
 
 if TYPE_CHECKING:
     from pyminion.game import Game
+
+
+logger = logging.getLogger()
 
 
 class Card:
@@ -202,15 +206,25 @@ class Player:
 
         """
         for card in self.hand.cards:
-            if card == target_card and "Action" in card.type:
-                try:
-                    card.play(player=self, game=game, generic_play=generic_play)
-                    return
+            if card == target_card:
+                if "Action" in card.type:
+                    try:
+                        card.play(player=self, game=game, generic_play=generic_play)
+                        return
 
-                except:
-                    raise InvalidCardPlay(
-                        f"Invalid play, {target_card} has no play method"
-                    )
+                    except:
+                        raise InvalidCardPlay(
+                            f"Invalid play, {target_card} has no play method"
+                        )
+                if "Treasure" in card.type:
+                    try:
+                        card.play(player=self, game=game)
+                        return
+                    except:
+                        raise InvalidCardPlay(
+                            f"Invalid play, {target_card} has no play method"
+                        )
+
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
@@ -275,7 +289,7 @@ class Player:
                 break
 
     def start_turn(self):
-        print(f"\nTurn {self.turns} ({self.player_id})")
+        logger.info(f"\nTurn {self.turns} ({self.player_id})")
         self.turns += 1
         self.state.actions = 1
         self.state.money = 0
@@ -345,7 +359,7 @@ class Supply:
                 try:
                     return pile.remove(card)
                 except EmptyPile:
-                    print("Pile is empty, you cannot gain that card")
+                    logger.info("Pile is empty, you cannot gain that card")
                     return None
 
         raise PileNotFound
