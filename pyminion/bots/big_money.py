@@ -41,4 +41,4 @@ class BigMoney(Bot):
             else:
                 return
             self.buy(buy_card, supply=game.supply)
-            logger.info(f"{self.player_id} bought {buy_card}")
+            logger.info(f"{self.player_id} buys {buy_card}")
