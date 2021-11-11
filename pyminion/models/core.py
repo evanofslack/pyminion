@@ -39,14 +39,6 @@ class Card:
     def __repr__(self):
         return f"{self.name}"
 
-    # def __lt__(self, other: "Card"):
-    #     # p1 < p2 calls p1.__lt__(p2)
-    #     return self.cost < other.cost
-
-    # def __eq__(self, other: "Card"):
-    #     # p1 == p2 calls p1.__eq__(p2)
-    #     return self.cost == other.cost
-
 
 class AbstractDeck:
 
