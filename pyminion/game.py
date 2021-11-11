@@ -1,10 +1,11 @@
 import copy
 import logging
 import random
+from collections import Counter
 from typing import List, Optional
 
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
-from pyminion.models.core import Card, Deck, Pile, Player, Supply, Trash
+from pyminion.models.core import Card, Deck, DeckCounter, Pile, Player, Supply, Trash
 
 logger = logging.getLogger()
 
@@ -106,6 +107,12 @@ class Game:
             player.deck.shuffle()
             player.draw(5)
 
+        # Log Game Start
+        logger.info(f"\nStarting Game...\n")
+        for player in self.players:
+            logger.info(f"{player} starts with 7 Coppers and 3 Estates")
+        logger.info(f"\nSupply: \n{self.supply}")
+
     def is_over(self) -> bool:
         """
         The game is over if any 3 supply piles are empty or
@@ -163,6 +170,7 @@ class Game:
         return None if tie else winner  # todo return just the players that tie
 
     def get_stats(self):
+
         if winner := self.get_winner():
             logger.info(f"\n{winner} won in {winner.turns} turns!")
         else:
@@ -170,5 +178,5 @@ class Game:
 
         for player in self.players:
             logger.info(
-                f"\n\nPlayer: {player} \nScore: {player.get_victory_points()} \nDeck: {player.get_all_cards()}"
+                f"\n\nPlayer: {player} \nScore: {player.get_victory_points()} \nDeck: {DeckCounter(player.get_all_cards())}"
             )

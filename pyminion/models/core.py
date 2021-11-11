@@ -1,5 +1,6 @@
 import logging
 import random
+from collections import Counter
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
@@ -18,6 +19,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
+class DeckCounter(Counter):
+    def __str__(self):
+        return ", ".join(f"{value} {key}" for key, value in (self).items())
+
+
 class Card:
 
     """
@@ -33,8 +39,17 @@ class Card:
     def __repr__(self):
         return f"{self.name}"
 
+    # def __lt__(self, other: "Card"):
+    #     # p1 < p2 calls p1.__lt__(p2)
+    #     return self.cost < other.cost
+
+    # def __eq__(self, other: "Card"):
+    #     # p1 == p2 calls p1.__eq__(p2)
+    #     return self.cost == other.cost
+
 
 class AbstractDeck:
+
     """
     Base class representing a generic list of dominion cards
 
@@ -47,7 +62,7 @@ class AbstractDeck:
             self.cards = []
 
     def __repr__(self):
-        return f"{type(self).__name__} {[card.name for card in self.cards]}"
+        return str(DeckCounter(self.cards))
 
     def __len__(self):
         return len(self.cards)
@@ -289,7 +304,6 @@ class Player:
                 break
 
     def start_turn(self):
-        logger.info(f"\nTurn {self.turns} ({self.player_id})")
         self.turns += 1
         self.state.actions = 1
         self.state.money = 0
@@ -300,12 +314,14 @@ class Player:
         Get a list of all the cards the player has in their possesion
 
         """
-        return (
+
+        all_cards = (
             self.deck.cards
             + self.discard_pile.cards
             + self.playmat.cards
             + self.hand.cards
         )
+        return all_cards
 
     def get_victory_points(self) -> int:
         total_vp: int = 0
@@ -345,6 +361,9 @@ class Supply:
             self.piles = piles
         else:
             self.piles = []
+
+    def __repr__(self):
+        return str(self.avaliable_cards())
 
     def __len__(self):
         return len(self.piles)
