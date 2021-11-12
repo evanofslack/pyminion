@@ -19,11 +19,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
-class DeckCounter(Counter):
-    def __str__(self):
-        return ", ".join(f"{value} {key}" for key, value in (self).items())
-
-
 class Card:
 
     """
@@ -38,6 +33,11 @@ class Card:
 
     def __repr__(self):
         return f"{self.name}"
+
+
+class DeckCounter(Counter):
+    def __str__(self):
+        return ", ".join(f"{value} {key}" for key, value in (self).items())
 
 
 class AbstractDeck:
