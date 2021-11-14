@@ -1,3 +1,4 @@
+import logging
 import math
 from typing import List, Optional, Tuple, Union
 
@@ -5,8 +6,10 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
 from pyminion.game import Game
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import Card, Player
+from pyminion.models.core import AbstractDeck, Card, Player
 from pyminion.players import Bot, Human
+
+logger = logging.getLogger()
 
 
 class Copper(Treasure):
@@ -854,6 +857,60 @@ class Merchant(Action):
         player.state.actions += 1
 
 
+class Bandit(Action):
+    """
+    Gain a Gold. Each other player reveals the top 2 cards of their deck,
+    trashes a revealed treasure other than Copper, and discards the rest
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Bandit",
+        cost: int = 5,
+        type: Tuple[str] = ("Action",),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.gain(card=gold, supply=game.supply)
+
+        for opponent in game.players:
+            if opponent is not player:
+                if opponent.is_attacked(player=player, attack_card=self):
+
+                    revealed_cards = AbstractDeck()
+                    opponent.draw(num_cards=2, destination=revealed_cards)
+
+                    trash_card = None
+                    for card in revealed_cards.cards:
+                        if card.name == "Silver":
+                            trash_card = card
+                        elif card.name == "Gold" and not trash_card:
+                            trash_card = card
+                        elif (
+                            "Treasure" in card.type
+                            and card.name != "Copper"
+                            and not trash_card
+                        ):
+                            trash_card = card
+
+                    if trash_card:
+                        game.trash.add(revealed_cards.remove(trash_card))
+
+                    revealed_cards.move_to(opponent.discard_pile)
+                    del revealed_cards
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -881,3 +938,4 @@ council_room = CouncilRoom()
 witch = Witch()
 moat = Moat()
 merchant = Merchant()
+bandit = Bandit()
