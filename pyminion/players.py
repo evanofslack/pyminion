@@ -131,7 +131,7 @@ class Human(Player):
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_action(game: Game) -> bool:
-                logger.info(self.hand)
+                logger.info(f"Hand: {self.hand}")
                 card = single_card_decision(
                     prompt="Choose an action card to play: ",
                     valid_cards=viable_actions,
@@ -151,7 +151,7 @@ class Human(Player):
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_treasure(game: Game):
-                logger.info(self.hand)
+                logger.info(f"Hand: {self.hand}")
                 card = single_card_decision(
                     prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
                     valid_cards=viable_treasures,
@@ -175,8 +175,8 @@ class Human(Player):
 
     def start_buy_phase(self, game: Game):
         while self.state.buys and self.state.money:
-            logger.info("Money: ", self.state.money)
-            logger.info("Buys: ", self.state.buys)
+            logger.info(f"Money: {self.state.money}")
+            logger.info(f"Buys: {self.state.buys}")
 
             @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
             def choose_buy(game: Game) -> bool:

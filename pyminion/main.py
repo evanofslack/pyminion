@@ -21,8 +21,14 @@ players = [bot_1, bot_2]
 expansions = [base_cards]
 
 
+# game = Game(
+#     players, expansions, basic_cards, start_cards, kingdom_cards=[witch, village]
+# )
 game = Game(
-    players, expansions, basic_cards, start_cards, kingdom_cards=[witch, village]
+    players=[human, bot_1],
+    expansions=[base_cards],
+    basic_cards=basic_cards,
+    start_cards=start_cards,
 )
 
 
