@@ -868,7 +868,7 @@ class Bandit(Action):
         self,
         name: str = "Bandit",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[str] = ("Action", "Attack"),
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -911,6 +911,72 @@ class Bandit(Action):
                     del revealed_cards
 
 
+class Bureaucrat(Action):
+    """
+    Gain a Silver onto your deck. Each other player reveals a victory card from
+    their hand and puts it onto their deck (or reveals a hand with no victory cards)
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Bureaucrat",
+        cost: int = 4,
+        type: Tuple[str] = ("Action", "Attack"),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.gain(card=silver, supply=game.supply, destination=player.deck)
+
+        for opponent in game.players:
+            if opponent is not player and opponent.is_attacked(
+                player=player, attack_card=self
+            ):
+
+                victory_cards = []
+                for card in opponent.hand.cards:
+                    if "Victory" in card.type:
+                        victory_cards.append(card)
+
+                if not victory_cards:
+                    # Log opponent revealed hand
+                    return
+
+                @validate_input(exceptions=InvalidSingleCardInput)
+                def get_topdeck_card(opponent: Human) -> Card:
+                    topdeck_card = opponent.single_card_decision(
+                        prompt="You must topdeck a Victory card from your hand: ",
+                        valid_cards=victory_cards,
+                    )
+                    if not topdeck_card:
+                        raise InvalidSingleCardInput(f"You must topdeck a Victory card")
+
+                    return topdeck_card
+
+                if isinstance(opponent, Human):
+                    topdeck_card = get_topdeck_card(opponent)
+
+                if isinstance(opponent, Bot):
+                    topdeck_card = opponent.single_card_decision(
+                        card=self,
+                        valid_cards=victory_cards,
+                    )
+                    if not topdeck_card:
+                        raise InvalidSingleCardInput("You must topdeck a Victory card")
+
+                opponent.deck.add(opponent.hand.remove(topdeck_card))
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -939,3 +1005,4 @@ witch = Witch()
 moat = Moat()
 merchant = Merchant()
 bandit = Bandit()
+bureaucrat = Bureaucrat()
