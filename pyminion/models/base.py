@@ -977,6 +977,65 @@ class Bureaucrat(Action):
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
 
 
+class ThroneRoom(Action):
+    """
+    +2 money
+
+    Discard the top card of your deck. If it's an action card you may play it.
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Throne Room",
+        cost: int = 4,
+        type: Tuple[str] = ("Action",),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        if generic_play:
+            super().generic_play(player)
+
+        action_cards: List[Card] = []
+        for card in player.hand.cards:
+            if "Action" in card.type:
+                action_cards.append(card)
+
+        if not action_cards:
+            return
+
+        if isinstance(player, Human):
+            dp_card = player.single_card_decision(
+                prompt="You may play an action card from your hand twice: ",
+                valid_cards=action_cards,
+            )
+
+        if isinstance(player, Bot):
+            dp_card = player.single_card_decision(
+                card=self,
+                valid_cards=action_cards,
+            )
+
+        if not dp_card:
+            return
+
+        for card in player.hand.cards:
+            if card.name == dp_card.name:
+                player.playmat.add(player.hand.remove(card))
+                for i in range(2):
+                    player.exact_play(
+                        card=player.playmat.cards[-1], game=game, generic_play=False
+                    )
+            return
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -1006,3 +1065,4 @@ moat = Moat()
 merchant = Merchant()
 bandit = Bandit()
 bureaucrat = Bureaucrat()
+throne_room = ThroneRoom()
