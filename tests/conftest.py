@@ -86,7 +86,6 @@ def multiplayer_game():
         basic_cards=basic_cards,
         start_cards=start_cards,
     )
-    # game.supply = game._create_supply()
     game.start()
 
     return game

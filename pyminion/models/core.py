@@ -59,7 +59,7 @@ class AbstractDeck:
     def __len__(self):
         return len(self.cards)
 
-    def add(self, card: Card) -> Card:
+    def add(self, card: Card) -> None:
         self.cards.append(card)
 
     def remove(self, card: Card) -> Card:

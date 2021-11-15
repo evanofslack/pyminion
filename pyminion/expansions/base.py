@@ -1,5 +1,7 @@
 from pyminion.models.base import (
     artisan,
+    bandit,
+    bureaucrat,
     cellar,
     chapel,
     copper,
@@ -31,6 +33,8 @@ start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
 
 base_cards = [
     artisan,
+    bandit,
+    bureaucrat,
     cellar,
     chapel,
     council_room,
