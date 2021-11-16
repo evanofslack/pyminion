@@ -1016,6 +1016,7 @@ class ThroneRoom(Action):
                 prompt="You may play an action card from your hand twice: ",
                 valid_cards=action_cards,
             )
+            logger.info(f"Selected {dp_card}")
 
         if isinstance(player, Bot):
             dp_card = player.single_card_decision(
@@ -1029,11 +1030,13 @@ class ThroneRoom(Action):
         for card in player.hand.cards:
             if card.name == dp_card.name:
                 player.playmat.add(player.hand.remove(card))
+                logger.info(f"{player} double plays {dp_card}")
                 for i in range(2):
                     player.exact_play(
                         card=player.playmat.cards[-1], game=game, generic_play=False
                     )
-            return
+                    logger.info(f"{player} played {card}")
+                return
 
 
 copper = Copper()
