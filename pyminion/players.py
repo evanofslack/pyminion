@@ -139,7 +139,6 @@ class Human(Player):
                 if not card:
                     return False
                 self.play(card, game)
-                logger.info(f"{self.player_id} played {card}")
                 return True
 
             if not choose_action(game):
