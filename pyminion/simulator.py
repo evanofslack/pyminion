@@ -15,6 +15,7 @@ class Simulator:
         self.winners: List[Union[Player, Human, Bot]] = None
 
     def run(self) -> List[str]:
+        logger.info(f"Simulating {self.iterations} games...")
         winners = []
         for i in range(self.iterations):
             game = copy.copy((self.game))
