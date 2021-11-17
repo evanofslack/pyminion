@@ -1,5 +1,6 @@
 import logging
 
+from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import gold, province, silver
 from pyminion.game import Game
 from pyminion.models.core import Deck
@@ -40,5 +41,8 @@ class BigMoney(Bot):
                 buy_card = silver
             else:
                 return
-            self.buy(buy_card, supply=game.supply)
-            logger.info(f"{self.player_id} buys {buy_card}")
+
+            try:
+                self.buy(buy_card, supply=game.supply)
+            except EmptyPile:
+                pass

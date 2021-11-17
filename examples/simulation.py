@@ -1,27 +1,22 @@
 from pyminion.bots.big_money import BigMoney
-from pyminion.expansions.base import base_cards, basic_cards, start_cards
+from pyminion.bots.big_money_ultimate import BigMoneyUltimate
+from pyminion.expansions.base import base_cards, basic_cards, smithy, start_cards
 from pyminion.game import Game
 from pyminion.players import Human
 from pyminion.simulator import Simulator
 
 human = Human()
-bot_1 = BigMoney(player_id="Bot 1")
-bot_2 = BigMoney(player_id="Bot 2")
-bot_3 = BigMoney(player_id="Bot 3")
-bot_4 = BigMoney(player_id="Bot 4")
+bot_1 = BigMoney(player_id="Big Money")
+bot_2 = BigMoneyUltimate(player_id="Big Money Ultimate")
 
-players = [bot_2, bot_1]
+
+players = [bot_1, bot_2]
 expansions = [base_cards]
 
 
-game = Game(
-    players,
-    expansions,
-    basic_cards,
-    start_cards,
-)
+game = Game(players, expansions, basic_cards, start_cards, kingdom_cards=[smithy])
 
-sim = Simulator(game, iterations=100)
+sim = Simulator(game, iterations=1000)
 
 if __name__ == "__main__":
     sim.run()
