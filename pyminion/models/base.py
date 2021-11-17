@@ -164,6 +164,8 @@ class Smithy(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -190,6 +192,8 @@ class Village(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -219,6 +223,8 @@ class Laboratory(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -246,6 +252,8 @@ class Market(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -279,6 +287,8 @@ class Moneylender(Action):
         game: Game,
         generic_play: bool = True,
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -324,6 +334,8 @@ class Cellar(Action):
         game: Game,
         generic_play: bool = True,
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -371,6 +383,7 @@ class Chapel(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
         if generic_play:
             super().generic_play(player)
 
@@ -423,6 +436,8 @@ class Workshop(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -478,6 +493,8 @@ class Festival(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -508,6 +525,8 @@ class Harbinger(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -557,6 +576,8 @@ class Vassal(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -610,6 +631,8 @@ class Artisan(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -687,6 +710,8 @@ class Poacher(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -749,6 +774,8 @@ class CouncilRoom(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -782,6 +809,8 @@ class Witch(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -821,6 +850,8 @@ class Moat(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -850,6 +881,8 @@ class Merchant(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -878,6 +911,8 @@ class Bandit(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -932,6 +967,8 @@ class Bureaucrat(Action):
     def play(
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
+
+        logger.info(f"{player} plays {self}")
 
         if generic_play:
             super().generic_play(player)
@@ -1000,6 +1037,8 @@ class ThroneRoom(Action):
         self, player: Union[Human, Bot], game: Game, generic_play: bool = True
     ) -> None:
 
+        logger.info(f"{player} plays {self}")
+
         if generic_play:
             super().generic_play(player)
 
@@ -1016,7 +1055,6 @@ class ThroneRoom(Action):
                 prompt="You may play an action card from your hand twice: ",
                 valid_cards=action_cards,
             )
-            logger.info(f"Selected {dp_card}")
 
         if isinstance(player, Bot):
             dp_card = player.single_card_decision(
@@ -1030,12 +1068,8 @@ class ThroneRoom(Action):
         for card in player.hand.cards:
             if card.name == dp_card.name:
                 player.playmat.add(player.hand.remove(card))
-                logger.info(f"{player} double plays {dp_card}")
                 for i in range(2):
-                    player.exact_play(
-                        card=player.playmat.cards[-1], game=game, generic_play=False
-                    )
-                    logger.info(f"{player} played {card}")
+                    player.exact_play(card=card, game=game, generic_play=False)
                 return
 
 
