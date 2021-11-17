@@ -80,10 +80,13 @@ def test_throne_a_throne(human: Human, game: Game, monkeypatch):
     human.hand.add(smithy)
     assert len(human.hand) == 4
 
-    responses = iter(["throne room", "smithy", "smithy", "smithy"])
+    for i in range(20):
+        human.deck.add(throne_room)
+
+    responses = iter(["throne room", "smithy", "smithy"])
     monkeypatch.setattr("builtins.input", lambda input: next(responses))
 
     human.play(target_card=throne_room, game=game)
 
     assert len(human.playmat) == 4
-    assert len(human.hand) == 9
+    assert len(human.hand) == 12  # +3 cards played 4 times = 12 cards
