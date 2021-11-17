@@ -1,5 +1,4 @@
 import pytest
-
 from pyminion.exceptions import PileNotFound
 from pyminion.expansions.base import copper, duchy, estate, gold, province, silver
 from pyminion.models.core import Card, Pile, Supply
@@ -66,3 +65,9 @@ def test_empty_piles(supply: Supply):
     for i in range(30):
         supply.gain_card(card=gold)
     assert supply.num_empty_piles() == 3
+
+
+def test_pile_length(supply: Supply):
+    assert supply.pile_length(pile_name="Province") == 8
+    supply.gain_card(card=province)
+    assert supply.pile_length(pile_name="Province") == 7

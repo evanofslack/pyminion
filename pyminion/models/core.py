@@ -105,7 +105,7 @@ class Pile(AbstractDeck):
 
     def remove(self, card: Card) -> Card:
         if len(self.cards) < 1:
-            raise EmptyPile
+            raise EmptyPile(f"{self.name} pile is empty, cannot gain card")
         self.cards.remove(card)
         return card
 
@@ -189,6 +189,7 @@ class Player:
             elif len(self.deck) == 0:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
+                self.shuffles += 1
                 destination.add(self.deck.draw())
             else:
                 destination.add(self.deck.draw())
@@ -213,7 +214,7 @@ class Player:
 
         """
         for card in self.hand.cards:
-            if card == target_card:
+            if card.name == target_card.name:
                 if "Action" in card.type:
                     try:
                         card.play(player=self, game=game, generic_play=generic_play)
@@ -265,10 +266,14 @@ class Player:
             raise InsufficientBuys(
                 f"{self.player_id}: Not enough buys to buy {card.name}"
             )
+        try:
+            supply.gain_card(card)
+        except EmptyPile as e:
+            raise e
         self.state.money -= card.cost
         self.state.buys -= 1
         self.discard_pile.add(card)
-        supply.gain_card(card)
+        logger.info(f"{self} buys {card}")
 
     def gain(
         self, card: Card, supply: "Supply", destination: AbstractDeck = None
@@ -295,7 +300,7 @@ class Player:
                 trash.add(self.hand.remove(card))
                 break
 
-    def start_turn(self):
+    def start_turn(self) -> None:
         self.turns += 1
         self.state.actions = 1
         self.state.money = 0
@@ -314,6 +319,14 @@ class Player:
             + self.hand.cards
         )
         return all_cards
+
+    def get_card_count(self, card: Card) -> int:
+        """
+        Get count of a specific card in player's whole deck
+
+        """
+
+        return self.get_all_cards().count(card)
 
     def get_victory_points(self) -> int:
         total_vp: int = 0
@@ -369,11 +382,11 @@ class Supply:
             if card.name == pile.name:
                 try:
                     return pile.remove(card)
-                except EmptyPile:
-                    logger.info("Pile is empty, you cannot gain that card")
-                    return None
 
-        raise PileNotFound
+                except EmptyPile as e:
+                    raise e
+
+        raise PileNotFound(f"{card} not found in the supply")
 
     def return_card(self, card: Card):
         """
@@ -402,3 +415,9 @@ class Supply:
             if len(pile) == 0:
                 empty_piles += 1
         return empty_piles
+
+    def pile_length(self, pile_name: str) -> int:
+        for pile in self.piles:
+            if pile.name == pile_name:
+                return len(pile)
+        raise PileNotFound(f"{pile_name} pile is not valid")
