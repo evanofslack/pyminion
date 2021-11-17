@@ -219,7 +219,7 @@ class Bot(Player):
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         for card in self.hand.cards:
             try:
-                if card == target_card and card.type == "Action":
+                if card.name == target_card.name and "Action" in card.type:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
             except Exception as e:
