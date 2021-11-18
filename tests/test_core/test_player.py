@@ -62,7 +62,7 @@ def test_draw_empty_deck_empty_discard_pile(player: Player):
     assert len(player.deck) == 0
     assert len(player.discard_pile) == 0
     null = player.draw()
-    assert null == None
+    assert null is None
     assert len(player.hand) == 10
     assert len(player.deck) == 0
     assert len(player.discard_pile) == 0

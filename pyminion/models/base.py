@@ -996,7 +996,7 @@ class Bureaucrat(Action):
                         valid_cards=victory_cards,
                     )
                     if not topdeck_card:
-                        raise InvalidSingleCardInput(f"You must topdeck a Victory card")
+                        raise InvalidSingleCardInput("You must topdeck a Victory card")
 
                     return topdeck_card
 

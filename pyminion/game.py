@@ -1,7 +1,6 @@
 import copy
 import logging
 import random
-from collections import Counter
 from typing import List, Optional
 
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
@@ -108,7 +107,7 @@ class Game:
             player.draw(5)
 
         # Log Game Start
-        logger.info(f"\nStarting Game...\n")
+        logger.info("\nStarting Game...\n")
         for player in self.players:
             logger.info(f"{player} starts with 7 Coppers and 3 Estates")
         logger.info(f"\nSupply: \n{self.supply}")
