@@ -1,5 +1,4 @@
 import pytest
-
 from pyminion.exceptions import (
     InsufficientActions,
     InsufficientBuys,
@@ -14,8 +13,11 @@ from pyminion.models.base import (
     duchy,
     estate,
     gardens,
+    market,
+    poacher,
     province,
     smithy,
+    vassal,
 )
 from pyminion.models.core import DiscardPile, Hand, Player, Playmat, Supply, Trash
 
@@ -209,3 +211,53 @@ def test_player_draw_to_discard(player: Player):
     assert len(player.discard_pile) == 0
     player.draw(num_cards=1, destination=player.discard_pile)
     assert len(player.discard_pile) == 1
+
+
+def test_shuffle_count(player: Player):
+    assert player.shuffles == 0
+    player.discard_pile.add(copper)
+    player.draw(11)
+    assert player.shuffles == 1
+    player.discard_pile.add(copper)
+    player.draw(1)
+    assert player.shuffles == 2
+
+
+def test_treasure_money(player: Player):
+    assert player.get_treasure_money() == 7
+    player.deck.add(copper)
+    assert player.get_treasure_money() == 8
+
+
+def test_action_money(player: Player):
+    assert player.get_action_money() == 0
+    player.deck.add(copper)
+    assert player.get_action_money() == 0
+    player.deck.add(vassal)
+    assert player.get_action_money() == 2
+    player.hand.add(market)
+    assert player.get_action_money() == 3
+    player.discard_pile.add(poacher)
+    assert player.get_action_money() == 4
+
+
+def test_deck_money(player: Player):
+    assert player.get_deck_money() == 7
+    player.hand.add(copper)
+    player.deck.add(vassal)
+    assert player.get_deck_money() == 10
+
+
+def test_all_cards(player: Player):
+    assert len(player.get_all_cards()) == 10
+    player.hand.add(copper)
+    player.discard_pile.add(copper)
+    assert len(player.get_all_cards()) == 12
+
+
+def test_card_count(player: Player):
+    assert player.get_card_count(card=copper) == 7
+    assert player.get_card_count(card=estate) == 3
+    assert player.get_card_count(card=smithy) == 0
+    player.hand.add(smithy)
+    assert player.get_card_count(card=smithy) == 1
