@@ -19,18 +19,19 @@ def test_game_is_over_false(game: Game):
 
 
 def test_game_is_over_true_provinces(game: Game):
-    game.supply.gain_card(card=province)
-    assert not game.is_over()
-    for i in range(7):
+    # Single player game ony has 5 provinces
+    for i in range(4):
         game.supply.gain_card(card=province)
+    assert not game.is_over()
+    game.supply.gain_card(card=province)
     assert game.is_over()
 
 
 def test_game_is_over_true_three_piles(game: Game):
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=estate)
     assert not game.is_over()
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=duchy)
     assert not game.is_over()
     for i in range(29):

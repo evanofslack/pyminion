@@ -14,7 +14,8 @@ def test_poacher_no_empty_pile(human: Human, game: Game):
 
 
 def test_poacher_one_empty_pile(human: Human, game: Game, monkeypatch):
-    for i in range(8):
+    # Single player game only has 5 of each victory card
+    for i in range(5):
         game.supply.gain_card(card=estate)
     assert game.supply.num_empty_piles() == 1
     human.hand.add(poacher)
@@ -29,9 +30,9 @@ def test_poacher_one_empty_pile(human: Human, game: Game, monkeypatch):
 
 
 def test_poacher_two_empty_piles(human: Human, game: Game, monkeypatch):
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=estate)
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=duchy)
     assert game.supply.num_empty_piles() == 2
     human.hand.add(poacher)
@@ -47,9 +48,9 @@ def test_poacher_two_empty_piles(human: Human, game: Game, monkeypatch):
 
 
 def test_poacher_two_empty_piles_one_in_hand(human: Human, game: Game, monkeypatch):
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=estate)
-    for i in range(8):
+    for i in range(5):
         game.supply.gain_card(card=duchy)
     assert game.supply.num_empty_piles() == 2
     human.hand.add(poacher)
