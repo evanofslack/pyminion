@@ -101,7 +101,7 @@ class Pile(AbstractDeck):
         elif cards:
             self.name = "Mixed"
         else:
-            self.name == None
+            self.name = None
 
     def remove(self, card: Card) -> Card:
         if len(self.cards) < 1:
@@ -216,22 +216,12 @@ class Player:
         for card in self.hand.cards:
             if card.name == target_card.name:
                 if "Action" in card.type:
-                    try:
-                        card.play(player=self, game=game, generic_play=generic_play)
-                        return
+                    card.play(player=self, game=game, generic_play=generic_play)
+                    return
 
-                    except:
-                        raise InvalidCardPlay(
-                            f"Invalid play, {target_card} has no play method"
-                        )
                 if "Treasure" in card.type:
-                    try:
-                        card.play(player=self, game=game)
-                        return
-                    except:
-                        raise InvalidCardPlay(
-                            f"Invalid play, {target_card} has no play method"
-                        )
+                    card.play(player=self, game=game)
+                    return
 
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
@@ -242,13 +232,10 @@ class Player:
         This is method is necessary when playing cards not in the player's hand, such as vassal
 
         """
-        try:
-            if "Action" in card.type:
-                card.play(player=self, game=game, generic_play=generic_play)
-            elif "Treasure" in card.type:
-                card.play(player=self, game=game)
-        except:
-            raise InvalidCardPlay(f"Invalid play, cannot play {card}")
+        if "Action" in card.type:
+            card.play(player=self, game=game, generic_play=generic_play)
+        elif "Treasure" in card.type:
+            card.play(player=self, game=game)
 
     def buy(self, card: Card, supply: "Supply") -> None:
         """

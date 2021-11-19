@@ -1,8 +1,5 @@
 import logging
-import sys
 from collections import Counter
-from contextlib import contextmanager
-from io import StringIO
 from typing import List, Optional
 
 from pyminion.decisions import single_card_decision, validate_input
@@ -230,13 +227,10 @@ class Bot(Player):
         raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
 
     def exact_play(self, card: Card, game: Game, generic_play: bool = True) -> None:
-        try:
-            if "Action" in card.type:
-                card.play(player=self, game=game, generic_play=generic_play)
-            elif "Treasure" in card.type:
-                card.play(player=self, game=game)
-        except:
-            raise InvalidCardPlay(f"Invalid play, cannot play {card}")
+        if "Action" in card.type:
+            card.play(player=self, game=game, generic_play=generic_play)
+        elif "Treasure" in card.type:
+            card.play(player=self, game=game)
 
     def binary_decision(self, card: Card) -> bool:
         if card.name == "Moneylender":
@@ -286,8 +280,6 @@ class Bot(Player):
         while self.state.buys and self.state.money:
 
             # Add logic for buying cards here
-            if self.buy:
-                logger.info(f"{self.player_id} buys **card**")
 
             return
 
@@ -305,15 +297,3 @@ class Bot(Player):
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase()
-
-
-@contextmanager
-def input_redirect(input: str):
-    """
-    Outdated context manager to mock the input() calls required to make decisions
-
-    """
-    saved_input = sys.stdin
-    sys.stdin = StringIO(input)
-    yield
-    sys.stdin = saved_input
