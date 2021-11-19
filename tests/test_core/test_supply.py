@@ -23,12 +23,12 @@ def test_gain_card(supply: Supply):
     assert len(supply.piles[0]) == 7
 
 
-def test_gain_empty_pile_is_None(supply: Supply):
+def test_gain_empty_pile(supply: Supply):
     for x in range(8):
         supply.gain_card(estate)
     assert len(supply.piles[0]) == 0
     with pytest.raises(EmptyPile):
-        supply.gain_card(estate) == None
+        supply.gain_card(estate)
 
 
 def test_pile_not_found(supply: Supply):
