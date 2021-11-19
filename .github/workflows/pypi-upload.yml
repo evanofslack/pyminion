@@ -1,8 +1,8 @@
 name: Upload Python Package
 
 on:
-  release: 
-    types: [created]
+  # release: 
+  #   types: [created]
   workflow_dispatch:
 
 jobs:
@@ -17,14 +17,14 @@ jobs:
           python-version: 3.8
 
       # Install dependencies
-      - name: "Installs dependencies"
+      - name: "Install dependencies"
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install setuptools wheel twine build
 
       # Build and upload to PyPI
 
-      - name: "Builds and uploads to PyPI"
+      - name: "Build and upload to PyPI"
         run: |
           python3 -m build
           python3 -m twine upload dist/*
