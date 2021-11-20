@@ -36,6 +36,6 @@ jobs:
             - name: Test with pytest
               run: |
                   pipenv run pytest .
-                  coverage run -m pytest .
+                  pytest --cov=./ --cov-report=xml
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v2
