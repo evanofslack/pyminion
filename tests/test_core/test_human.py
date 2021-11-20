@@ -3,26 +3,6 @@ from pyminion.game import Game
 from pyminion.players import Human
 
 
-def test_human_start_turn(human: Human):
-    assert human.turns == 0
-    human.start_turn()
-    assert human.state.actions == 1
-    assert human.state.money == 0
-    assert human.state.buys == 1
-    assert human.turns == 1
-
-
-def test_human_cleanup(human: Human):
-    human.draw(5)
-    assert len(human.hand) == 5
-    assert len(human.discard_pile) == 0
-    assert len(human.playmat) == 0
-    human.start_cleanup_phase()
-    assert len(human.discard_pile) == 5
-    assert len(human.hand) == 5
-    assert len(human.playmat) == 0
-
-
 def test_yes_input(human: Human, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "y")
     assert human.binary_decision(prompt="test") is True
@@ -101,11 +81,3 @@ def test_buy_phase_input_estate(human: Human, game: Game, monkeypatch):
     human.start_buy_phase(game)
     assert human.state.money == 0
     assert human.discard_pile.cards[-1].name == "Estate"
-
-
-def test_cleanup_phase(human: Human):
-    human.hand.add(copper)
-    human.playmat.add(copper)
-    human.start_cleanup_phase()
-    assert len(human.hand) == 5
-    assert len(human.playmat) == 0
