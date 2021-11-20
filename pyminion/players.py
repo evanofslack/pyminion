@@ -121,7 +121,7 @@ class Human(Player):
                     while i < len(viable_treasures):
                         self.exact_play(viable_treasures[i], game)
                         viable_treasures.remove(viable_treasures[i])
-                        logger.info(f"{self.player} played {viable_treasures}")
+                        logger.info(f"{self} played {viable_treasures}")
                     return True
                 self.exact_play(card, game)
                 logger.info(f"{self.player_id} played {card}")
@@ -132,7 +132,7 @@ class Human(Player):
                 return
 
     def start_buy_phase(self, game: Game) -> None:
-        while self.state.buys and self.state.money:
+        while self.state.buys:
             logger.info(f"Money: {self.state.money}")
             logger.info(f"Buys: {self.state.buys}")
 
