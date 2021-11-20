@@ -151,13 +151,6 @@ class Human(Player):
             if not choose_buy(game):
                 return
 
-    def start_cleanup_phase(self) -> None:
-        self.discard_pile.cards += self.hand.cards
-        self.discard_pile.cards += self.playmat.cards
-        self.hand.cards = []
-        self.playmat.cards = []
-        self.draw(5)
-
     def take_turn(self, game: Game) -> None:
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
