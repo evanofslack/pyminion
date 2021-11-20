@@ -2,12 +2,13 @@ import logging
 import math
 from typing import List, Optional, Tuple, Union
 
+from pyminion.bots import Bot
 from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
 from pyminion.game import Game
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import AbstractDeck, Card, Player
-from pyminion.players import Bot, Human
+from pyminion.players import Human
 
 logger = logging.getLogger()
 

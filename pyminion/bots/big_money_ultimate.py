@@ -1,11 +1,11 @@
 import logging
 from typing import List
 
+from pyminion.bots import Bot
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck
-from pyminion.players import Bot
 
 logger = logging.getLogger()
 

@@ -2,8 +2,9 @@ import copy
 import logging
 from typing import List, Union
 
+from pyminion.bots import Bot
 from pyminion.game import Game
-from pyminion.players import Bot, Human, Player
+from pyminion.players import Human, Player
 
 logger = logging.getLogger()
 

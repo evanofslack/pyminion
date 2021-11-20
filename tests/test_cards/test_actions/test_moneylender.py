@@ -1,7 +1,8 @@
+from pyminion.bots import Bot
 from pyminion.expansions.base import copper, moneylender
 from pyminion.game import Game
 from pyminion.models.base import Copper, Moneylender
-from pyminion.players import Bot, Human
+from pyminion.players import Human
 
 
 def test_moneylender_human_input_yes(human: Human, game: Game, monkeypatch):

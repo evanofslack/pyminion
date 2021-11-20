@@ -24,7 +24,7 @@ To play a game against a bot through the command line:
 ```python
 from pyminion.expansions.base import base_cards, basic_cards, start_cards
 from pyminion.game import Game
-from pyminion.bots.big_money import BigMoney
+from pyminion.bots import BigMoney
 from pyminion.players import Human
 
 # Initialize player and bot
@@ -44,7 +44,7 @@ game.play()
 game.get_stats()
 
 ```
-
+See `examples` for to see other use cases. 
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
