@@ -24,7 +24,6 @@ def test_artisan_invalid_gain(human: Human, game: Game, monkeypatch):
     assert len(game.supply.piles[1]) == 40
     assert len(human.hand) == 1
 
-    # mock decision = input() as "Copper" to discard
     responses = iter(["gold", "silver", "silver"])
     monkeypatch.setattr("builtins.input", lambda input: next(responses))
 
