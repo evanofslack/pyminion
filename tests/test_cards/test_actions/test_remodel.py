@@ -16,5 +16,5 @@ def test_remodel_gain_valid(human: Human, game: Game, monkeypatch):
     assert len(human.playmat) == 1
     assert len(human.discard_pile) == 1
     assert human.state.actions == 0
-    assert human.discard_pile.cards[0].name is "Estate"
+    assert human.discard_pile.cards[0].name == "Estate"
     assert game.trash.cards[0].name == "Copper"
