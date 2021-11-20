@@ -101,5 +101,3 @@ class BigMoneyUltimate(Bot):
             else:
                 logger.info(f"{self} buys nothing")
                 return
-            # self.buy(buy_card, supply=game.supply)
-            # logger.info(f"{self.player_id} buys {buy_card}")

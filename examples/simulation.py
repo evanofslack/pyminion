@@ -21,7 +21,7 @@ expansions = [base_cards]
 
 game = Game(players, expansions, basic_cards, start_cards, kingdom_cards=[smithy])
 
-sim = Simulator(game, iterations=1000)
+sim = Simulator(game, iterations=500)
 
 if __name__ == "__main__":
     sim.run()
