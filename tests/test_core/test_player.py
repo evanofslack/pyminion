@@ -261,3 +261,23 @@ def test_card_count(player: Player):
     assert player.get_card_count(card=smithy) == 0
     player.hand.add(smithy)
     assert player.get_card_count(card=smithy) == 1
+
+
+def test_start_turn(player: Player):
+    player.turns = 2
+    player.state.money = 2
+    player.state.actions = 2
+    player.state.buys = 2
+    player.start_turn()
+    assert player.turns == 3
+    assert player.state.money == 0
+    assert player.state.actions == 1
+    assert player.state.buys == 1
+
+
+def test_cleanup_phase(player: Player):
+    player.hand.add(copper)
+    player.playmat.add(copper)
+    player.start_cleanup_phase()
+    assert len(player.hand) == 5
+    assert len(player.playmat) == 0

@@ -293,6 +293,13 @@ class Player:
         self.state.money = 0
         self.state.buys = 1
 
+    def start_cleanup_phase(self):
+        self.discard_pile.cards += self.hand.cards
+        self.discard_pile.cards += self.playmat.cards
+        self.hand.cards = []
+        self.playmat.cards = []
+        self.draw(5)
+
     def get_all_cards(self) -> List[Card]:
         """
         Get a list of all the cards the player has in their possesion

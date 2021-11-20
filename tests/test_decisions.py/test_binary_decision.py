@@ -13,7 +13,6 @@ def test_no_input(monkeypatch):
 
 def test_invalid_input(monkeypatch):
     import pytest
-
     from pyminion.exceptions import InvalidBinaryInput
 
     monkeypatch.setattr("builtins.input", lambda _: "")
