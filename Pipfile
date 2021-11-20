@@ -10,6 +10,8 @@ pyminion = {editable = true, path = "."}
 black = "*"
 pytest = "*"
 isort = "*"
+coverage = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.8"

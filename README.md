@@ -1,5 +1,9 @@
 # Pyminion
 
+[![tests](https://github.com/evanofslack/pyminion/actions/workflows/python-app.yml/badge.svg)](https://github.com/evanofslack/pyminion/actions/workflows/python-app.yml)
+[![codecov](https://codecov.io/gh/evanofslack/pyminion/branch/master/graph/badge.svg?token=5GW65KFEL5)](https://codecov.io/gh/evanofslack/pyminion)
+
+
 Pyminion is a library for executing and analyzing games of [Dominion](https://www.riograndegames.com/games/dominion/). At its core, pyminion implements the rules and logic of Dominion and provides an API to interact with the game engine. In addition, it enables interactive games through the command line and simulation of games between bots.
 
 ## Table of Contents
