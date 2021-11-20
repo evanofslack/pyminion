@@ -48,7 +48,7 @@ game.play()
 game.get_stats()
 
 ```
-See `examples` for to see other use cases. 
+See `examples` to see other use cases. 
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
