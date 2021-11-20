@@ -1,20 +1,17 @@
 """
-Run a single game between two bots. 
+Play a game through the terminal. Either by yourself, with another human, or against a bot. 
 
 """
-from pyminion.bots import BigMoney, BigMoneyUltimate
+from pyminion.bots import BigMoney
 from pyminion.expansions.base import base_cards, basic_cards, start_cards
 from pyminion.game import Game
+from pyminion.players import Human
 
-bot_1 = BigMoney(player_id="Bot 1")
-bot_2 = BigMoneyUltimate(player_id="Bot 2")
-
-
-players = [bot_1, bot_2]
-expansions = [base_cards]
+human = Human()
+bot = BigMoney(player_id="Bot 1")
 
 game = Game(
-    players=[bot_1, bot_2],
+    players=[human, bot],
     expansions=[base_cards],
     basic_cards=basic_cards,
     start_cards=start_cards,
