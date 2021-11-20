@@ -1074,16 +1074,146 @@ class ThroneRoom(Action):
                 return
 
 
+class Remodel(Action):
+    """
+    Trash a card from your hand. Gain a card costing up to $2 more than it
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Remodel",
+        cost: int = 4,
+        type: Tuple[str] = ("Action",),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_trash_card() -> Card:
+
+            trash_card = player.single_card_decision(
+                prompt="Trash a card form your hand: ",
+                valid_cards=player.hand.cards,
+            )
+
+            if not trash_card:
+                raise InvalidSingleCardInput("You must trash a card")
+            return trash_card
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_gain_card(trash_card: Card) -> Card:
+
+            gain_card = player.single_card_decision(
+                prompt=f"Gain a card costing up to {trash_card.cost + 2} money: ",
+                valid_cards=game.supply.avaliable_cards(),
+            )
+
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if gain_card.cost > trash_card.cost + 2:
+                raise InvalidSingleCardInput(
+                    f"Card must cost less than {trash_card.cost + 2} money"
+                )
+            return gain_card
+
+        if isinstance(player, Human):
+            trash_card = get_trash_card()
+            gain_card = get_gain_card(trash_card)
+
+        if isinstance(player, Bot):
+            pass
+
+        player.trash(trash_card, trash=game.trash)
+        player.gain(gain_card, game.supply)
+
+
+class Mine(Action):
+    """
+    You may trash a Treasure from your hand. Gain a Treasure to your hand costing up to $3 more than it
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Mine",
+        cost: int = 5,
+        type: Tuple[str] = ("Action",),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_trash_card() -> Optional[Card]:
+
+            treasures = [card for card in player.hand.cards if "Treasure" in card.type]
+            if not treasures:
+                return
+
+            trash_card = player.single_card_decision(
+                prompt="You may trash a Treasure from your hand: ",
+                valid_cards=treasures,
+            )
+            return trash_card
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_gain_card(trash_card: Card) -> Card:
+
+            gain_card = player.single_card_decision(
+                prompt=f"Gain a Treasure card costing up to {trash_card.cost + 3} money to your hand: ",
+                valid_cards=game.supply.avaliable_cards(),
+            )
+
+            if not gain_card:
+                raise InvalidSingleCardInput("You must gain a card")
+            if "Treasure" not in trash_card.type:
+                raise InvalidSingleCardInput("Card must be a Treasure")
+            if gain_card.cost > trash_card.cost + 3:
+                raise InvalidSingleCardInput(
+                    f"Card must cost less than {trash_card.cost + 3} money"
+                )
+            return gain_card
+
+        if isinstance(player, Human):
+            trash_card = get_trash_card()
+            if not trash_card:
+                return
+            gain_card = get_gain_card(trash_card)
+
+        if isinstance(player, Bot):
+            pass
+
+        player.trash(trash_card, trash=game.trash)
+        player.gain(gain_card, game.supply, destination=player.hand)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
-
 estate = Estate()
 duchy = Duchy()
 province = Province()
 curse = Curse()
-gardens = Gardens()
 
+gardens = Gardens()
 smithy = Smithy()
 village = Village()
 laboratory = Laboratory()
@@ -1104,3 +1234,5 @@ merchant = Merchant()
 bandit = Bandit()
 bureaucrat = Bureaucrat()
 throne_room = ThroneRoom()
+remodel = Remodel()
+mine = Mine()
