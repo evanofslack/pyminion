@@ -1,5 +1,10 @@
-from pyminion.bots.big_money import BigMoney
-from pyminion.bots.big_money_ultimate import BigMoneyUltimate
+"""
+Simulate multiple games between two or more bots. 
+
+"""
+
+
+from pyminion.bots import BigMoney, BigMoneyUltimate
 from pyminion.expansions.base import base_cards, basic_cards, smithy, start_cards
 from pyminion.game import Game
 from pyminion.players import Human
