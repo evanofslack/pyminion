@@ -1205,6 +1205,72 @@ class Mine(Action):
         player.gain(gain_card, game.supply, destination=player.hand)
 
 
+class Militia(Action):
+    """
+    +2 Money
+
+    Each other player discards down to 3 cards in hand
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Militia",
+        cost: int = 4,
+        type: Tuple[str] = ("Action", "Attack"),
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 2,
+    ):
+        super().__init__(name, cost, type, actions, draw, money)
+
+    def play(
+        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.money += 2
+
+        for opponent in game.players:
+            if opponent is not player and opponent.is_attacked(
+                player=player, attack_card=self
+            ):
+
+                num_discard = len(opponent.hand) - 3
+                if num_discard <= 0:
+                    return
+
+                @validate_input(exceptions=InvalidMultiCardInput)
+                def get_discard_cards() -> List[Card]:
+                    cards = opponent.multiple_card_decision(
+                        prompt=f"You must discard {num_discard} cards from your hand: ",
+                        valid_cards=opponent.hand.cards,
+                    )
+                    if len(cards) != num_discard:
+                        raise InvalidMultiCardInput(
+                            f"You must discard {num_discard} cards, you selected {len(cards)}"
+                        )
+                    return cards
+
+                if isinstance(opponent, Human):
+                    discard_cards = get_discard_cards()
+
+                if isinstance(opponent, Bot):
+                    discard_cards = opponent.multiple_card_decision(
+                        card=self, valid_cards=opponent.hand.cards
+                    )
+                    if len(discard_cards) != num_discard:
+                        raise InvalidMultiCardInput(
+                            f"You must discard {num_discard} cards, you selected {len(discard_cards)}"
+                        )
+                for card in discard_cards:
+                    opponent.discard(target_card=card)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -1236,3 +1302,4 @@ bureaucrat = Bureaucrat()
 throne_room = ThroneRoom()
 remodel = Remodel()
 mine = Mine()
+militia = Militia()
