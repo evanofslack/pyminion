@@ -1,7 +1,7 @@
 import logging
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
-from pyminion.exceptions import InvalidCardPlay
+from pyminion.exceptions import EmptyPile, InvalidCardPlay
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck, Player
 
@@ -38,10 +38,10 @@ class Bot(Player):
     def discard_decision(self, card: Card, valid_cards: List[Card]) -> Card:
         pass
 
-    def gain_decision(self, card: Card, valid_cards: List(Card)) -> Card:
+    def gain_decision(self, card: Card, valid_cards: List[Card]) -> Card:
         pass
 
-    def trash_decision(self, card:Card, valid_cards: List[Card]) -> Card:
+    def trash_decision(self, card: Card, valid_cards: List[Card]) -> Card:
         pass
 
     def binary_decision(self, card: Card, prompt: str) -> bool:
@@ -89,11 +89,16 @@ class Bot(Player):
         logger.info(f"{self.player_id} has {self.state.money} money")
 
     def start_buy_phase(self, game: Game):
-        while self.state.buys and self.state.money:
-
-            # Add logic for buying cards here
-
-            return
+        while self.state.buys:
+            for card in self.buy_priority(game=game):
+                try:
+                    self.buy(card, supply=game.supply)
+                    return
+                except EmptyPile:
+                    pass
+            else:
+                logger.info(f"{self} buys nothing")
+                return
 
     def take_turn(self, game: Game) -> None:
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
@@ -102,3 +107,9 @@ class Bot(Player):
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase()
+
+    def action_priority(self, game: Game) -> Iterator[Card]:
+        pass
+
+    def buy_priority(self, game: Game) -> Iterator[Card]:
+        pass
