@@ -1,7 +1,7 @@
 import logging
 from typing import Iterator, List, Optional
 
-from pyminion.exceptions import EmptyPile, InvalidCardPlay
+from pyminion.exceptions import CardNotFound, EmptyPile, InvalidCardPlay
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck, Player
 
@@ -16,25 +16,6 @@ class Bot(Player):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
-        for card in self.hand.cards:
-            try:
-                if card.name == target_card.name and "Action" in card.type:
-                    card.play(player=self, game=game, generic_play=generic_play)
-                    return
-            except Exception as e:
-                logging.error(e)
-                raise InvalidCardPlay(
-                    f"Invalid play, {target_card} could not be played"
-                )
-        raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
-
-    def exact_play(self, card: Card, game: Game, generic_play: bool = True) -> None:
-        if "Action" in card.type:
-            card.play(player=self, game=game, generic_play=generic_play)
-        elif "Treasure" in card.type:
-            card.play(player=self, game=game)
-
     def discard_decision(self, card: Card, valid_cards: List[Card]) -> Card:
         pass
 
@@ -44,7 +25,7 @@ class Bot(Player):
     def trash_decision(self, card: Card, valid_cards: List[Card]) -> Card:
         pass
 
-    def binary_decision(self, card: Card, prompt: str) -> bool:
+    def binary_decision(self, card: Card) -> bool:
         if card.name == "Moneylender":
             return True
         else:
@@ -75,9 +56,11 @@ class Bot(Player):
         viable_actions = [card for card in self.hand.cards if "Action" in card.type]
         logger.info(f"{self.player_id}'s hand: {self.hand}")
         while viable_actions and self.state.actions:
-
-            # Add logic for playing action cards here
-
+            for card in self.action_priority(game=game):
+                try:
+                    self.play(target_card=card, game=game)
+                except CardNotFound:
+                    pass
             return
 
     def start_treasure_phase(self, game: Game):
@@ -109,7 +92,15 @@ class Bot(Player):
         self.start_cleanup_phase()
 
     def action_priority(self, game: Game) -> Iterator[Card]:
+        """
+        Add logic for playing action cards here
+
+        """
         pass
 
     def buy_priority(self, game: Game) -> Iterator[Card]:
+        """
+        Add logic for buy priority here
+
+        """
         pass

@@ -1,9 +1,16 @@
 import logging
-from typing import List
+from typing import Iterator, List
 
 from pyminion.bots import Bot
-from pyminion.exceptions import EmptyPile
-from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
+from pyminion.expansions.base import (
+    duchy,
+    estate,
+    gold,
+    province,
+    silver,
+    smithy,
+    village,
+)
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck
 
@@ -31,22 +38,23 @@ class BigMoneyUltimate(Bot):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    def start_action_phase(self, game: Game):
-        viable_actions: List[Card] = [
-            card for card in self.hand.cards if "Action" in card.type
-        ]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
+    # def start_action_phase(self, game: Game):
+    #     viable_actions: List[Card] = [
+    #         card for card in self.hand.cards if "Action" in card.type
+    #     ]
+    #     logger.info(f"{self.player_id}'s hand: {self.hand}")
 
-        while viable_actions and self.state.actions:
+    #     while viable_actions and self.state.actions:
 
-            if viable_actions:
-                print(viable_actions)
+    #         if viable_actions:
+    #             print(viable_actions)
+    #             self.play(target_card=smithy, game=game)
+    #         return
 
-                self.play(target_card=smithy, game=game)
+    def action_priority(self, game: Game) -> Iterator[Card]:
+        yield smithy
 
-            return
-
-    def buy_priority(self, game: Game):
+    def buy_priority(self, game: Game) -> Iterator[Card]:
 
         money = self.state.money
         deck_money = self.get_deck_money()
