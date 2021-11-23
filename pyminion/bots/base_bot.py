@@ -35,7 +35,16 @@ class Bot(Player):
         elif "Treasure" in card.type:
             card.play(player=self, game=game)
 
-    def binary_decision(self, card: Card) -> bool:
+    def discard_decision(self, card: Card, valid_cards: List[Card]) -> Card:
+        pass
+
+    def gain_decision(self, card: Card, valid_cards: List(Card)) -> Card:
+        pass
+
+    def trash_decision(self, card:Card, valid_cards: List[Card]) -> Card:
+        pass
+
+    def binary_decision(self, card: Card, prompt: str) -> bool:
         if card.name == "Moneylender":
             return True
         else:
