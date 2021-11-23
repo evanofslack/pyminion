@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from pyminion.exceptions import (
+    CardNotFound,
     EmptyPile,
     InsufficientBuys,
     InsufficientMoney,
@@ -213,17 +214,17 @@ class Player:
         but is overridden for cards like vassal and throne room
 
         """
+        if target_card not in self.hand.cards:
+            raise CardNotFound(f"Invalid play, {target_card} not in hand")
         for card in self.hand.cards:
             if card.name == target_card.name:
                 if "Action" in card.type:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
-
                 if "Treasure" in card.type:
                     card.play(player=self, game=game)
                     return
-
-        raise InvalidCardPlay(f"Invalid play, {target_card} not in hand")
+        raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
         """
@@ -236,6 +237,8 @@ class Player:
             card.play(player=self, game=game, generic_play=generic_play)
         elif "Treasure" in card.type:
             card.play(player=self, game=game)
+        else:
+            raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
     def buy(self, card: Card, supply: "Supply") -> None:
         """

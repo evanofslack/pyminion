@@ -1,5 +1,6 @@
 import pytest
 from pyminion.exceptions import (
+    CardNotFound,
     InsufficientActions,
     InsufficientBuys,
     InsufficientMoney,
@@ -98,7 +99,7 @@ def test_player_play_invalid_play(player: Player, game: Game):
 
 
 def test_player_play_not_in_hand(player: Player, game: Game):
-    with pytest.raises(InvalidCardPlay):
+    with pytest.raises(CardNotFound):
         player.play(target_card=smithy, game=game)
 
 

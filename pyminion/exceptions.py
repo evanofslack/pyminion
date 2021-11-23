@@ -33,6 +33,13 @@ class PileNotFound(Exception):
     """
 
 
+class CardNotFound(Exception):
+    """
+    The card does not exist
+
+    """
+
+
 class InvalidInput(Exception):
     """
     Base class for input exceptions
