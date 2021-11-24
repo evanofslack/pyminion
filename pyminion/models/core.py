@@ -136,7 +136,7 @@ class State:
 class Player:
     """
     Basic representation of a player including the piles of cards they own
-    and the basic actions they can take to manipulate the state of the game
+    and the basic actions they can take to manipulate the state of the game.
 
     """
 
@@ -163,9 +163,8 @@ class Player:
 
     def reset(self):
         """
-        Reset the state of the player to a pre-game state
-
-        Required for resetting players between games when running simulations
+        Reset the state of the player to a pre-game state.
+        Required for resetting player deck and state between games when running simulations.
 
         """
         self.turns = 0
@@ -175,9 +174,8 @@ class Player:
 
     def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
         """
-        Draw cards from deck and add them to the specified destination
-
-        Defaults to drawing one card and adding to the player's hand
+        Draw cards from deck and add them to the specified destination.
+        Defaults to drawing one card and adding to the player's hand.
 
         """
         if destination is None:
@@ -186,7 +184,7 @@ class Player:
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
                 pass
-            # Deck is empty -> shuffle in the discard pile
+            # Deck is empty -> shuffle discard pile into deck
             elif len(self.deck) == 0:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
@@ -197,7 +195,7 @@ class Player:
 
     def discard(self, target_card: Card) -> None:
         """
-        Move specified card from the player's hand to the player's discard pile
+        Move specified card from the player's hand to the player's discard pile.
 
         """
         for card in self.hand.cards:
@@ -207,11 +205,11 @@ class Player:
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         """
-        Find target card in player's hand and play it
+        Find target card in player's hand and play it.
 
         If generic_play is true, card is moved from player's hand to playmat
         and player action count decreased by 1. This is the default behavior
-        but is overridden for cards like vassal and throne room
+        but is overridden for cards like vassal and throne room.
 
         """
         if target_card not in self.hand.cards:
@@ -228,9 +226,8 @@ class Player:
 
     def exact_play(self, card: Card, game: "Game", generic_play: bool = True) -> None:
         """
-        Similar to previous play method, except exact card to play must be specified
-
-        This is method is necessary when playing cards not in the player's hand, such as vassal
+        Similar to previous play method, except exact card to play must be specified.
+        This is method is necessary when playing cards not in the player's hand, such as vassal.
 
         """
         if "Action" in card.type:
@@ -243,8 +240,7 @@ class Player:
     def buy(self, card: Card, supply: "Supply") -> None:
         """
         Buy a card from the supply and add to player's discard pile.
-
-        Assert that player has sufficient money and buys to gain the card
+        Check that player has sufficient money and buys to gain the card.
 
         """
         assert isinstance(card, Card)
@@ -269,9 +265,8 @@ class Player:
         self, card: Card, supply: "Supply", destination: AbstractDeck = None
     ) -> None:
         """
-        Gain a card from the supply and add to destination
-
-        Defaults to adding the card to the player's discard pile
+        Gain a card from the supply and add to destination.
+        Defaults to adding the card to the player's discard pile.
 
         """
         if destination is None:
@@ -282,7 +277,7 @@ class Player:
 
     def trash(self, target_card: Card, trash: "Trash") -> None:
         """
-        Move card from player's hand to the trash
+        Move card from player's hand to the trash.
 
         """
         for card in self.hand.cards:
@@ -291,12 +286,20 @@ class Player:
                 break
 
     def start_turn(self) -> None:
+        """
+        Increase turn counter and reset state
+
+        """
         self.turns += 1
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
 
     def start_cleanup_phase(self):
+        """
+        Move hand and playmat cards into discard pile and draw 5 new cards.
+
+        """
         self.discard_pile.cards += self.hand.cards
         self.discard_pile.cards += self.playmat.cards
         self.hand.cards = []
@@ -305,10 +308,9 @@ class Player:
 
     def get_all_cards(self) -> List[Card]:
         """
-        Get a list of all the cards the player has in their possesion
+        Get a list of all the cards the player has in their possesion.
 
         """
-
         all_cards = (
             self.deck.cards
             + self.discard_pile.cards
@@ -319,13 +321,16 @@ class Player:
 
     def get_card_count(self, card: Card) -> int:
         """
-        Get count of a specific card in player's whole deck
+        Get count of a specific card in player's whole deck.
 
         """
-
         return self.get_all_cards().count(card)
 
     def get_victory_points(self) -> int:
+        """
+        Return the number of victory points a player has.
+
+        """
         total_vp: int = 0
         for card in self.get_all_cards():
             if "Victory" in card.type or "Curse" in card.type:
@@ -333,6 +338,10 @@ class Player:
         return total_vp
 
     def get_treasure_money(self) -> int:
+        """
+        Return the amount of money a player has in their deck from treasure cards.
+
+        """
         total_money: int = 0
         for card in self.get_all_cards():
             if "Treasure" in card.type:
@@ -340,6 +349,10 @@ class Player:
         return total_money
 
     def get_action_money(self) -> int:
+        """
+        Return the amount of money a player has in their deck from action cards.
+
+        """
         total_money: int = 0
         for card in self.get_all_cards():
             if "Action" in card.type:
@@ -347,6 +360,10 @@ class Player:
         return total_money
 
     def get_deck_money(self) -> int:
+        """
+        Return total count of all money a player has in their deck.
+
+        """
         treasure_money = self.get_treasure_money()
         action_money = self.get_action_money()
         return treasure_money + action_money
@@ -354,7 +371,7 @@ class Player:
 
 class Supply:
     """
-    Collection of card piles that make up the game's supply
+    Collection of card piles that make up the game's supply.
 
     """
 
@@ -372,7 +389,7 @@ class Supply:
 
     def gain_card(self, card: Card) -> Optional[Card]:
         """
-        Gain a card from the supply
+        Gain a card from the supply.
 
         """
         for pile in self.piles:
@@ -387,7 +404,7 @@ class Supply:
 
     def return_card(self, card: Card):
         """
-        Return a card to the supply
+        Return a card to the supply.
 
         """
         for pile in self.piles:
@@ -396,7 +413,7 @@ class Supply:
 
     def avaliable_cards(self) -> List[Card]:
         """
-        Returns a list containing a single card from each non-empty pile in the supply
+        Returns a list containing a single card from each non-empty pile in the supply.
 
         """
         cards = [pile.cards[0] for pile in self.piles if pile]
@@ -404,7 +421,7 @@ class Supply:
 
     def num_empty_piles(self) -> int:
         """
-        Returns the number of empty piles in the supply
+        Returns the number of empty piles in the supply.
 
         """
         empty_piles: int = 0
@@ -414,6 +431,10 @@ class Supply:
         return empty_piles
 
     def pile_length(self, pile_name: str) -> int:
+        """
+        Get the number of cards in a specified pile in the supply.
+
+        """
         for pile in self.piles:
             if pile.name == pile_name:
                 return len(pile)
