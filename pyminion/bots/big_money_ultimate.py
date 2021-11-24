@@ -38,19 +38,6 @@ class BigMoneyUltimate(Bot):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    # def start_action_phase(self, game: Game):
-    #     viable_actions: List[Card] = [
-    #         card for card in self.hand.cards if "Action" in card.type
-    #     ]
-    #     logger.info(f"{self.player_id}'s hand: {self.hand}")
-
-    #     while viable_actions and self.state.actions:
-
-    #         if viable_actions:
-    #             print(viable_actions)
-    #             self.play(target_card=smithy, game=game)
-    #         return
-
     def action_priority(self, game: Game) -> Iterator[Card]:
         yield smithy
 
