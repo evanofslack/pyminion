@@ -16,7 +16,6 @@ from pyminion.exceptions import (
 if TYPE_CHECKING:
     from pyminion.game import Game
 
-
 logger = logging.getLogger()
 
 
