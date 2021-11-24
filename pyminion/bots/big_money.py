@@ -1,10 +1,10 @@
 import logging
+from typing import Iterator
 
 from pyminion.bots import Bot
-from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import gold, province, silver
 from pyminion.game import Game
-from pyminion.models.core import Deck
+from pyminion.models.core import Card, Deck
 
 logger = logging.getLogger()
 
@@ -22,27 +22,13 @@ class BigMoney(Bot):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    def start_action_phase(self, game: Game):
-        viable_actions = [card for card in self.hand.cards if "Action" in card.type]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
-        while viable_actions and self.state.actions:
+    def buy_priority(self, game: Game) -> Iterator[Card]:
 
-            # Add logic for playing action cards here
+        money = self.state.money
 
-            return
-
-    def start_buy_phase(self, game: Game):
-        while self.state.buys and self.state.money:
-            if self.state.money >= 8:
-                buy_card = province
-            elif self.state.money >= 6:
-                buy_card = gold
-            elif self.state.money >= 3:
-                buy_card = silver
-            else:
-                return
-
-            try:
-                self.buy(buy_card, supply=game.supply)
-            except EmptyPile:
-                pass
+        if money >= 8:
+            yield province
+        if money >= 6:
+            yield gold
+        if money >= 3:
+            yield silver
