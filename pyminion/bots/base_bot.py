@@ -17,31 +17,31 @@ class Bot(Player):
         super().__init__(deck=deck, player_id=player_id)
 
     def discard_resp(self, card: Card, valid_cards: List[Card]) -> Optional[Card]:
-        pass
+        raise NotImplementedError
 
     def multiple_discard_resp(
         self, card: Card, valid_cards: List[Card]
     ) -> Optional[List[Card]]:
-        pass
+        raise NotImplementedError
 
     def gain_resp(self, card: Card, valid_cards: List[Card]) -> Card:
-        pass
+        raise NotImplementedError
 
     def multiple_gain_resp(
         self, card: Card, valid_cards: List[Card]
     ) -> Optional[List[Card]]:
-        pass
+        raise NotImplementedError
 
     def trash_resp(self, card: Card, valid_cards: List[Card]) -> Card:
-        pass
+        raise NotImplementedError
 
     def multiple_trash_resp(
         self, card: Card, valid_cards: List[Card]
     ) -> Optional[List[Card]]:
-        pass
+        raise NotImplementedError
 
     def binary_resp(self, card: Card) -> bool:
-        pass
+        raise NotImplementedError
 
     def binary_decision(self, card: Card) -> bool:
         if card.name == "Moneylender":
@@ -83,7 +83,7 @@ class Bot(Player):
 
     def action_priority(self, game: Game) -> Iterator[Card]:
         """
-        Add logic for playing action cards here
+        Add logic for playing action cards through this method
 
         This function should be a generator where each call
         yields a desired card to play if conditions are met
@@ -116,7 +116,7 @@ class Bot(Player):
 
     def buy_priority(self, game: Game) -> Iterator[Card]:
         """
-        Add logic for buy priority here
+        Add logic for buy priority through this method
 
         This function should be a generator where each call
         yields a desired card to buy if conditions are met
