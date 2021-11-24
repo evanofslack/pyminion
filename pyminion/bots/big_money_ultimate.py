@@ -64,7 +64,7 @@ class BigMoneyUltimate(Bot):
             [card for card in self.get_all_cards() if "Treasure" in card.type]
         )
 
-        if deck_money > 15 and num_province > 1 and money >= 8:
+        if deck_money > 15 and money >= 8:
             yield province
         if num_province < 5 and money >= 5:
             yield duchy
