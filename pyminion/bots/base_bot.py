@@ -16,13 +16,31 @@ class Bot(Player):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    def discard_decision(self, card: Card, valid_cards: List[Card]) -> Card:
+    def discard_resp(self, card: Card, valid_cards: List[Card]) -> Optional[Card]:
         pass
 
-    def gain_decision(self, card: Card, valid_cards: List[Card]) -> Card:
+    def multiple_discard_resp(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[List[Card]]:
         pass
 
-    def trash_decision(self, card: Card, valid_cards: List[Card]) -> Card:
+    def gain_resp(self, card: Card, valid_cards: List[Card]) -> Card:
+        pass
+
+    def multiple_gain_resp(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[List[Card]]:
+        pass
+
+    def trash_resp(self, card: Card, valid_cards: List[Card]) -> Card:
+        pass
+
+    def multiple_trash_resp(
+        self, card: Card, valid_cards: List[Card]
+    ) -> Optional[List[Card]]:
+        pass
+
+    def binary_resp(self, card: Card) -> bool:
         pass
 
     def binary_decision(self, card: Card) -> bool:
@@ -63,25 +81,48 @@ class Bot(Player):
                     pass
             return
 
+    def action_priority(self, game: Game) -> Iterator[Card]:
+        """
+        Add logic for playing action cards here
+
+        This function should be a generator where each call
+        yields a desired card to play if conditions are met
+
+        """
+        raise NotImplementedError
+
     def start_treasure_phase(self, game: Game):
         viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
         i = 0
         while i < len(viable_treasures):
             self.exact_play(viable_treasures[i], game)
             viable_treasures.remove(viable_treasures[i])
-        logger.info(f"{self.player_id} has {self.state.money} money")
 
     def start_buy_phase(self, game: Game):
+
+        logger.info(f"{self.player_id} has {self.state.money} money")
+
         while self.state.buys:
             for card in self.buy_priority(game=game):
                 try:
                     self.buy(card, supply=game.supply)
-                    return
+                    break
+
                 except EmptyPile:
                     pass
             else:
                 logger.info(f"{self} buys nothing")
                 return
+
+    def buy_priority(self, game: Game) -> Iterator[Card]:
+        """
+        Add logic for buy priority here
+
+        This function should be a generator where each call
+        yields a desired card to buy if conditions are met
+
+        """
+        raise NotImplementedError
 
     def take_turn(self, game: Game) -> None:
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
@@ -90,17 +131,3 @@ class Bot(Player):
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase()
-
-    def action_priority(self, game: Game) -> Iterator[Card]:
-        """
-        Add logic for playing action cards here
-
-        """
-        pass
-
-    def buy_priority(self, game: Game) -> Iterator[Card]:
-        """
-        Add logic for buy priority here
-
-        """
-        pass
