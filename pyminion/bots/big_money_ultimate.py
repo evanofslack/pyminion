@@ -3,15 +3,7 @@ from typing import Iterator, List
 
 from pyminion.bots import Bot
 from pyminion.core import Card, Deck
-from pyminion.expansions.base import (
-    duchy,
-    estate,
-    gold,
-    province,
-    silver,
-    smithy,
-    village,
-)
+from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
 from pyminion.game import Game
 
 logger = logging.getLogger()
