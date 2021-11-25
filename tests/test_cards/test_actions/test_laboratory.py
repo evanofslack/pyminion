@@ -1,7 +1,7 @@
 from pyminion.expansions.base import laboratory
 from pyminion.game import Game
 from pyminion.models.base import Laboratory
-from pyminion.models.core import Player
+from pyminion.players import Player
 
 
 def test_laboratory(player: Player, game: Game):

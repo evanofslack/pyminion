@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import estate, militia
+from pyminion.models.base import militia
 
 
 def test_militia_makes_2_money(multiplayer_game: Game):

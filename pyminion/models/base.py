@@ -7,8 +7,8 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
 from pyminion.game import Game
 from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import AbstractDeck, Card, Player
-from pyminion.players import Human
+from pyminion.models.core import AbstractDeck, Card
+from pyminion.players import Human, Player
 
 logger = logging.getLogger()
 

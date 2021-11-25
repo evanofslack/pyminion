@@ -4,7 +4,8 @@ import random
 from typing import List, Optional
 
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
-from pyminion.models.core import Card, Deck, DeckCounter, Pile, Player, Supply, Trash
+from pyminion.models.core import Card, Deck, DeckCounter, Pile, Supply, Trash
+from pyminion.players import Player
 
 logger = logging.getLogger()
 

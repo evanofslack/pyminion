@@ -1,7 +1,7 @@
 from pyminion.expansions.base import market
 from pyminion.game import Game
 from pyminion.models.base import Market
-from pyminion.models.core import Player
+from pyminion.players import Player
 
 
 def test_market(player: Player, game: Game):

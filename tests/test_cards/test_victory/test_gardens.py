@@ -1,5 +1,5 @@
 from pyminion.models.base import copper, gardens
-from pyminion.models.core import Player
+from pyminion.players import Player
 
 
 def test_gardens_score_10_cards(player: Player):
