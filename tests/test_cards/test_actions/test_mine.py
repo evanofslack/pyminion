@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import copper, mine
+from pyminion.expansions.base import copper, mine
 from pyminion.players import Human
 
 

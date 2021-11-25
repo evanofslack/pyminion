@@ -3,7 +3,7 @@ Play a game through the terminal. Either by yourself, with another human, or aga
 
 """
 from pyminion.bots import BigMoney
-from pyminion.expansions.base import base_cards, basic_cards, start_cards
+from pyminion.expansions.base import base_cards
 from pyminion.game import Game
 from pyminion.players import Human
 
@@ -13,8 +13,6 @@ bot = BigMoney(player_id="Bot 1")
 game = Game(
     players=[human, bot],
     expansions=[base_cards],
-    basic_cards=basic_cards,
-    start_cards=start_cards,
 )
 
 if __name__ == "__main__":

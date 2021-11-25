@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import Estate, workshop
+from pyminion.expansions.base import Estate, workshop
 from pyminion.players import Human
 
 

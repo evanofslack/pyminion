@@ -1,4 +1,4 @@
-from pyminion.models.base import curse
+from pyminion.expansions.base import curse
 from pyminion.players import Player
 
 

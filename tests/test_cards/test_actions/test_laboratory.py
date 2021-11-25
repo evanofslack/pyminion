@@ -1,6 +1,5 @@
-from pyminion.expansions.base import laboratory
+from pyminion.expansions.base import Laboratory, laboratory
 from pyminion.game import Game
-from pyminion.models.base import Laboratory
 from pyminion.players import Player
 
 

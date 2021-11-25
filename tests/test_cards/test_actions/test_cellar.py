@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import Cellar, Copper, Estate, cellar, copper, estate
+from pyminion.expansions.base import Cellar, Copper, Estate, cellar, copper, estate
 from pyminion.players import Human
 
 

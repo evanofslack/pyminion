@@ -1,7 +1,7 @@
 import pytest
+from pyminion.core import Card, Pile, Supply
 from pyminion.exceptions import EmptyPile, PileNotFound
 from pyminion.expansions.base import copper, duchy, estate, gold, province, silver
-from pyminion.models.core import Card, Pile, Supply
 
 
 def test_create_supply():

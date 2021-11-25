@@ -1,6 +1,6 @@
 from pyminion.expansions.base import smithy
 from pyminion.game import Game
-from pyminion.models.base import Smithy
+from pyminion.expansions.base import Smithy
 from pyminion.players import Player
 
 

@@ -28,7 +28,7 @@ python3 -m pip install pyminion
 To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
 ```python
-from pyminion.expansions.base import base_cards, basic_cards, start_cards
+from pyminion.expansions.base import base_cards, 
 from pyminion.game import Game
 from pyminion.bots import BigMoney
 from pyminion.players import Human
@@ -41,8 +41,6 @@ bot = BigMoney()
 game = Game(
     players=[human, bot],
     expansions=[base_cards],
-    basic_cards=basic_cards,
-    start_cards=start_cards)
 
 # Play game
 game.play()
@@ -94,13 +92,13 @@ sim.run()
 sim.get_stats()
 ```
 
-Please see `/examples` for other uses and applications. 
+Please see `/examples` for full collection of sample code.
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
 
 ## Contributing
 
-The most welcome contributions would be to add more cards from the base set of Dominion or to create new bots that perform better than basic big money strategy. Check the [open issues](https://github.com/evanofslack/pyminion/issues) to get a sense of what of is currently being worked on.
+The most welcome contribution would be to create new bots that perform better than basic big money strategy. Examples of current bots can be found in `/pyminion/bots`. 
 
 If you would like to contribute, please create a branch, add commits, and [open a pull request](https://github.com/evanofslack/pyminion/pulls).

@@ -3,12 +3,12 @@ import logging
 from collections import Counter
 from typing import Callable, List, Optional, Tuple, Type, Union
 
+from pyminion.core import Card
 from pyminion.exceptions import (
     InvalidBinaryInput,
     InvalidMultiCardInput,
     InvalidSingleCardInput,
 )
-from pyminion.models.core import Card
 
 logger = logging.getLogger()
 

@@ -1,6 +1,6 @@
 from pyminion.expansions.base import merchant, silver
 from pyminion.game import Game
-from pyminion.models.base import Merchant
+from pyminion.expansions.base import Merchant
 from pyminion.players import Human
 
 

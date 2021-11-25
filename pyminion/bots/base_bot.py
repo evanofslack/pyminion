@@ -1,10 +1,13 @@
 import logging
-from typing import Iterator, List, Optional
+from typing import TYPE_CHECKING, Iterator, List, Optional
 
+from pyminion.core import Card
 from pyminion.exceptions import CardNotFound, EmptyPile
-from pyminion.game import Game
-from pyminion.models.core import Card
 from pyminion.players import Player
+
+if TYPE_CHECKING:
+    from pyminion.game import Game
+
 
 logger = logging.getLogger()
 
@@ -70,7 +73,7 @@ class Bot(Player):
                 return False
         return True
 
-    def start_action_phase(self, game: Game):
+    def start_action_phase(self, game: "Game"):
         viable_actions = [card for card in self.hand.cards if "Action" in card.type]
         logger.info(f"{self.player_id}'s hand: {self.hand}")
         while viable_actions and self.state.actions:
@@ -81,7 +84,7 @@ class Bot(Player):
                     pass
             return
 
-    def action_priority(self, game: Game) -> Iterator[Card]:
+    def action_priority(self, game: "Game") -> Iterator[Card]:
         """
         Add logic for playing action cards through this method
 
@@ -91,14 +94,14 @@ class Bot(Player):
         """
         raise NotImplementedError
 
-    def start_treasure_phase(self, game: Game):
+    def start_treasure_phase(self, game: "Game"):
         viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
         i = 0
         while i < len(viable_treasures):
             self.exact_play(viable_treasures[i], game)
             viable_treasures.remove(viable_treasures[i])
 
-    def start_buy_phase(self, game: Game):
+    def start_buy_phase(self, game: "Game"):
 
         logger.info(f"{self.player_id} has {self.state.money} money")
 
@@ -114,7 +117,7 @@ class Bot(Player):
                 logger.info(f"{self} buys nothing")
                 return
 
-    def buy_priority(self, game: Game) -> Iterator[Card]:
+    def buy_priority(self, game: "Game") -> Iterator[Card]:
         """
         Add logic for buy priority through this method
 
@@ -124,7 +127,7 @@ class Bot(Player):
         """
         raise NotImplementedError
 
-    def take_turn(self, game: Game) -> None:
+    def take_turn(self, game: "Game") -> None:
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
         self.start_action_phase(game)
