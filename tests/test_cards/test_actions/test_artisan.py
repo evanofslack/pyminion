@@ -1,5 +1,5 @@
-from pyminion.game import Game
 from pyminion.expansions.base import artisan, silver
+from pyminion.game import Game
 from pyminion.players import Human
 
 
