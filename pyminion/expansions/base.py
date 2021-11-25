@@ -1093,7 +1093,9 @@ class Remodel(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -1156,7 +1158,9 @@ class Mine(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -1306,9 +1310,6 @@ remodel = Remodel()
 mine = Mine()
 militia = Militia()
 
-START_COPPER = 7
-START_ESTATE = 3
-start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
 
 base_cards = [
     artisan,
@@ -1332,5 +1333,3 @@ base_cards = [
     witch,
     workshop,
 ]
-
-basic_cards = [copper, silver, gold, estate, duchy, province, curse]
