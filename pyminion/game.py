@@ -17,6 +17,8 @@ class Game:
         basic_cards: List[Card] = None,
         start_cards: List[Card] = None,
         kingdom_cards: List[Card] = None,
+        use_logger: bool = True,
+        log_file_name: str = "game.log",
     ):
         if len(players) < 1:
             raise InvalidPlayerCount("Game must have at least one player")
@@ -28,6 +30,14 @@ class Game:
         self.start_cards = start_cards
         self.kingdom_cards = kingdom_cards
         self.trash = Trash()
+
+        if use_logger:
+            # Set up a handler that dumps the log to a file
+            f_handler = logging.FileHandler(log_file_name, mode="w")
+            f_handler.setLevel(logging.INFO)
+            f_format = logging.Formatter("%(message)s")
+            f_handler.setFormatter(f_format)
+            logger.addHandler(f_handler)
 
     def _create_supply(self) -> Supply:
         """

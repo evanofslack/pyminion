@@ -2,6 +2,8 @@
 Run a single game between two bots. 
 
 """
+from logging import log
+
 from pyminion.bots import BigMoney, BigMoneyUltimate
 from pyminion.expansions.base import base_cards, basic_cards, smithy, start_cards
 from pyminion.game import Game
