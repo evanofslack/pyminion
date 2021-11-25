@@ -23,7 +23,7 @@ python3 -m pip install pyminion
 
 ## Usage
 
-#### Setting up a game
+### Setting up a game
 
 To play an interact game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
@@ -49,7 +49,7 @@ game.play()
 game.get_stats()
 
 ```
-#### Creating Bots
+### Creating Bots
 
 Defining new bots is relatively straightforward. Just inherit from the `Bot` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
 
@@ -82,7 +82,7 @@ class BigMoneySmithy(Bot):
         if money >= 3:
             yield silver
 ```
-#### Running Simulations
+### Running Simulations
 
 Simulating multiple games is good metric for determining bot performance. To create a simulation, pass in a game with multiple bot players into the `Simulation` class and set the number of iterations to run. 
 
