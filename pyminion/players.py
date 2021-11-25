@@ -200,6 +200,18 @@ class Player:
                 trash.add(self.hand.remove(card))
                 break
 
+    def autoplay_treasures(self, game: "Game") -> None:
+        """
+        Play all treasures in hand
+
+        """
+        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
+
+        i = 0
+        while i < len(viable_treasures):
+            self.exact_play(viable_treasures[i], game)
+            viable_treasures.remove(viable_treasures[i])
+
     def start_turn(self) -> None:
         """
         Increase turn counter and reset state
@@ -381,11 +393,7 @@ class Human(Player):
                 if not card:
                     return False
                 if card == "all":
-                    i = 0
-                    while i < len(viable_treasures):
-                        self.exact_play(viable_treasures[i], game)
-                        viable_treasures.remove(viable_treasures[i])
-                        logger.info(f"{self} played {viable_treasures}")
+                    self.autoplay_treasures()
                     return True
                 self.exact_play(card, game)
                 logger.info(f"{self.player_id} played {card}")

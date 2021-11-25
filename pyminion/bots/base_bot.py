@@ -95,11 +95,7 @@ class Bot(Player):
         raise NotImplementedError
 
     def start_treasure_phase(self, game: "Game"):
-        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
-        i = 0
-        while i < len(viable_treasures):
-            self.exact_play(viable_treasures[i], game)
-            viable_treasures.remove(viable_treasures[i])
+        self.autoplay_treasures()
 
     def start_buy_phase(self, game: "Game"):
 
