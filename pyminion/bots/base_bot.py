@@ -11,10 +11,9 @@ logger = logging.getLogger()
 class Bot(Player):
     def __init__(
         self,
-        deck: Deck = None,
         player_id: str = "bot",
     ):
-        super().__init__(deck=deck, player_id=player_id)
+        super().__init__(player_id=player_id)
 
     def discard_resp(self, card: Card, valid_cards: List[Card]) -> Optional[Card]:
         raise NotImplementedError
