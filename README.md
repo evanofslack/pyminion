@@ -33,14 +33,14 @@ from pyminion.game import Game
 from pyminion.bots import BigMoney
 from pyminion.players import Human
 
-# Initialize player and bot
+# Initialize human and bot
 human = Human()
 bot = BigMoney()
 
 # Setup the game
 game = Game(
     players=[human, bot],
-    expansions=[base_cards],
+    expansions=[base_cards])
 
 # Play game
 game.play()
