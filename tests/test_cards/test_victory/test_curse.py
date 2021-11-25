@@ -1,5 +1,5 @@
 from pyminion.models.base import curse
-from pyminion.models.core import Player
+from pyminion.players import Player
 
 
 def test_curse_decrease_score(player: Player):

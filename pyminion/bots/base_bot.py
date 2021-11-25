@@ -1,9 +1,10 @@
 import logging
 from typing import Iterator, List, Optional
 
-from pyminion.exceptions import CardNotFound, EmptyPile, InvalidCardPlay
+from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.game import Game
-from pyminion.models.core import Card, Deck, Player
+from pyminion.models.core import Card
+from pyminion.players import Player
 
 logger = logging.getLogger()
 

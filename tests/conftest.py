@@ -12,8 +12,8 @@ from pyminion.expansions.base import (
     start_cards,
 )
 from pyminion.game import Game
-from pyminion.models.core import Deck, Pile, Player, Supply, Trash
-from pyminion.players import Human
+from pyminion.models.core import Deck, Pile, Supply, Trash
+from pyminion.players import Human, Player
 
 START_COPPER = 7
 START_ESTATE = 3

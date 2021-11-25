@@ -20,7 +20,8 @@ from pyminion.models.base import (
     smithy,
     vassal,
 )
-from pyminion.models.core import DiscardPile, Hand, Player, Playmat, Supply, Trash
+from pyminion.models.core import DiscardPile, Hand, Playmat, Supply, Trash
+from pyminion.players import Player
 
 
 def test_create_player(deck):
