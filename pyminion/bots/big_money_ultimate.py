@@ -33,10 +33,9 @@ class BigMoneyUltimate(Bot):
 
     def __init__(
         self,
-        deck: Deck = None,
         player_id: str = "big_money",
     ):
-        super().__init__(deck=deck, player_id=player_id)
+        super().__init__(player_id=player_id)
 
     def action_priority(self, game: Game) -> Iterator[Card]:
         yield smithy

@@ -39,8 +39,8 @@ def human(deck):
 
 
 @pytest.fixture
-def bot(deck):
-    bot = Bot(deck=deck, player_id="bot")
+def bot():
+    bot = Bot(player_id="bot")
     return bot
 
 
