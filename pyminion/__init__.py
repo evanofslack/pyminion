@@ -16,18 +16,13 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Create handlers
+# Create handler
 c_handler = logging.StreamHandler()
-f_handler = logging.FileHandler("game.log", mode="w")
 c_handler.setLevel(logging.INFO)
-f_handler.setLevel(logging.INFO)
 
-# Create formatters and add it to handlers
+# Create formatter and add to handler
 c_format = logging.Formatter("%(message)s")
-f_format = logging.Formatter("%(message)s")
 c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
 
-# Add handlers to the logger
+# Add handler to the logger
 logger.addHandler(c_handler)
-logger.addHandler(f_handler)
