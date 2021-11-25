@@ -1,5 +1,6 @@
 from pyminion.exceptions import InsufficientActions
-from pyminion.models.core import Card, Player
+from pyminion.models.core import Card
+from pyminion.players import Player
 
 
 class Victory(Card):
@@ -42,15 +43,6 @@ class Action(Card):
 
         """
         raise NotImplementedError(f"play method must be implemented for {self.name}")
-
-    def bot_play(self):
-        """
-        Specific play method for bots to execute, unique to each action card
-
-        """
-        raise NotImplementedError(
-            f"bot_play method must be implemented for {self.name}"
-        )
 
     def generic_play(self, player: Player):
         """
