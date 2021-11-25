@@ -25,7 +25,7 @@ python3 -m pip install pyminion
 
 ### Setting up a game
 
-To play an interact game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
+To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
 ```python
 from pyminion.expansions.base import base_cards, basic_cards, start_cards
