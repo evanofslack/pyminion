@@ -1,9 +1,16 @@
 import logging
-from typing import List
+from typing import Iterator, List
 
 from pyminion.bots import Bot
-from pyminion.exceptions import EmptyPile
-from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
+from pyminion.expansions.base import (
+    duchy,
+    estate,
+    gold,
+    province,
+    silver,
+    smithy,
+    village,
+)
 from pyminion.game import Game
 from pyminion.models.core import Card, Deck
 
@@ -31,73 +38,30 @@ class BigMoneyUltimate(Bot):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    def start_action_phase(self, game: Game):
-        viable_actions: List[Card] = [
-            card for card in self.hand.cards if "Action" in card.type
-        ]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
+    def action_priority(self, game: Game) -> Iterator[Card]:
+        yield smithy
 
-        while viable_actions and self.state.actions:
-
-            if viable_actions:
-                print(viable_actions)
-
-                self.play(target_card=smithy, game=game)
-
-            return
-
-    def start_buy_phase(self, game: Game):
+    def buy_priority(self, game: Game) -> Iterator[Card]:
 
         money = self.state.money
+        deck_money = self.get_deck_money()
         num_province = game.supply.pile_length(pile_name="Province")
         num_smithy = self.get_card_count(card=smithy)
         num_treasure = len(
             [card for card in self.get_all_cards() if "Treasure" in card.type]
         )
 
-        while self.state.buys and self.state.money:
-            if self.get_deck_money() > 15 and num_province > 1 and money >= 8:
-                try:
-                    self.buy(card=province, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if num_province < 5 and money >= 5:
-                try:
-                    self.buy(card=duchy, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if num_province < 3 and money >= 2:
-                try:
-                    self.buy(card=estate, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if money >= 6:
-                try:
-                    self.buy(card=gold, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if num_province < 7 and money >= 5:
-                try:
-                    self.buy(card=duchy, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if num_smithy < num_treasure / 11 and money >= 4:
-                try:
-                    self.buy(card=smithy, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            if money >= 3:
-                try:
-                    self.buy(card=silver, supply=game.supply)
-                    return
-                except EmptyPile:
-                    pass
-            else:
-                logger.info(f"{self} buys nothing")
-                return
+        if deck_money > 15 and money >= 8:
+            yield province
+        if num_province < 5 and money >= 5:
+            yield duchy
+        if num_province < 3 and money >= 2:
+            yield estate
+        if money >= 6:
+            yield gold
+        if num_province < 7 and money >= 5:
+            yield duchy
+        if num_smithy < num_treasure / 11 and money >= 4:
+            yield smithy
+        if money >= 3:
+            yield silver
