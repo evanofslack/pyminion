@@ -1,4 +1,5 @@
 import pytest
+from pyminion.core import DiscardPile, Hand, Playmat, Supply, Trash
 from pyminion.exceptions import (
     CardNotFound,
     InsufficientActions,
@@ -20,7 +21,6 @@ from pyminion.models.base import (
     smithy,
     vassal,
 )
-from pyminion.models.core import DiscardPile, Hand, Playmat, Supply, Trash
 from pyminion.players import Player
 
 

@@ -2,6 +2,7 @@ import logging
 from typing import Iterator, List
 
 from pyminion.bots import Bot
+from pyminion.core import Card, Deck
 from pyminion.expansions.base import (
     duchy,
     estate,
@@ -12,7 +13,6 @@ from pyminion.expansions.base import (
     village,
 )
 from pyminion.game import Game
-from pyminion.models.core import Card, Deck
 
 logger = logging.getLogger()
 

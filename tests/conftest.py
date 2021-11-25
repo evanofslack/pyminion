@@ -1,5 +1,6 @@
 import pytest
 from pyminion.bots import Bot
+from pyminion.core import Deck, Pile, Supply, Trash
 from pyminion.expansions.base import (
     base_cards,
     basic_cards,
@@ -12,7 +13,6 @@ from pyminion.expansions.base import (
     start_cards,
 )
 from pyminion.game import Game
-from pyminion.models.core import Deck, Pile, Supply, Trash
 from pyminion.players import Human, Player
 
 START_COPPER = 7

@@ -2,9 +2,9 @@ import logging
 from typing import Iterator
 
 from pyminion.bots import Bot
+from pyminion.core import Card
 from pyminion.expansions.base import gold, province, silver, smithy
 from pyminion.game import Game
-from pyminion.models.core import Card
 
 logger = logging.getLogger()
 
