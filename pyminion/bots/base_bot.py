@@ -46,27 +46,6 @@ class Bot(Player):
     def binary_resp(self, card: Card) -> bool:
         raise NotImplementedError
 
-    def binary_decision(self, card: Card) -> bool:
-        if card.name == "Moneylender":
-            return True
-        else:
-            return False
-
-    def multiple_card_decision(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[List[Card]]:
-        if card.name == "Cellar":
-            return [
-                card
-                for card in valid_cards
-                if card.name == "Estate" or card.name == "Copper"
-            ]
-
-    def single_card_decision(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[Card]:
-        pass
-
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
@@ -95,7 +74,8 @@ class Bot(Player):
         raise NotImplementedError
 
     def start_treasure_phase(self, game: "Game"):
-        self.autoplay_treasures()
+        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
+        self.autoplay_treasures(viable_treasures=viable_treasures, game=game)
 
     def start_buy_phase(self, game: "Game"):
 

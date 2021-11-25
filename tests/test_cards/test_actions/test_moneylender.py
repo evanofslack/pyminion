@@ -1,7 +1,5 @@
-from pyminion.bots import Bot
-from pyminion.expansions.base import copper, moneylender
+from pyminion.expansions.base import Copper, Moneylender, copper, moneylender
 from pyminion.game import Game
-from pyminion.expansions.base import Copper, Moneylender
 from pyminion.players import Human
 
 
@@ -53,17 +51,17 @@ def test_moneylender_human_no_coppers(human: Human, game: Game, monkeypatch):
     assert len(game.trash) == 0
 
 
-def test_moneylender_bot_input_yes(bot: Bot, game: Game):
-    bot.hand.add(moneylender)
-    bot.hand.add(copper)
-    assert len(bot.hand) == 2
-    assert len(game.trash) == 0
+# def test_moneylender_bot_input_yes(bot: Bot, game: Game):
+#     bot.hand.add(moneylender)
+#     bot.hand.add(copper)
+#     assert len(bot.hand) == 2
+#     assert len(game.trash) == 0
 
-    bot.hand.cards[0].play(bot, game)
-    assert len(bot.hand) == 0
-    assert len(bot.playmat) == 1
-    assert type(bot.playmat.cards[0]) is Moneylender
-    assert bot.state.actions == 0
-    assert bot.state.money == 3
-    assert len(game.trash) == 1
-    assert type(game.trash.cards[0]) is Copper
+#     bot.hand.cards[0].play(bot, game)
+#     assert len(bot.hand) == 0
+#     assert len(bot.playmat) == 1
+#     assert type(bot.playmat.cards[0]) is Moneylender
+#     assert bot.state.actions == 0
+#     assert bot.state.money == 3
+#     assert len(game.trash) == 1
+#     assert type(game.trash.cards[0]) is Copper
