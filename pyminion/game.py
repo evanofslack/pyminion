@@ -5,6 +5,15 @@ from typing import List, Optional
 
 from pyminion.core import Card, Deck, DeckCounter, Pile, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
+from pyminion.expansions.base import (
+    copper,
+    curse,
+    duchy,
+    estate,
+    gold,
+    province,
+    silver,
+)
 from pyminion.players import Player
 
 logger = logging.getLogger()
@@ -15,9 +24,8 @@ class Game:
         self,
         players: List[Player],
         expansions: List[List[Card]],
-        basic_cards: List[Card] = None,
-        start_cards: List[Card] = None,
         kingdom_cards: List[Card] = None,
+        start_deck: List[Card] = None,
         use_logger: bool = True,
         log_file_name: str = "game.log",
     ):
@@ -27,8 +35,7 @@ class Game:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
         self.expansions = expansions
-        self.basic_cards = basic_cards
-        self.start_cards = start_cards
+        self.start_deck = start_deck
         self.kingdom_cards = kingdom_cards
         self.trash = Trash()
 
@@ -40,14 +47,9 @@ class Game:
             f_handler.setFormatter(f_format)
             logger.addHandler(f_handler)
 
-    def _create_supply(self) -> Supply:
+    def _create_basic_piles(self) -> List[Card]:
         """
-        Create the supply. The supply consists of two parts.
-
-        1.) The basic card piles avaliable in every game of dominion
-        2.) The kingdom cards, a set of 10 piles of cards that change from game to game
-
-        Returns a fully populated supply
+        Create the basic piles that are applicable to almost all games of Dominion.
 
         """
 
@@ -74,8 +76,18 @@ class Game:
         SILVER_LENGTH = 40
         GOLD_LENGTH = 30
 
+        basic_cards = [
+            copper,
+            silver,
+            gold,
+            estate,
+            duchy,
+            province,
+            curse,
+        ]
+
         basic_piles = []
-        for card in self.basic_cards:
+        for card in basic_cards:
             if card.name == "Copper":
                 basic_piles.append(Pile([card] * COPPER_LENGTH))
             elif card.name == "Silver":
@@ -89,6 +101,13 @@ class Game:
             else:
                 raise InvalidGameSetup(f"Invalid basic card: {card}")
 
+        return basic_piles
+
+    def _create_kingdom_piles(self) -> List[Card]:
+        """
+        Create the kingdom piles that vary from kingdom to kingdom. This should be 10 piles each with 10 cards.
+
+        """
         PILE_LENGTH: int = 10
         KINGDOM_PILES: int = 10
 
@@ -107,17 +126,29 @@ class Game:
         kingdom_ten = random.sample(kingdom_options, KINGDOM_PILES - chosen_cards)
         random_piles = [Pile([card] * PILE_LENGTH) for card in kingdom_ten]
 
-        return Supply(basic_piles + chosen_piles + random_piles)
+        return chosen_piles + random_piles
+
+    def _create_supply(self) -> Supply:
+        """
+        Create a supply consisting of the basic cards avaliable in every kingdom as well as the kingdom specific cards.
+
+        """
+
+        basic_piles = self._create_basic_piles()
+        kingdom_piles = self._create_kingdom_piles()
+        return Supply(basic_piles + kingdom_piles)
 
     def start(self) -> None:
         self.supply = self._create_supply()
+        if not self.start_deck:
+            self.start_deck = [copper] * 7 + [estate] * 3
         for player in self.players:
             player.reset()
-            player.deck = Deck(copy.deepcopy(self.start_cards))
+            player.deck = Deck(copy.deepcopy(self.start_deck))
             player.deck.shuffle()
             player.draw(5)
 
-        # Log Game Start
+        # Log game start
         logger.info("\nStarting Game...\n")
         for player in self.players:
             logger.info(f"{player} starts with 7 Coppers and 3 Estates")
@@ -128,7 +159,7 @@ class Game:
         The game is over if any 3 supply piles are empty or
         if the province pile is empty.
 
-        Returns True if the game is over
+        Return True if the game is over
 
         """
         empty_piles: int = 0
@@ -137,8 +168,8 @@ class Game:
                 return True
             if len(pile) == 0:
                 empty_piles += 1
-            if empty_piles >= 3:
-                return True
+        if empty_piles >= 3:
+            return True
 
     def play(self):
         self.start()
