@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import Bureaucrat, Estate, Silver, bureaucrat, estate
+from pyminion.expansions.base import Bureaucrat, Estate, Silver, bureaucrat, estate
 
 
 def test_bureaucrat_topdecks_silver(multiplayer_game: Game, monkeypatch):

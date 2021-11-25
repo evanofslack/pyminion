@@ -1,4 +1,4 @@
-from pyminion.models.base import copper, gardens
+from pyminion.expansions.base import copper, gardens
 from pyminion.players import Player
 
 

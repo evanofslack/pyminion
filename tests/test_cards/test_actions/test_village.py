@@ -1,6 +1,6 @@
 from pyminion.expansions.base import village
 from pyminion.game import Game
-from pyminion.models.base import Village
+from pyminion.expansions.base import Village
 from pyminion.players import Player
 
 

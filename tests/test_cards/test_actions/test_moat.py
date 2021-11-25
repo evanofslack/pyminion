@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import Moat, curse, moat, witch
+from pyminion.expansions.base import Moat, curse, moat, witch
 
 
 def test_moat_draw(multiplayer_game: Game):

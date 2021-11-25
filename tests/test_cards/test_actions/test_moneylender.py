@@ -1,7 +1,7 @@
 from pyminion.bots import Bot
 from pyminion.expansions.base import copper, moneylender
 from pyminion.game import Game
-from pyminion.models.base import Copper, Moneylender
+from pyminion.expansions.base import Copper, Moneylender
 from pyminion.players import Human
 
 

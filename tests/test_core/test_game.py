@@ -1,6 +1,6 @@
 from pyminion.core import Supply, Trash
+from pyminion.expansions.base import duchy, estate, gold, province
 from pyminion.game import Game
-from pyminion.models.base import duchy, estate, gold, province
 
 
 def test_game_fixture(game: Game):

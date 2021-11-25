@@ -7,8 +7,7 @@ from pyminion.exceptions import (
     InsufficientMoney,
     InvalidCardPlay,
 )
-from pyminion.game import Game
-from pyminion.models.base import (
+from pyminion.expansions.base import (
     Copper,
     Estate,
     copper,
@@ -21,6 +20,7 @@ from pyminion.models.base import (
     smithy,
     vassal,
 )
+from pyminion.game import Game
 from pyminion.players import Player
 
 

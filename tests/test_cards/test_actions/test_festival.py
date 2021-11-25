@@ -1,6 +1,6 @@
 from pyminion.expansions.base import festival
 from pyminion.game import Game
-from pyminion.models.base import Festival
+from pyminion.expansions.base import Festival
 from pyminion.players import Player
 
 

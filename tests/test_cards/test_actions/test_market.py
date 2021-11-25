@@ -1,6 +1,6 @@
 from pyminion.expansions.base import market
 from pyminion.game import Game
-from pyminion.models.base import Market
+from pyminion.expansions.base import Market
 from pyminion.players import Player
 
 

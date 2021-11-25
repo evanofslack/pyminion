@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import duchy, estate, poacher
+from pyminion.expansions.base import duchy, estate, poacher
 from pyminion.players import Human
 
 

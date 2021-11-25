@@ -1,5 +1,5 @@
 from pyminion.game import Game
-from pyminion.models.base import Silver, harbinger, silver
+from pyminion.expansions.base import Silver, harbinger, silver
 from pyminion.players import Human
 
 
