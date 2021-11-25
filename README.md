@@ -15,7 +15,7 @@ Pyminion is a library for executing and analyzing games of [Dominion](https://ww
 
 ## Getting Started
 
-Pyminion requires Python 3.8 and can easily be installed through pypi
+Pyminion requires at least Python 3.8 and can easily be installed through pypi
 
 ```
 python3 -m pip install pyminion
@@ -23,7 +23,9 @@ python3 -m pip install pyminion
 
 ## Usage
 
-To play a game against a bot through the command line:
+#### Setting up a game
+
+To play an interact game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
 ```python
 from pyminion.expansions.base import base_cards, basic_cards, start_cards
@@ -40,15 +42,59 @@ game = Game(
     players=[human, bot],
     expansions=[base_cards],
     basic_cards=basic_cards,
-    start_cards=start_cards,
-)
+    start_cards=start_cards)
 
 # Play game
 game.play()
 game.get_stats()
 
 ```
-See `examples` to see other use cases. 
+#### Creating Bots
+
+Defining new bots is relatively straightforward. Just inherit from the `Bot` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
+
+For example, here is a simple big money + smithy bot:
+
+```python
+from pyminion.bots import Bot
+from pyminion.game import Game
+from pyminion.expansions.base import silver, gold, province, smithy
+
+class BigMoneySmithy(Bot):
+
+    def __init__(
+        self,
+        player_id: str = "big_money_smithy",
+    ):
+        super().__init__(player_id=player_id)
+
+    def action_priority(self, game: Game):
+        yield smithy
+
+    def buy_priority(self, game: Game):
+        money = self.state.money
+        if money >= 8:
+            yield province
+        if money >= 6:
+            yield gold
+        if money == 4:
+            yield smithy
+        if money >= 3:
+            yield silver
+```
+#### Running Simulations
+
+Simulating multiple games is good metric for determining bot performance. To create a simulation, pass in a game with multiple bot players into the `Simulation` class and set the number of iterations to run. 
+
+```python
+from pyminion.simulator import Simulator
+
+sim = Simulator(game=game, iterations=500)
+sim.run()
+sim.get_stats()
+```
+
+Please see `/examples` for other uses and applications. 
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
