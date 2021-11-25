@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 from pyminion.bots import Bot
 from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
-from pyminion.models.cards import Action, Treasure, Victory
-from pyminion.models.core import AbstractDeck, Card
+from pyminion.models.core import AbstractDeck, Action, Card, Treasure, Victory
 from pyminion.players import Human, Player
 
 if TYPE_CHECKING:
