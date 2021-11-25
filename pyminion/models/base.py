@@ -1,14 +1,17 @@
 import logging
 import math
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from pyminion.bots import Bot
 from pyminion.decisions import validate_input
 from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
-from pyminion.game import Game
 from pyminion.models.cards import Action, Treasure, Victory
 from pyminion.models.core import AbstractDeck, Card
 from pyminion.players import Human, Player
+
+if TYPE_CHECKING:
+    from pyminion.game import Game
+
 
 logger = logging.getLogger()
 
@@ -23,7 +26,7 @@ class Copper(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: Game) -> int:
+    def play(self, player: Player, game: "Game") -> int:
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -39,7 +42,7 @@ class Silver(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: Game) -> int:
+    def play(self, player: Player, game: "Game") -> int:
 
         # check if this is the first silver played and if there are any merchants in play
         if self not in player.playmat.cards:
@@ -63,7 +66,7 @@ class Gold(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: Game) -> int:
+    def play(self, player: Player, game: "Game") -> int:
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -162,7 +165,7 @@ class Smithy(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -191,7 +194,7 @@ class Village(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -221,7 +224,7 @@ class Laboratory(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -251,7 +254,7 @@ class Market(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -285,7 +288,7 @@ class Moneylender(Action):
     def play(
         self,
         player: Union[Human, Bot],
-        game: Game,
+        game: "Game",
         generic_play: bool = True,
     ) -> None:
 
@@ -332,7 +335,7 @@ class Cellar(Action):
     def play(
         self,
         player: Union[Human, Bot],
-        game: Game,
+        game: "Game",
         generic_play: bool = True,
     ) -> None:
 
@@ -381,7 +384,7 @@ class Chapel(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -436,7 +439,7 @@ class Workshop(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -491,7 +494,7 @@ class Festival(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -524,7 +527,7 @@ class Harbinger(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -575,7 +578,7 @@ class Vassal(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -630,7 +633,7 @@ class Artisan(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -708,7 +711,7 @@ class Poacher(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -772,7 +775,7 @@ class CouncilRoom(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -808,7 +811,7 @@ class Witch(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -848,7 +851,7 @@ class Moat(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -879,7 +882,7 @@ class Merchant(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -910,7 +913,7 @@ class Bandit(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -966,7 +969,7 @@ class Bureaucrat(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1035,7 +1038,7 @@ class ThroneRoom(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1091,7 +1094,7 @@ class Remodel(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -1154,7 +1157,7 @@ class Mine(Action):
     ):
         super().__init__(name, cost, type, actions, draw, money)
 
-    def play(self, player: Player, game: Game, generic_play: bool = True) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -1225,7 +1228,7 @@ class Militia(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: Game, generic_play: bool = True
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
