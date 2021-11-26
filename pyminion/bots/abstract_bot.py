@@ -24,40 +24,22 @@ class AbstractBot(Player):
     ):
         super().__init__(player_id=player_id)
 
-    def binary_resp(self, card: Card) -> bool:
+    def binary_resp():
         raise NotImplementedError
 
-    def discard_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
-    ) -> Optional[Card]:
+    def discard_resp():
         raise NotImplementedError
 
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
+    def multiple_discard_resp():
         raise NotImplementedError
 
-    def gain_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
-    ) -> Card:
+    def gain_resp():
         raise NotImplementedError
 
-    def multiple_gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        num_gain: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
+    def multiple_gain_resp():
         raise NotImplementedError
 
-    def trash_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
-    ) -> Card:
+    def trash_resp():
         raise NotImplementedError
 
     def multiple_trash_resp():

@@ -1,9 +1,12 @@
 import logging
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pyminion.bots import AbstractBot
 from pyminion.core import Card
 from pyminion.players import Player
+
+if TYPE_CHECKING:
+    from pyminion.game import Game
 
 logger = logging.getLogger()
 
@@ -11,7 +14,7 @@ logger = logging.getLogger()
 class Bot(AbstractBot):
     """
     Barebones implementation of Bot class.
-    Implement default responses to not crash the game with an error.
+    Implements default responses as to not crash the game.
     Not optimized in the slightest.
 
     """
@@ -26,7 +29,11 @@ class Bot(AbstractBot):
         return True
 
     def discard_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
     ) -> Optional[Card]:
         if required:
             return valid_cards[0]
@@ -37,6 +44,7 @@ class Bot(AbstractBot):
         self,
         card: Card,
         valid_cards: List[Card],
+        game: "Game",
         num_discard: Optional[int] = None,
         required: bool = True,
     ) -> Optional[List[Card]]:
@@ -46,7 +54,11 @@ class Bot(AbstractBot):
             return None
 
     def gain_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
     ) -> Optional[Card]:
         if required:
             return valid_cards[0]
@@ -57,6 +69,7 @@ class Bot(AbstractBot):
         self,
         card: Card,
         valid_cards: List[Card],
+        game: "Game",
         num_gain: Optional[int] = None,
         required: bool = True,
     ) -> Optional[List[Card]]:
@@ -66,7 +79,11 @@ class Bot(AbstractBot):
             return None
 
     def trash_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
     ) -> Card:
         if required:
             return valid_cards[0]
@@ -77,6 +94,7 @@ class Bot(AbstractBot):
         self,
         card: Card,
         valid_cards: List[Card],
+        game: "Game",
         num_trash: Optional[int] = None,
         required: bool = True,
     ) -> Optional[List[Card]]:
@@ -86,7 +104,11 @@ class Bot(AbstractBot):
             return None
 
     def topdeck_resp(
-        self, card: Card, valid_cards: List[Card], required: bool = True
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
     ) -> Optional[Card]:
         if required:
             return valid_cards[0]
@@ -94,7 +116,4 @@ class Bot(AbstractBot):
             return None
 
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
-        # for card in self.hand.cards:
-        #     if card.name == "Moat":
-        #         return False
         return True
