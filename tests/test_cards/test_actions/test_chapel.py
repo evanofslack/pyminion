@@ -1,5 +1,14 @@
+from pyminion.bots import OptimizedBot
+from pyminion.expansions.base import (
+    Chapel,
+    Copper,
+    Estate,
+    chapel,
+    copper,
+    estate,
+    province,
+)
 from pyminion.game import Game
-from pyminion.expansions.base import Chapel, Copper, Estate, chapel, copper, estate
 from pyminion.players import Human
 
 
@@ -53,3 +62,32 @@ def test_chapel_trash_none(human: Human, game: Game, monkeypatch):
     human.hand.cards[0].play(human, game)
     assert len(human.hand) == 0
     assert len(human.playmat) == 1
+
+
+def test_chapel_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(chapel)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.play(chapel, game)
+    assert len(game.trash) == 2
+
+
+def test_chapel_bot_no_money(bot: OptimizedBot, game: Game):
+    bot.hand.add(chapel)
+    for i in range(4):
+        bot.hand.add(copper)
+    for i in range(7):
+        bot.deck.remove(copper)
+
+    bot.play(chapel, game)
+    assert len(game.trash) == 1
+
+
+def test_chapel_bot_late_game(bot: OptimizedBot, game: Game):
+    bot.hand.add(chapel)
+    for i in range(3):
+        bot.hand.add(estate)
+
+    game.supply.gain_card(province)
+    bot.play(chapel, game)
+    assert len(game.trash) == 0

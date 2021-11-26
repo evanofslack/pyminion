@@ -1,5 +1,6 @@
+from pyminion.bots import OptimizedBot
+from pyminion.expansions.base import copper, duchy, estate, poacher
 from pyminion.game import Game
-from pyminion.expansions.base import duchy, estate, poacher
 from pyminion.players import Human
 
 
@@ -62,3 +63,32 @@ def test_poacher_two_empty_piles_one_in_hand(human: Human, game: Game, monkeypat
     assert len(human.discard_pile) == 1
     assert human.state.actions == 1
     assert human.state.money == 1
+
+
+def test_poacher_bot_no_empty_pile(bot: OptimizedBot, game: Game):
+    bot.hand.add(poacher)
+    bot.play(poacher, game)
+    assert len(bot.discard_pile) == 0
+
+
+def test_bot_one_empty_pile(bot: OptimizedBot, game: Game):
+    bot.hand.add(poacher)
+    bot.hand.add(estate)
+    for i in range(5):
+        game.supply.gain_card(card=estate)
+    assert game.supply.num_empty_piles() == 1
+    bot.play(poacher, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_bot_one_empty_pile_prioritize_victory(bot: OptimizedBot, game: Game):
+    bot.hand.add(poacher)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    for i in range(5):
+        game.supply.gain_card(card=estate)
+    assert game.supply.num_empty_piles() == 1
+    bot.play(poacher, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Estate"
