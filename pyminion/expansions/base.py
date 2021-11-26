@@ -305,7 +305,7 @@ class Moneylender(Action):
             )
 
         if isinstance(player, Bot):
-            response = player.binary_decision(card=self)
+            response = player.binary_resp(card=self)
 
         if response:
             player.trash(target_card=copper, trash=game.trash)
@@ -355,8 +355,11 @@ class Cellar(Action):
             )
 
         if isinstance(player, Bot):
-            discard_cards = player.multiple_card_decision(
-                card=self, valid_cards=player.hand.cards
+            discard_cards = player.multiple_discard_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                required=False,
             )
 
         if discard_cards:
@@ -402,7 +405,9 @@ class Chapel(Action):
             )
 
             if len(trash_cards) > 4:
-                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+                raise InvalidMultiCardInput(
+                    "You cannot trash more than 4 cards with chapel"
+                )
 
             return trash_cards
 
@@ -410,13 +415,17 @@ class Chapel(Action):
             trash_cards = get_trash_cards()
 
         if isinstance(player, Bot):
-            trash_cards = player.multiple_card_decision(
-                card=self, valid_cards=player.hand.cards
+            trash_cards = player.multiple_trash_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                required=False,
             )
             if len(trash_cards) > 4:
-                raise InvalidMultiCardInput("You cannot trash more than 4 cards")
+                raise InvalidMultiCardInput(
+                    "Attempted to trash more than 4 cards with chapel"
+                )
 
-        trash_cards = get_trash_cards()
         for card in trash_cards:
             player.trash(card, game.trash)
 
@@ -464,8 +473,13 @@ class Workshop(Action):
             gain_card = get_gain_card()
 
         if isinstance(player, Bot):
-            gain_card = player.single_card_decision(
-                card=self, valid_cards=game.supply.avaliable_cards()
+            gain_card = player.gain_resp(
+                card=self,
+                valid_cards=[
+                    card for card in game.supply.avaliable_cards() if card.cost <= 4
+                ],
+                game=game,
+                required=True,
             )
             if not gain_card:
                 raise InvalidSingleCardInput("You must gain a card")
@@ -547,8 +561,11 @@ class Harbinger(Action):
             )
 
         if isinstance(player, Bot):
-            topdeck_card = player.single_card_decision(
-                card=self, valid_cards=player.discard_pile.cards
+            topdeck_card = player.topdeck_resp(
+                card=self,
+                valid_cards=player.discard_pile.cards,
+                game=game,
+                required=False,
             )
 
         if not topdeck_card:
@@ -601,7 +618,7 @@ class Vassal(Action):
                 prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  "
             )
         if isinstance(player, Bot):
-            decision = player.binary_decision(card=self)
+            decision = player.binary_resp(card=self)
 
         if not decision:
             return
@@ -664,24 +681,31 @@ class Artisan(Action):
 
         if isinstance(player, Human):
             gain_card = get_gain_card()
-
             player.gain(card=gain_card, supply=game.supply, destination=player.hand)
-
             topdeck_card = get_topdeck_card()
 
         if isinstance(player, Bot):
-            gain_card = player.single_card_decision(
-                card=self, valid_cards=game.supply.avaliable_cards()
+            gain_card = player.gain_resp(
+                card=self,
+                valid_cards=[
+                    card for card in game.supply.avaliable_cards() if card.cost <= 5
+                ],
+                game=game,
+                required=True,
             )
+
             if not gain_card:
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
+                raise InvalidSingleCardInput("Must gain a card with Artisan")
+            if gain_card.cost > 5:
                 raise InvalidSingleCardInput("Card must cost at most 5 money")
 
             player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
-            topdeck_card = player.single_card_decision(
-                card=self, valid_cards=player.hand.cards
+            topdeck_card = player.topdeck_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                required=True,
             )
 
         for card in player.hand.cards:
@@ -744,8 +768,12 @@ class Poacher(Action):
             discard_cards = get_discard_cards()
 
         if isinstance(player, Bot):
-            discard_cards = player.multi_card_decision(
-                card=self, valid_cards=player.hand.cards
+            discard_cards = player.multiple_discard_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                num_discard=discard_num,
+                required=True,
             )
             if len(discard_cards) != discard_num:
                 raise InvalidMultiCardInput(f"You must discard {discard_num} card(s)")
@@ -1007,9 +1035,11 @@ class Bureaucrat(Action):
                     topdeck_card = get_topdeck_card(opponent)
 
                 if isinstance(opponent, Bot):
-                    topdeck_card = opponent.single_card_decision(
+                    topdeck_card = opponent.topdeck_resp(
                         card=self,
                         valid_cards=victory_cards,
+                        game=game,
+                        required=True,
                     )
                     if not topdeck_card:
                         raise InvalidSingleCardInput("You must topdeck a Victory card")
