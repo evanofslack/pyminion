@@ -54,7 +54,13 @@ class Treasure(Card):
 
 class Action(Card):
     def __init__(
-        self, name: str, cost: int, type: str, actions: int, draw: int, money: int
+        self,
+        name: str,
+        cost: int,
+        type: str,
+        actions: int = 0,
+        draw: int = 0,
+        money: int = 0,
     ):
         super().__init__(name, cost, type)
         self.actions = actions
