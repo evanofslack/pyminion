@@ -57,16 +57,23 @@ class OptimizedBot(Bot):
             return [
                 card
                 for card in valid_cards
-                if card.name == "Copper" or "Victory" in card.type
+                if card.name == "Copper"
+                or "Victory" in card.type
+                or "Curse" in card.type
             ]
         if card.name == "Poacher":
-            sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
-            victory_cards = [card for card in sorted_cards if "Victory" in card.type]
-            non_victory_cards = [
-                card for card in sorted_cards if "Victory" not in card.type
-            ]
-            discard_order = victory_cards + non_victory_cards
-            logger.info(discard_order)
+
+            discard_order = self.sort_for_discard(
+                cards=valid_cards, actions=self.state.actions
+            )
+
+            return discard_order[:num_discard]
+
+        if card.name == "Militia":
+
+            discard_order = self.sort_for_discard(
+                cards=valid_cards, actions=self.state.actions
+            )
 
             return discard_order[:num_discard]
 
@@ -90,6 +97,14 @@ class OptimizedBot(Bot):
             else:
                 return silver
 
+        if card.name == "Remodel":
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
+        if card.name == "Mine":
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
     def multiple_gain_resp(
         self,
         card: Card,
@@ -110,10 +125,13 @@ class OptimizedBot(Bot):
         game: "Game",
         required: bool = True,
     ) -> Card:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
+        if card.name == "Remodel":
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
+
+        if card.name == "Mine":
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
 
     def multiple_trash_resp(
         self,
@@ -173,8 +191,50 @@ class OptimizedBot(Bot):
             sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
             return sorted_cards[0]
 
+    def double_play_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if card.name == "Throne Room":
+            # Double play most expensive card
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
                 return False
         return True
+
+    @staticmethod
+    def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
+        """
+        Sort list of cards from best discard candidate to worst discard candidate.
+        First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
+        If player has no remaining actions, prioritize discarding victory then action, then treasures.
+        If player has remaining actions, prioritize discarding victory then treasure and action equally.
+
+        """
+
+        sorted_cards = sorted(cards, key=lambda card: card.cost)
+        victory_cards = [
+            card
+            for card in sorted_cards
+            if "Victory" in card.type or "Curse" in card.type
+        ]
+        non_victory_cards = [
+            card
+            for card in sorted_cards
+            if "Victory" not in card.type or "Curse" not in card.type
+        ]
+        treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
+        action_cards = [
+            card for card in non_victory_cards if "Treasure" not in card.type
+        ]
+        if actions == 0:
+            return victory_cards + action_cards + treasure_cards
+        else:
+            return victory_cards + non_victory_cards
