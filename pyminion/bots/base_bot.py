@@ -1,136 +1,131 @@
 import logging
-from typing import TYPE_CHECKING, Iterator, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
+from pyminion.bots import AbstractBot
 from pyminion.core import Card
-from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.players import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
 
-
 logger = logging.getLogger()
 
 
-class Bot(Player):
+class Bot(AbstractBot):
+    """
+    Barebones implementation of Bot class.
+    Implements default responses as to not crash the game.
+    Not optimized in the slightest.
+
+    """
+
     def __init__(
         self,
         player_id: str = "bot",
     ):
         super().__init__(player_id=player_id)
 
-    def discard_resp(self, card: Card, valid_cards: List[Card]) -> Optional[Card]:
-        raise NotImplementedError
-
-    def multiple_discard_resp(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[List[Card]]:
-        raise NotImplementedError
-
-    def gain_resp(self, card: Card, valid_cards: List[Card]) -> Card:
-        raise NotImplementedError
-
-    def multiple_gain_resp(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[List[Card]]:
-        raise NotImplementedError
-
-    def trash_resp(self, card: Card, valid_cards: List[Card]) -> Card:
-        raise NotImplementedError
-
-    def multiple_trash_resp(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[List[Card]]:
-        raise NotImplementedError
-
     def binary_resp(self, card: Card) -> bool:
-        raise NotImplementedError
-
-    def binary_decision(self, card: Card) -> bool:
-        if card.name == "Moneylender":
-            return True
-        else:
-            return False
-
-    def multiple_card_decision(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[List[Card]]:
-        if card.name == "Cellar":
-            return [
-                card
-                for card in valid_cards
-                if card.name == "Estate" or card.name == "Copper"
-            ]
-
-    def single_card_decision(
-        self, card: Card, valid_cards: List[Card]
-    ) -> Optional[Card]:
-        pass
-
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                return False
         return True
 
-    def start_action_phase(self, game: "Game"):
-        viable_actions = [card for card in self.hand.cards if "Action" in card.type]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
-        while viable_actions and self.state.actions:
-            for card in self.action_priority(game=game):
-                try:
-                    self.play(target_card=card, game=game)
-                except CardNotFound:
-                    pass
-            return
+    def discard_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
 
-    def action_priority(self, game: "Game") -> Iterator[Card]:
-        """
-        Add logic for playing action cards through this method
+    def multiple_discard_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_discard: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+        if required:
+            return valid_cards[:num_discard]
+        else:
+            return None
 
-        This function should be a generator where each call
-        yields a desired card to play if conditions are met
+    def gain_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
 
-        """
-        raise NotImplementedError
+    def multiple_gain_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_gain: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+        if required:
+            return valid_cards[:num_gain]
+        else:
+            return None
 
-    def start_treasure_phase(self, game: "Game"):
-        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
-        i = 0
-        while i < len(viable_treasures):
-            self.exact_play(viable_treasures[i], game)
-            viable_treasures.remove(viable_treasures[i])
+    def trash_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Card:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
 
-    def start_buy_phase(self, game: "Game"):
+    def multiple_trash_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_trash: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+        if required:
+            return valid_cards[:num_trash]
+        else:
+            return None
 
-        logger.info(f"{self.player_id} has {self.state.money} money")
+    def topdeck_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
 
-        while self.state.buys:
-            for card in self.buy_priority(game=game):
-                try:
-                    self.buy(card, supply=game.supply)
-                    break
+    def double_play_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
 
-                except EmptyPile:
-                    pass
-            else:
-                logger.info(f"{self} buys nothing")
-                return
-
-    def buy_priority(self, game: "Game") -> Iterator[Card]:
-        """
-        Add logic for buy priority through this method
-
-        This function should be a generator where each call
-        yields a desired card to buy if conditions are met
-
-        """
-        raise NotImplementedError
-
-    def take_turn(self, game: "Game") -> None:
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
-        self.start_turn()
-        self.start_action_phase(game)
-        self.start_treasure_phase(game)
-        self.start_buy_phase(game)
-        self.start_cleanup_phase()
+    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+        return True

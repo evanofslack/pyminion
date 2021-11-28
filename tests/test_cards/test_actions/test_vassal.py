@@ -1,5 +1,6 @@
-from pyminion.game import Game
+from pyminion.bots import OptimizedBot
 from pyminion.expansions.base import estate, smithy, vassal, village
+from pyminion.game import Game
 from pyminion.players import Human
 
 
@@ -100,3 +101,14 @@ def test_vassal_play_chain_village(human: Human, game: Game, monkeypatch):
     assert len(human.discard_pile) == 0
     assert human.state.actions == 2
     assert human.state.money == 2
+
+
+def test_vassal_bot(bot: OptimizedBot, game: Game):
+    bot.deck.add(village)
+    bot.hand.add(vassal)
+    bot.play(target_card=vassal, game=game)
+    assert len(bot.hand) == 1
+    assert len(bot.playmat) == 2
+    assert len(bot.discard_pile) == 0
+    assert bot.state.actions == 2
+    assert bot.state.money == 2

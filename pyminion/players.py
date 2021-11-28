@@ -200,6 +200,21 @@ class Player:
                 trash.add(self.hand.remove(card))
                 break
 
+    def autoplay_treasures(
+        self, viable_treasures: Optional[List[Card]], game: "Game"
+    ) -> None:
+        """
+        Play all treasures in hand
+
+        """
+        if not viable_treasures:
+            return
+
+        i = 0
+        while i < len(viable_treasures):
+            self.exact_play(viable_treasures[i], game)
+            viable_treasures.remove(viable_treasures[i])
+
     def start_turn(self) -> None:
         """
         Increase turn counter and reset state
@@ -220,6 +235,9 @@ class Player:
         self.hand.cards = []
         self.playmat.cards = []
         self.draw(5)
+        self.state.actions = 1
+        self.state.money = 0
+        self.state.buys = 1
 
     def get_all_cards(self) -> List[Card]:
         """
@@ -373,23 +391,21 @@ class Human(Player):
             @validate_input(exceptions=InvalidSingleCardInput)
             def choose_treasure(game: "Game") -> bool:
                 logger.info(f"Hand: {self.hand}")
-                card = single_card_decision(
+                response = single_card_decision(
                     prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
                     valid_cards=viable_treasures,
                     valid_mixin="all",
                 )
-                if not card:
+                if not response:
                     return False
-                if card == "all":
-                    i = 0
-                    while i < len(viable_treasures):
-                        self.exact_play(viable_treasures[i], game)
-                        viable_treasures.remove(viable_treasures[i])
-                        logger.info(f"{self} played {viable_treasures}")
+                if response == "all":
+                    self.autoplay_treasures(
+                        viable_treasures=viable_treasures, game=game
+                    )
                     return True
-                self.exact_play(card, game)
-                logger.info(f"{self.player_id} played {card}")
-                viable_treasures.remove(card)
+                self.exact_play(response, game)
+                logger.info(f"{self.player_id} played {response}")
+                viable_treasures.remove(response)
                 return True
 
             if not choose_treasure(game):

@@ -1,7 +1,6 @@
-from pyminion.bots import Bot
-from pyminion.expansions.base import copper, moneylender
+from pyminion.bots import OptimizedBot
+from pyminion.expansions.base import Copper, Moneylender, copper, moneylender
 from pyminion.game import Game
-from pyminion.expansions.base import Copper, Moneylender
 from pyminion.players import Human
 
 
@@ -53,7 +52,7 @@ def test_moneylender_human_no_coppers(human: Human, game: Game, monkeypatch):
     assert len(game.trash) == 0
 
 
-def test_moneylender_bot_input_yes(bot: Bot, game: Game):
+def test_moneylender_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(moneylender)
     bot.hand.add(copper)
     assert len(bot.hand) == 2
