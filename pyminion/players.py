@@ -235,6 +235,9 @@ class Player:
         self.hand.cards = []
         self.playmat.cards = []
         self.draw(5)
+        self.state.actions = 1
+        self.state.money = 0
+        self.state.buys = 1
 
     def get_all_cards(self) -> List[Card]:
         """
