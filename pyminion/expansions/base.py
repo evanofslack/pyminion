@@ -157,11 +157,9 @@ class Smithy(Action):
         name: str = "Smithy",
         cost: int = 4,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
         draw: int = 3,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -188,9 +186,8 @@ class Village(Action):
         type: Tuple[str] = ("Action",),
         actions: int = 2,
         draw: int = 1,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -218,9 +215,8 @@ class Laboratory(Action):
         type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 2,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -278,11 +274,8 @@ class Moneylender(Action):
         name: str = "Moneylender",
         cost: int = 4,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self,
@@ -326,10 +319,8 @@ class Cellar(Action):
         cost: int = 2,
         type: Tuple[str] = ("Action",),
         actions: int = 1,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions)
 
     def play(
         self,
@@ -379,11 +370,8 @@ class Chapel(Action):
         name: str = "Chapel",
         cost: int = 2,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -441,11 +429,8 @@ class Workshop(Action):
         name: str = "Workshop",
         cost: int = 3,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
@@ -501,10 +486,9 @@ class Festival(Action):
         cost: int = 5,
         type: Tuple[str] = ("Action",),
         actions: int = 2,
-        draw: int = 0,
         money: int = 2,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions, money=money)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -535,9 +519,8 @@ class Harbinger(Action):
         type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 1,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -587,11 +570,9 @@ class Vassal(Action):
         name: str = "Vassal",
         cost: int = 3,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
         money: int = 2,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, money=money)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -642,11 +623,8 @@ class Artisan(Action):
         name: str = "Artisan",
         cost: int = 6,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -795,11 +773,9 @@ class CouncilRoom(Action):
         name: str = "Council Room",
         cost: int = 5,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
         draw: int = 4,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -831,11 +807,9 @@ class Witch(Action):
         name: str = "Witch",
         cost: int = 5,
         type: Tuple[str] = ("Action", "Attack"),
-        actions: int = 0,
         draw: int = 2,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -871,11 +845,9 @@ class Moat(Action):
         name: str = "Moat",
         cost: int = 2,
         type: Tuple[str] = ("Action", "Reaction"),
-        actions: int = 0,
         draw: int = 2,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -904,9 +876,8 @@ class Merchant(Action):
         type: Tuple[str] = ("Action",),
         actions: int = 1,
         draw: int = 1,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -933,11 +904,8 @@ class Bandit(Action):
         name: str = "Bandit",
         cost: int = 5,
         type: Tuple[str] = ("Action", "Attack"),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -989,11 +957,8 @@ class Bureaucrat(Action):
         name: str = "Bureaucrat",
         cost: int = 4,
         type: Tuple[str] = ("Action", "Attack"),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -1049,9 +1014,7 @@ class Bureaucrat(Action):
 
 class ThroneRoom(Action):
     """
-    +2 money
-
-    Discard the top card of your deck. If it's an action card you may play it.
+    You may play an Action card from your hand twice
 
     """
 
@@ -1060,11 +1023,8 @@ class ThroneRoom(Action):
         name: str = "Throne Room",
         cost: int = 4,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -1075,10 +1035,7 @@ class ThroneRoom(Action):
         if generic_play:
             super().generic_play(player)
 
-        action_cards: List[Card] = []
-        for card in player.hand.cards:
-            if "Action" in card.type:
-                action_cards.append(card)
+        action_cards = [card for card in player.hand.cards if "Action" in card.type]
 
         if not action_cards:
             return
@@ -1090,9 +1047,11 @@ class ThroneRoom(Action):
             )
 
         if isinstance(player, Bot):
-            dp_card = player.single_card_decision(
+            dp_card = player.double_play_resp(
                 card=self,
                 valid_cards=action_cards,
+                game=game,
+                required=True,
             )
 
         if not dp_card:
@@ -1117,11 +1076,8 @@ class Remodel(Action):
         name: str = "Remodel",
         cost: int = 4,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -1165,7 +1121,22 @@ class Remodel(Action):
             gain_card = get_gain_card(trash_card)
 
         if isinstance(player, Bot):
-            pass
+            trash_card = player.trash_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                required=True,
+            )
+            gain_card = player.gain_resp(
+                card=self,
+                valid_cards=[
+                    card
+                    for card in game.supply.avaliable_cards()
+                    if card.cost <= trash_card.cost + 2
+                ],
+                game=game,
+                required=True,
+            )
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply)
@@ -1182,11 +1153,8 @@ class Mine(Action):
         name: str = "Mine",
         cost: int = 5,
         type: Tuple[str] = ("Action",),
-        actions: int = 0,
-        draw: int = 0,
-        money: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -1197,12 +1165,13 @@ class Mine(Action):
         if generic_play:
             super().generic_play(player)
 
+        treasures = [card for card in player.hand.cards if "Treasure" in card.type]
+
+        if not treasures:
+            return
+
         @validate_input(exceptions=InvalidSingleCardInput)
         def get_trash_card() -> Optional[Card]:
-
-            treasures = [card for card in player.hand.cards if "Treasure" in card.type]
-            if not treasures:
-                return
 
             trash_card = player.single_card_decision(
                 prompt="You may trash a Treasure from your hand: ",
@@ -1235,7 +1204,24 @@ class Mine(Action):
             gain_card = get_gain_card(trash_card)
 
         if isinstance(player, Bot):
-            pass
+            trash_card = player.trash_resp(
+                card=self,
+                valid_cards=treasures,
+                game=game,
+                required=False,
+            )
+            if not trash_card:
+                return
+            gain_card = player.gain_resp(
+                card=self,
+                valid_cards=[
+                    card
+                    for card in game.supply.avaliable_cards()
+                    if "Treasure" in card.type and card.cost <= trash_card.cost + 3
+                ],
+                game=game,
+                required=True,
+            )
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply, destination=player.hand)
@@ -1254,11 +1240,9 @@ class Militia(Action):
         name: str = "Militia",
         cost: int = 4,
         type: Tuple[str] = ("Action", "Attack"),
-        actions: int = 0,
-        draw: int = 0,
         money: int = 2,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
+        super().__init__(name, cost, type, money=money)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -1296,13 +1280,14 @@ class Militia(Action):
                     discard_cards = get_discard_cards()
 
                 if isinstance(opponent, Bot):
-                    discard_cards = opponent.multiple_card_decision(
-                        card=self, valid_cards=opponent.hand.cards
+                    discard_cards = opponent.multiple_discard_resp(
+                        card=self,
+                        valid_cards=opponent.hand.cards,
+                        game=game,
+                        num_discard=num_discard,
+                        required=True,
                     )
-                    if len(discard_cards) != num_discard:
-                        raise InvalidMultiCardInput(
-                            f"You must discard {num_discard} cards, you selected {len(discard_cards)}"
-                        )
+
                 for card in discard_cards:
                     opponent.discard(target_card=card)
 

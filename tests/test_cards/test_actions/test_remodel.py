@@ -1,5 +1,6 @@
+from pyminion.bots import OptimizedBot
+from pyminion.expansions.base import copper, gold, remodel
 from pyminion.game import Game
-from pyminion.expansions.base import copper, remodel
 from pyminion.players import Human
 
 
@@ -18,3 +19,17 @@ def test_remodel_gain_valid(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 0
     assert human.discard_pile.cards[0].name == "Estate"
     assert game.trash.cards[0].name == "Copper"
+
+
+def test_remodel_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(remodel)
+    bot.hand.add(copper)
+    bot.play(remodel, game)
+    assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_remodel_bot_gold(bot: OptimizedBot, game: Game):
+    bot.hand.add(remodel)
+    bot.hand.add(gold)
+    bot.play(remodel, game)
+    assert bot.discard_pile.cards[-1].name == "Province"
