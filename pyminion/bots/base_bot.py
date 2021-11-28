@@ -115,5 +115,17 @@ class Bot(AbstractBot):
         else:
             return None
 
+    def double_play_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
+
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         return True

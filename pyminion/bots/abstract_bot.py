@@ -48,7 +48,10 @@ class AbstractBot(Player):
     def topdeck_resp():
         raise NotImplementedError
 
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+    def double_play_resp():
+        raise NotImplementedError
+
+    def is_attacked():
         raise NotImplementedError
 
     def start_action_phase(self, game: "Game"):
