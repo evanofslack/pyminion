@@ -234,7 +234,7 @@ class OptimizedBot(Bot):
         non_victory_cards = [
             card
             for card in sorted_cards
-            if "Victory" not in card.type or "Curse" not in card.type
+            if "Victory" not in card.type and "Curse" not in card.type
         ]
         treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
         action_cards = [
