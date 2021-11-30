@@ -1292,6 +1292,115 @@ class Militia(Action):
                     opponent.discard(target_card=card)
 
 
+class Sentry(Action):
+    """
+    +1 card, +1 action
+
+    Look at the top 2 cards of your deck. Trash and/or discard any number of them. Put the rest back on top in any order
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Sentry",
+        cost: int = 5,
+        type: Tuple[str] = ("Action",),
+        actions: int = 1,
+        draw: int = 1,
+    ):
+        super().__init__(name, cost, type, actions=actions, draw=draw)
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw()
+        player.state.actions += 1
+
+        revealed = AbstractDeck()
+        player.draw(num_cards=2, destination=revealed)
+
+        def get_trash_cards() -> Optional[List[Card]]:
+            trash_cards = player.multiple_card_decision(
+                prompt="Enter the cards you would like to trash: ",
+                valid_cards=revealed.cards,
+            )
+            return trash_cards
+
+        def get_discard_cards(
+            revealed: AbstractDeck,
+        ) -> Optional[List[Card]]:
+            if not revealed.cards:
+                return None
+
+            discard_cards = player.multiple_card_decision(
+                prompt="Enter the cards you would like to discard: ",
+                valid_cards=revealed.cards,
+            )
+            return discard_cards
+
+        if isinstance(player, Human):
+            logger.info(f"{player} looks at {revealed}")
+            trash_cards = get_trash_cards()
+            if trash_cards:
+                for card in trash_cards:
+                    revealed.remove(card)
+            discard_cards = get_discard_cards(revealed=revealed)
+            if discard_cards:
+                for card in discard_cards:
+                    revealed.remove(card)
+            reorder = False
+            if len(revealed.cards) == 2:
+                logger.info(
+                    f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
+                )
+                reorder = player.binary_decision(
+                    prompt="Would you like to switch the order of the cards?"
+                )
+
+        if isinstance(player, Bot):
+            trash_cards = player.multiple_trash_resp(
+                card=self,
+                valid_cards=revealed.cards,
+                game=game,
+                required=False,
+            )
+            if trash_cards:
+                for card in trash_cards:
+                    revealed.remove(card)
+            discard_cards = player.multiple_discard_resp(
+                card=self,
+                valid_cards=revealed.cards,
+                game=game,
+                required=False,
+            )
+            if discard_cards:
+                for card in discard_cards:
+                    revealed.remove(card)
+            reorder = False
+            if len(revealed.cards) == 2:
+                reorder = player.binary_resp(card=self)
+
+        if trash_cards:
+            for card in trash_cards:
+                game.trash.add(card)
+        if discard_cards:
+            for card in discard_cards:
+                player.discard_pile.add(card)
+        if revealed.cards:
+            if reorder:
+                for card in revealed.cards:
+                    player.deck.add(card)
+            else:
+                for card in reversed(revealed.cards):
+                    player.deck.add(card)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -1324,6 +1433,7 @@ throne_room = ThroneRoom()
 remodel = Remodel()
 mine = Mine()
 militia = Militia()
+sentry = Sentry()
 
 
 base_cards = [
@@ -1336,13 +1446,17 @@ base_cards = [
     festival,
     harbinger,
     laboratory,
+    militia,
+    mine,
     market,
     merchant,
     moat,
     moneylender,
     poacher,
     smithy,
+    sentry,
     throne_room,
+    remodel,
     vassal,
     village,
     witch,

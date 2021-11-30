@@ -425,7 +425,6 @@ class Human(Player):
                 if not card:
                     return False
                 self.buy(card, game.supply)
-                logger.info(f"{self.player_id} bought {card}")
                 return True
 
             if not choose_buy(game):

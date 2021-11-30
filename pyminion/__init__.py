@@ -14,11 +14,11 @@ __author__ = "Evan Slack"
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # Create handler
 c_handler = logging.StreamHandler()
-c_handler.setLevel(logging.INFO)
+c_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add to handler
 c_format = logging.Formatter("%(message)s")

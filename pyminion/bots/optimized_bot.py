@@ -29,6 +29,8 @@ class OptimizedBot(Bot):
             return True
         if card.name == "Vassal":
             return True
+        if card.name == "Sentry":
+            return False
         else:
             return False
 
@@ -76,6 +78,15 @@ class OptimizedBot(Bot):
             )
 
             return discard_order[:num_discard]
+
+        if card.name == "Sentry":
+            return [
+                card
+                for card in valid_cards
+                if card.name == "Copper"
+                or "Victory" in card.type
+                or "Curse" in card.type
+            ]
 
     def gain_resp(
         self,
@@ -143,22 +154,17 @@ class OptimizedBot(Bot):
     ) -> Optional[List[Card]]:
 
         if card.name == "Chapel":
-            trash_cards = []
-            deck_money = self.get_deck_money()
-            for card in valid_cards:
-                if (
-                    game.supply.pile_length(pile_name="Province") >= 5
-                    and card.name == "Estate"
-                ):
-                    trash_cards.append(card)
-                if deck_money > 3 and card.name == "Copper":
-                    trash_cards.append(card)
-                    deck_money -= 1
-
+            trash_cards = self.determine_trash_cards(
+                valid_cards=valid_cards, player=self, game=game
+            )
             while len(trash_cards) > 4:
                 trash_cards.pop()
-
             return trash_cards
+
+        if card.name == "Sentry":
+            return self.determine_trash_cards(
+                valid_cards=valid_cards, player=self, game=game
+            )
 
     def topdeck_resp(
         self,
@@ -228,7 +234,7 @@ class OptimizedBot(Bot):
         non_victory_cards = [
             card
             for card in sorted_cards
-            if "Victory" not in card.type or "Curse" not in card.type
+            if "Victory" not in card.type and "Curse" not in card.type
         ]
         treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
         action_cards = [
@@ -238,3 +244,32 @@ class OptimizedBot(Bot):
             return victory_cards + action_cards + treasure_cards
         else:
             return victory_cards + non_victory_cards
+
+    def determine_trash_cards(
+        self, valid_cards: List[Card], player: Player, game: "Game"
+    ) -> List[Card]:
+        """
+        Determine which cards should be trashed.
+        Trash Estate if number of provinces in supply >= 5
+        Trash Copper if money in deck > 3 (keep enough to buy silver)
+        Finally, sort the cards as to prioritize trashing estate over copper
+
+
+        """
+        deck_money = player.get_deck_money()
+        trash_cards = []
+        for card in valid_cards:
+            if card.name == "Curse":
+                trash_cards.append(card)
+            elif (
+                card.name == "Estate"
+                and game.supply.pile_length(pile_name="Province") >= 5
+            ):
+                trash_cards.append(card)
+            elif card.name == "Copper" and deck_money > 3:
+                trash_cards.append(card)
+                deck_money -= 1
+
+        sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
+
+        return sorted_trash_cards
