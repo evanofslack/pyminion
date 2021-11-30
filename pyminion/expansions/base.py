@@ -1373,8 +1373,7 @@ class Sentry(Action):
             if trash_cards:
                 for card in trash_cards:
                     revealed.remove(card)
-
-            gain_card = player.gain_resp(
+            discard_cards = player.multiple_discard_resp(
                 card=self,
                 valid_cards=revealed.cards,
                 game=game,
@@ -1386,6 +1385,7 @@ class Sentry(Action):
             reorder = False
             if len(revealed.cards) == 2:
                 reorder = player.binary_resp(card=self)
+
         if trash_cards:
             for card in trash_cards:
                 game.trash.add(card)
@@ -1393,17 +1393,12 @@ class Sentry(Action):
             for card in discard_cards:
                 player.discard_pile.add(card)
         if revealed.cards:
-            logger.debug(f"Revealed cards: {revealed}")
             if reorder:
                 for card in revealed.cards:
                     player.deck.add(card)
             else:
-                for card in revealed.cards.reverse():
+                for card in reversed(revealed.cards):
                     player.deck.add(card)
-
-        logger.debug(f"Discard Pile: {player.discard_pile}")
-        logger.debug(f"Deck: {player.deck}")
-        logger.debug(f"Trash: {game.trash}")
 
 
 copper = Copper()
