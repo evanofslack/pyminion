@@ -38,13 +38,10 @@ human = Human()
 bot = BigMoney()
 
 # Setup the game
-game = Game(
-    players=[human, bot],
-    expansions=[base_cards])
+game = Game(players=[human, bot], expansions=[base_cards])
 
 # Play game
 game.play()
-game.get_stats()
 
 ```
 ### Creating Bots
@@ -80,19 +77,20 @@ class BigMoneySmithy(Bot):
         if money >= 3:
             yield silver
 ```
+To see other bot implementations with more advanced decision trees, see [pyminion/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
+
 ### Running Simulations
 
-Simulating multiple games is good metric for determining bot performance. To create a simulation, pass in a game with multiple bot players into the `Simulation` class and set the number of iterations to run. 
+Simulating multiple games is good metric for determining bot performance. To create a simulation, pass in a game with multiple bot players into the `Simulator` class and set the number of iterations to be run. 
 
 ```python
 from pyminion.simulator import Simulator
 
 sim = Simulator(game=game, iterations=500)
 sim.run()
-sim.get_stats()
 ```
 
-Please see `/examples` for full collection of sample code.
+Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) for full collection of sample code.
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
