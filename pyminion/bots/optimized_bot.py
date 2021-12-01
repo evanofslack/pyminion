@@ -24,6 +24,65 @@ class OptimizedBot(Bot):
     ):
         super().__init__(player_id=player_id)
 
+    @staticmethod
+    def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
+        """
+        Sort list of cards from best discard candidate to worst discard candidate.
+        First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
+        If player has no remaining actions, prioritize discarding victory then action, then treasures.
+        If player has remaining actions, prioritize discarding victory then treasure and action equally.
+
+        """
+
+        sorted_cards = sorted(cards, key=lambda card: card.cost)
+        victory_cards = [
+            card
+            for card in sorted_cards
+            if "Victory" in card.type or "Curse" in card.type
+        ]
+        non_victory_cards = [
+            card
+            for card in sorted_cards
+            if "Victory" not in card.type and "Curse" not in card.type
+        ]
+        treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
+        action_cards = [
+            card for card in non_victory_cards if "Treasure" not in card.type
+        ]
+        if actions == 0:
+            return victory_cards + action_cards + treasure_cards
+        else:
+            return victory_cards + non_victory_cards
+
+    def determine_trash_cards(
+        self, valid_cards: List[Card], player: Player, game: "Game"
+    ) -> List[Card]:
+        """
+        Determine which cards should be trashed.
+        Trash Estate if number of provinces in supply >= 5
+        Trash Copper if money in deck > 3 (keep enough to buy silver)
+        Finally, sort the cards as to prioritize trashing estate over copper
+
+
+        """
+        deck_money = player.get_deck_money()
+        trash_cards = []
+        for card in valid_cards:
+            if card.name == "Curse":
+                trash_cards.append(card)
+            elif (
+                card.name == "Estate"
+                and game.supply.pile_length(pile_name="Province") >= 5
+            ):
+                trash_cards.append(card)
+            elif card.name == "Copper" and deck_money > 3:
+                trash_cards.append(card)
+                deck_money -= 1
+
+        sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
+
+        return sorted_trash_cards
+
     def binary_resp(self, card: Card) -> bool:
         if card.name == "Moneylender":
             return True
@@ -214,62 +273,3 @@ class OptimizedBot(Bot):
             if card.name == "Moat":
                 return False
         return True
-
-    @staticmethod
-    def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
-        """
-        Sort list of cards from best discard candidate to worst discard candidate.
-        First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
-        If player has no remaining actions, prioritize discarding victory then action, then treasures.
-        If player has remaining actions, prioritize discarding victory then treasure and action equally.
-
-        """
-
-        sorted_cards = sorted(cards, key=lambda card: card.cost)
-        victory_cards = [
-            card
-            for card in sorted_cards
-            if "Victory" in card.type or "Curse" in card.type
-        ]
-        non_victory_cards = [
-            card
-            for card in sorted_cards
-            if "Victory" not in card.type and "Curse" not in card.type
-        ]
-        treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
-        action_cards = [
-            card for card in non_victory_cards if "Treasure" not in card.type
-        ]
-        if actions == 0:
-            return victory_cards + action_cards + treasure_cards
-        else:
-            return victory_cards + non_victory_cards
-
-    def determine_trash_cards(
-        self, valid_cards: List[Card], player: Player, game: "Game"
-    ) -> List[Card]:
-        """
-        Determine which cards should be trashed.
-        Trash Estate if number of provinces in supply >= 5
-        Trash Copper if money in deck > 3 (keep enough to buy silver)
-        Finally, sort the cards as to prioritize trashing estate over copper
-
-
-        """
-        deck_money = player.get_deck_money()
-        trash_cards = []
-        for card in valid_cards:
-            if card.name == "Curse":
-                trash_cards.append(card)
-            elif (
-                card.name == "Estate"
-                and game.supply.pile_length(pile_name="Province") >= 5
-            ):
-                trash_cards.append(card)
-            elif card.name == "Copper" and deck_money > 3:
-                trash_cards.append(card)
-                deck_money -= 1
-
-        sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
-
-        return sorted_trash_cards

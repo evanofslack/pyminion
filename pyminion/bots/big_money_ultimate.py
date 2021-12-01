@@ -1,8 +1,8 @@
 import logging
-from typing import Iterator, List
+from typing import Iterator
 
 from pyminion.bots import Bot
-from pyminion.core import Card, Deck
+from pyminion.core import Card
 from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
 from pyminion.game import Game
 
@@ -25,7 +25,7 @@ class BigMoneyUltimate(Bot):
 
     def __init__(
         self,
-        player_id: str = "big_money",
+        player_id: str = "big_money_ultimate",
     ):
         super().__init__(player_id=player_id)
 

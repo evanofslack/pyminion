@@ -63,6 +63,8 @@ class AbstractBot(Player):
                     self.play(target_card=card, game=game)
                 except CardNotFound:
                     pass
+                if not self.state.actions:
+                    return
             return
 
     def action_priority(self, game: "Game") -> Iterator[Card]:
