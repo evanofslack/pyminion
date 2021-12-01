@@ -77,7 +77,7 @@ class BigMoneySmithy(Bot):
         if money >= 3:
             yield silver
 ```
-To see other bot implementations with more advanced decision trees, see [pyminion/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
+To see other bot implementations with more advanced decision trees, see [/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
 
 ### Running Simulations
 
@@ -97,6 +97,6 @@ Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for s
 
 ## Contributing
 
-The most welcome contribution would be to create new bots that perform better than basic big money strategy. Examples of current bots can be found in `/pyminion/bots`. 
+Install this library, test it out, and report any bugs. A welcome contribution would be to create new bots, esspecially an implementation that uses machine learning to determine optimal play. 
 
 If you would like to contribute, please create a branch, add commits, and [open a pull request](https://github.com/evanofslack/pyminion/pulls).
