@@ -70,7 +70,7 @@ class Player:
         self.playmat = playmat if playmat else Playmat()
         self.state = state if state else State()
         self.player_id = player_id
-        self.turns: int = 0
+        self.turns: int = 1
         self.shuffles: int = 0
 
     def __repr__(self):
@@ -95,6 +95,7 @@ class Player:
         """
         if destination is None:
             destination = self.hand
+        drawn_cards: AbstractDeck = AbstractDeck()
         for i in range(num_cards):
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
@@ -104,9 +105,15 @@ class Player:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
                 self.shuffles += 1
-                destination.add(self.deck.draw())
+                logger.info(f"{self} shuffles their deck")
+                draw_card = self.deck.draw()
+                destination.add(draw_card)
+                drawn_cards.add(draw_card)
             else:
-                destination.add(self.deck.draw())
+                draw_card = self.deck.draw()
+                destination.add(draw_card)
+                drawn_cards.add(draw_card)
+        logger.info(f"{self} draws {drawn_cards}")
 
     def discard(self, target_card: Card) -> None:
         """
@@ -116,6 +123,7 @@ class Player:
         for card in self.hand.cards:
             if card == target_card:
                 self.discard_pile.add(self.hand.remove(card))
+                logger.info(f"{self} discards {card}")
                 return
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
@@ -189,6 +197,7 @@ class Player:
 
         gain_card = supply.gain_card(card)
         destination.add(gain_card)
+        logger.info(f"{self} gains {gain_card}")
 
     def trash(self, target_card: Card, trash: "Trash") -> None:
         """
@@ -198,6 +207,8 @@ class Player:
         for card in self.hand.cards:
             if card == target_card:
                 trash.add(self.hand.remove(card))
+                logger.info(f"{self} trashes {card}")
+
                 break
 
     def autoplay_treasures(
