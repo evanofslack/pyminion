@@ -23,4 +23,3 @@ game = Game(
 
 if __name__ == "__main__":
     game.play()
-    game.get_stats()

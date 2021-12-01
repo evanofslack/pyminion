@@ -3,18 +3,14 @@ Play a game through the terminal. Either by yourself, with another human, or aga
 
 """
 from pyminion.bots import BigMoney
-from pyminion.expansions.base import base_cards, sentry
+from pyminion.expansions.base import base_cards
 from pyminion.game import Game
 from pyminion.players import Human
 
 human = Human(player_id="Human")
 bot = BigMoney(player_id="Bot 1")
 
-game = Game(
-    players=[human, bot],
-    expansions=[base_cards],
-    kingdom_cards=[sentry]
-)
+game = Game(players=[human, bot], expansions=[base_cards])
 
 if __name__ == "__main__":
     game.play()
