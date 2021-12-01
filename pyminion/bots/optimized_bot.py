@@ -14,7 +14,7 @@ logger = logging.getLogger()
 
 class OptimizedBot(Bot):
     """
-    Bot with basic implementations for playing and reacting to all cards in the base set.
+    Bot with logical implementations for playing and reacting to all cards in the base set.
 
     """
 
@@ -23,197 +23,6 @@ class OptimizedBot(Bot):
         player_id: str = "bot",
     ):
         super().__init__(player_id=player_id)
-
-    def binary_resp(self, card: Card) -> bool:
-        if card.name == "Moneylender":
-            return True
-        if card.name == "Vassal":
-            return True
-        if card.name == "Sentry":
-            return False
-        else:
-            return False
-
-    def discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
-        if card.name == "Cellar":
-            return [
-                card
-                for card in valid_cards
-                if card.name == "Copper"
-                or "Victory" in card.type
-                or "Curse" in card.type
-            ]
-        if card.name == "Poacher":
-
-            discard_order = self.sort_for_discard(
-                cards=valid_cards, actions=self.state.actions
-            )
-
-            return discard_order[:num_discard]
-
-        if card.name == "Militia":
-
-            discard_order = self.sort_for_discard(
-                cards=valid_cards, actions=self.state.actions
-            )
-
-            return discard_order[:num_discard]
-
-        if card.name == "Sentry":
-            return [
-                card
-                for card in valid_cards
-                if card.name == "Copper"
-                or "Victory" in card.type
-                or "Curse" in card.type
-            ]
-
-    def gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
-        if card.name == "Artisan":
-            if game.supply.pile_length(pile_name="Province") < 5:
-                return duchy
-            else:
-                return silver
-
-        if card.name == "Workshop":
-            if game.supply.pile_length(pile_name="Province") < 3:
-                return estate
-            else:
-                return silver
-
-        if card.name == "Remodel":
-            max_price_card = max(valid_cards, key=lambda card: card.cost)
-            return max_price_card
-
-        if card.name == "Mine":
-            max_price_card = max(valid_cards, key=lambda card: card.cost)
-            return max_price_card
-
-    def multiple_gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_gain: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_gain]
-        else:
-            return None
-
-    def trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Card:
-        if card.name == "Remodel":
-            min_price_card = min(valid_cards, key=lambda card: card.cost)
-            return min_price_card
-
-        if card.name == "Mine":
-            min_price_card = min(valid_cards, key=lambda card: card.cost)
-            return min_price_card
-
-    def multiple_trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_trash: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
-        if card.name == "Chapel":
-            trash_cards = self.determine_trash_cards(
-                valid_cards=valid_cards, player=self, game=game
-            )
-            while len(trash_cards) > 4:
-                trash_cards.pop()
-            return trash_cards
-
-        if card.name == "Sentry":
-            return self.determine_trash_cards(
-                valid_cards=valid_cards, player=self, game=game
-            )
-
-    def topdeck_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
-        if card.name == "Artisan":
-            for card in valid_cards:
-                if "Action" in card.type and self.state.actions == 0:
-                    return card
-            else:
-                return self.hand.cards[-1]
-
-        if card.name == "Harbinger":
-            # Do not topdeck victory cards
-            best_topdeck = [card for card in valid_cards if "Victory" not in card.type]
-            if not best_topdeck:
-                return None
-            # Topdeck highest price card if price > 2
-            max_price_card = max(best_topdeck, key=lambda card: card.cost)
-            if max_price_card.cost > 2:
-                return max_price_card
-            else:
-                return None
-
-        if card.name == "Bureaucrat":
-            sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
-            return sorted_cards[0]
-
-    def double_play_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if card.name == "Throne Room":
-            # Double play most expensive card
-            max_price_card = max(valid_cards, key=lambda card: card.cost)
-            return max_price_card
-
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                return False
-        return True
 
     @staticmethod
     def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
@@ -273,3 +82,262 @@ class OptimizedBot(Bot):
         sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
 
         return sorted_trash_cards
+
+    def binary_resp(
+        self, card: Card, relevant_cards: Optional[List[Card]] = None
+    ) -> bool:
+        if card.name == "Moneylender":
+            return self.moneylender()
+        if card.name == "Vassal":
+            return self.vassal(relevant_cards=relevant_cards)
+        if card.name == "Sentry":
+            return self.sentry(relevant_cards=relevant_cards, binary=True)
+        else:
+            return False
+
+    def discard_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        return super().discard_resp(
+            card=card, valid_cards=valid_cards, game=game, required=required
+        )
+
+    def multiple_discard_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_discard: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+
+        if card.name == "Cellar":
+            return self.cellar(valid_cards=valid_cards)
+        if card.name == "Poacher":
+            return self.poacher(valid_cards=valid_cards, num_discard=num_discard)
+
+        if card.name == "Militia":
+            return self.militia(valid_cards=valid_cards, num_discard=num_discard)
+
+        if card.name == "Sentry":
+            return self.sentry(valid_cards=valid_cards, discard=True)
+
+    def gain_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+
+        if card.name == "Artisan":
+            return self.artisan(game=game, gain=True)
+        if card.name == "Workshop":
+            return self.workshop(game=game)
+        if card.name == "Remodel":
+            return self.remodel(valid_cards=valid_cards, gain=True)
+        if card.name == "Mine":
+            return self.mine(valid_cards=valid_cards, gain=True)
+
+    def multiple_gain_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_gain: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+        return super().multiple_gain_resp(
+            card=card,
+            valid_cards=valid_cards,
+            game=game,
+            num_gain=num_gain,
+            required=required,
+        )
+
+    def trash_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Card:
+        if card.name == "Remodel":
+            return self.remodel(valid_cards=valid_cards, trash=True)
+        if card.name == "Mine":
+            return self.mine(valid_cards=valid_cards, trash=True)
+
+    def multiple_trash_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        num_trash: Optional[int] = None,
+        required: bool = True,
+    ) -> Optional[List[Card]]:
+
+        if card.name == "Chapel":
+            return self.chapel(game=game, valid_cards=valid_cards)
+        if card.name == "Sentry":
+            return self.sentry(game=game, valid_cards=valid_cards, trash=True)
+
+    def topdeck_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+
+        if card.name == "Artisan":
+            return self.artisan(game=game, valid_cards=valid_cards, topdeck=True)
+        if card.name == "Harbinger":
+            return self.harbinger(valid_cards=valid_cards)
+
+        if card.name == "Bureaucrat":
+            return self.bureaucrat(valid_cards=valid_cards)
+
+    def double_play_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if card.name == "Throne Room":
+            return self.throne_room(valid_cards=valid_cards)
+
+    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+        for card in self.hand.cards:
+            if card.name == "Moat":
+                return False
+        return True
+
+    def moneylender(self) -> bool:
+        return True
+
+    def vassal(self, relevant_cards: Optional[List[Card]]) -> bool:
+        return True
+
+    def sentry(
+        self,
+        game: "Game" = None,
+        valid_cards: List[Card] = None,
+        relevant_cards: Optional[List[Card]] = None,
+        trash: bool = False,
+        discard: bool = False,
+        binary: bool = False,
+    ) -> bool:
+        if trash:
+            return self.determine_trash_cards(
+                valid_cards=valid_cards, player=self, game=game
+            )
+        if discard:
+            return [
+                card
+                for card in valid_cards
+                if card.name == "Copper"
+                or "Victory" in card.type
+                or "Curse" in card.type
+            ]
+        if binary:
+            return False
+
+    def cellar(self, valid_cards: List[Card]) -> Optional[List[Card]]:
+        return [
+            card
+            for card in valid_cards
+            if card.name == "Copper" or "Victory" in card.type or "Curse" in card.type
+        ]
+
+    def poacher(self, valid_cards: List[Card], num_discard: int) -> List[Card]:
+        discard_order = self.sort_for_discard(
+            cards=valid_cards, actions=self.state.actions
+        )
+        return discard_order[:num_discard]
+
+    def militia(self, valid_cards: List[Card], num_discard: int) -> List[Card]:
+        discard_order = self.sort_for_discard(
+            cards=valid_cards, actions=self.state.actions
+        )
+        return discard_order[:num_discard]
+
+    def artisan(
+        self,
+        game: "Game",
+        valid_cards: List[Card] = None,
+        gain: bool = False,
+        topdeck: bool = False,
+    ) -> Card:
+        if topdeck:
+            for card in valid_cards:
+                if "Action" in card.type and self.state.actions == 0:
+                    return card
+            else:
+                return self.hand.cards[-1]
+        if gain:
+            if game.supply.pile_length(pile_name="Province") < 5:
+                return duchy
+            else:
+                return silver
+
+    def workshop(self, game: "Game") -> Card:
+        if game.supply.pile_length(pile_name="Province") < 3:
+            return estate
+        else:
+            return silver
+
+    def remodel(
+        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
+    ) -> Card:
+        if trash:
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
+
+        if gain:
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
+    def mine(
+        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
+    ) -> Card:
+        if trash:
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
+
+        if gain:
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
+    def chapel(self, game: "Game", valid_cards: List[Card]) -> Optional[List[Card]]:
+        trash_cards = self.determine_trash_cards(
+            valid_cards=valid_cards, player=self, game=game
+        )
+        while len(trash_cards) > 4:
+            trash_cards.pop()
+        return trash_cards
+
+    def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
+        # Do not topdeck victory cards
+        best_topdeck = [card for card in valid_cards if "Victory" not in card.type]
+        if not best_topdeck:
+            return None
+        # Topdeck highest price card if price > 2
+        max_price_card = max(best_topdeck, key=lambda card: card.cost)
+        if max_price_card.cost > 2:
+            return max_price_card
+        else:
+            return None
+
+    def bureaucrat(self, valid_cards: List[Card]) -> Card:
+        sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
+        return sorted_cards[0]
+
+    def throne_room(self, valid_cards: List[Card]) -> Card:
+        # Double play most expensive card
+        max_price_card = max(valid_cards, key=lambda card: card.cost)
+        return max_price_card

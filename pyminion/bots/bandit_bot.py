@@ -3,13 +3,21 @@ from typing import Iterator
 
 from pyminion.bots import Bot
 from pyminion.core import Card
-from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
+from pyminion.expansions.base import (
+    bandit,
+    duchy,
+    estate,
+    gold,
+    province,
+    silver,
+    smithy,
+)
 from pyminion.game import Game
 
 logger = logging.getLogger()
 
 
-class BigMoneyUltimate(Bot):
+class BanditBot(Bot):
     """
     Attempt the following buys in order:
 
@@ -18,6 +26,7 @@ class BigMoneyUltimate(Bot):
     Buy Estate if remaining Provinces < 3
     Buy Gold
     Buy Duchy if remaining Provinces < 7
+    Buy Bandit if #Bandits < 1
     Buy Smithy if #Smithies < (#Treasures / 11)
     Buy Silver
 
@@ -25,11 +34,12 @@ class BigMoneyUltimate(Bot):
 
     def __init__(
         self,
-        player_id: str = "big_money_ultimate",
+        player_id: str = "bandit_bot",
     ):
         super().__init__(player_id=player_id)
 
     def action_priority(self, game: Game) -> Iterator[Card]:
+        yield bandit
         yield smithy
 
     def buy_priority(self, game: Game) -> Iterator[Card]:
@@ -38,6 +48,7 @@ class BigMoneyUltimate(Bot):
         deck_money = self.get_deck_money()
         num_province = game.supply.pile_length(pile_name="Province")
         num_smithy = self.get_card_count(card=smithy)
+        num_bandit = self.get_card_count(card=bandit)
         num_treasure = len(
             [card for card in self.get_all_cards() if "Treasure" in card.type]
         )
@@ -52,6 +63,8 @@ class BigMoneyUltimate(Bot):
             yield gold
         if num_province < 7 and money >= 5:
             yield duchy
+        if num_bandit < 1 and money >= 5:
+            yield bandit
         if num_smithy < num_treasure / 11 and money >= 4:
             yield smithy
         if money >= 3:
