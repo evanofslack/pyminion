@@ -81,7 +81,7 @@ To see other bot implementations with more advanced decision trees, see [pyminio
 
 ### Running Simulations
 
-Simulating multiple games is good metric for determining bot performance. To create a simulation, pass in a game with multiple bot players into the `Simulator` class and set the number of iterations to be run. 
+Simulating multiple games is good metric for determining bot performance. To create a simulation, pass a pyminion game instance into the `Simulator` class and set the number of iterations to be run. 
 
 ```python
 from pyminion.simulator import Simulator
