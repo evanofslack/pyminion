@@ -20,23 +20,40 @@ logger = logging.getLogger()
 
 
 class Game:
+    """
+    Core class the emulates a game of Dominion
+
+    Attributes:
+        players: List of players in the game.
+        expansions: List expansions (and their cards) eligible to be used in the game's supply.
+        kingdom_cards: Specify any specific cards to be used in the supply.
+        start_deck: List of cards each player will start the game with. Default = [7 Coppers + 3 Estates].
+        random_order: If True, scrambles the order of players (to offset first player advantage).
+        use_logger: If True, logs the game to a log file.
+        log_file_name: Name of the file to be logged to. Default = "game.log"
+
+    """
+
     def __init__(
         self,
         players: List[Player],
         expansions: List[List[Card]],
         kingdom_cards: List[Card] = None,
         start_deck: List[Card] = None,
+        random_order: bool = True,
         use_logger: bool = True,
         log_file_name: str = "game.log",
     ):
+
         if len(players) < 1:
             raise InvalidPlayerCount("Game must have at least one player")
         if len(players) > 4:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
         self.expansions = expansions
-        self.start_deck = start_deck
         self.kingdom_cards = kingdom_cards
+        self.start_deck = start_deck
+        self.random_order = random_order
         self.trash = Trash()
 
         if use_logger:
@@ -111,15 +128,28 @@ class Game:
         PILE_LENGTH: int = 10
         KINGDOM_PILES: int = 10
 
+        # All avaliable cards from chosen expansions
+        kingdom_options = [card for expansion in self.expansions for card in expansion]
+
         # If user chooses kingdom cards, put them in the supply
-        chosen_cards = len(self.kingdom_cards) if self.kingdom_cards else 0
+        if self.kingdom_cards:
+            if invalid_cards := [
+                card for card in self.kingdom_cards if card not in kingdom_options
+            ]:
+                raise InvalidGameSetup(
+                    f"Invalid game setup: {invalid_cards} not in provided expansions"
+                )
+            chosen_cards = len(self.kingdom_cards)
+
+        else:
+            chosen_cards = 0
+
         chosen_piles = (
             [Pile([card] * PILE_LENGTH) for card in self.kingdom_cards]
             if chosen_cards
             else []
         )
         # The rest of the supply is random cards
-        kingdom_options = [card for expansion in self.expansions for card in expansion]
         if chosen_cards:
             for card in self.kingdom_cards:
                 kingdom_options.remove(card)  # Do not duplicate any user chosen cards
@@ -139,27 +169,28 @@ class Game:
         return Supply(basic_piles + kingdom_piles)
 
     def start(self) -> None:
+        logger.info("\nStarting Game...\n")
+
         self.supply = self._create_supply()
+        logger.info(f"Supply: \n{self.supply}")
+
+        if self.random_order:
+            random.shuffle(self.players)
         if not self.start_deck:
             self.start_deck = [copper] * 7 + [estate] * 3
+
         for player in self.players:
             player.reset()
-            player.deck = Deck(copy.deepcopy(self.start_deck))
-            player.deck.shuffle()
+            player.discard_pile = Deck(copy.deepcopy(self.start_deck))
+            logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(5)
-
-        # Log game start
-        logger.info("\nStarting Game...\n")
-        for player in self.players:
-            logger.info(f"{player} starts with 7 Coppers and 3 Estates")
-        logger.info(f"\nSupply: \n{self.supply}")
 
     def is_over(self) -> bool:
         """
         The game is over if any 3 supply piles are empty or
         if the province pile is empty.
 
-        Return True if the game is over
+        Return True if the game is overs
 
         """
         empty_piles: int = 0
@@ -177,6 +208,7 @@ class Game:
             for player in self.players:
                 player.take_turn(self)
                 if self.is_over():
+                    self.get_stats()
                     return
 
     def get_winner(self) -> Optional[Player]:
@@ -211,7 +243,6 @@ class Game:
         return None if tie else winner  # todo return just the players that tie
 
     def get_stats(self):
-
         if winner := self.get_winner():
             logger.info(f"\n{winner} won in {winner.turns} turns!")
         else:
