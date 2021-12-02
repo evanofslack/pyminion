@@ -1401,6 +1401,60 @@ class Sentry(Action):
                     player.deck.add(card)
 
 
+class Library(Action):
+    """
+    Draw until you have 7 cards in hand, skipping any Action cards you choose to; set those aside, discarding them afterwards
+
+    """
+
+    def __init__(
+        self,
+        name: str = "Library",
+        cost: int = 5,
+        type: Tuple[str] = ("Action",),
+    ):
+        super().__init__(name, cost, type)
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        set_aside = AbstractDeck()
+        while len(player.hand) < 7:
+            logger.debug(f"Hand: {player.hand}")
+
+            if len(player.deck) == 0 and len(player.discard_pile) == 0:
+                return
+
+            player.draw(num_cards=1, destination=set_aside)
+            drawn_card = set_aside.cards[-1]
+
+            if "Action" in drawn_card.type:
+                if isinstance(player, Human):
+                    if player.binary_decision(
+                        prompt=f"You drew {drawn_card}, would you like to skip it? y/n: "
+                    ):
+                        logger.debug(f"{player} sets aside {drawn_card}")
+                        pass
+                    else:
+                        logger.debug(f"{player} adds {drawn_card} to hand")
+                        player.hand.add(set_aside.remove(drawn_card))
+
+                    pass
+                if isinstance(player, Bot):
+                    pass
+            else:
+                player.hand.add(set_aside.remove(drawn_card))
+
+        logger.debug(f"Skipped Cards: {set_aside}")
+        set_aside.move_to(destination=player.discard_pile)
+
+
 copper = Copper()
 silver = Silver()
 gold = Gold()
@@ -1434,6 +1488,7 @@ remodel = Remodel()
 mine = Mine()
 militia = Militia()
 sentry = Sentry()
+library = Library()
 
 
 base_cards = [
@@ -1446,6 +1501,7 @@ base_cards = [
     festival,
     harbinger,
     laboratory,
+    library,
     militia,
     mine,
     market,
