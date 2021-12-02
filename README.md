@@ -77,6 +77,7 @@ class BigMoneySmithy(Bot):
         if money >= 3:
             yield silver
 ```
+
 To see other bot implementations with more advanced decision trees, see [/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
 
 ### Running Simulations
@@ -90,7 +91,15 @@ sim = Simulator(game=game, iterations=500)
 sim.run()
 ```
 
-Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) for full collection of sample code.
+with the following terminal output: 
+```console
+~$ python simulation.py
+Simulation of 1000 games
+big_money wins: 16.8% (168)
+big_money_smithy wins: 57.5% (575)
+Ties: 25.7% (257)
+```
+Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.  
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
