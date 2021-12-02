@@ -1447,7 +1447,11 @@ class Library(Action):
 
                     pass
                 if isinstance(player, Bot):
-                    pass
+                    if player.binary_resp(card=self, relevant_cards=[drawn_card]):
+                        pass
+                    else:
+                        player.hand.add(set_aside.remove(drawn_card))
+
             else:
                 player.hand.add(set_aside.remove(drawn_card))
 
