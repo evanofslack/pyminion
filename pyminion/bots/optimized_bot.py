@@ -89,11 +89,13 @@ class OptimizedBot(Bot):
         if card.name == "Moneylender":
             return self.moneylender()
         if card.name == "Vassal":
-            return self.vassal(relevant_cards=relevant_cards)
+            return self.vassal(relevant_card=relevant_cards)
         if card.name == "Sentry":
             return self.sentry(relevant_cards=relevant_cards, binary=True)
+        if card.name == "Library":
+            return self.library(relevant_card=relevant_cards)
         else:
-            return False
+            return True
 
     def discard_resp(
         self,
@@ -220,8 +222,14 @@ class OptimizedBot(Bot):
     def moneylender(self) -> bool:
         return True
 
-    def vassal(self, relevant_cards: Optional[List[Card]]) -> bool:
+    def vassal(self, relevant_card: Card) -> bool:
         return True
+
+    def library(self, relevant_card: Card) -> bool:
+        if self.state.actions == 0:
+            return True
+        else:
+            return False
 
     def sentry(
         self,

@@ -25,7 +25,9 @@ class Bot(AbstractBot):
     ):
         super().__init__(player_id=player_id)
 
-    def binary_resp(self, card: Card) -> bool:
+    def binary_resp(
+        self, card: Card, relevant_cards: Optional[List[Card]] = None
+    ) -> bool:
         return True
 
     def discard_resp(
