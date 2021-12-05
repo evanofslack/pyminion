@@ -39,7 +39,7 @@ class ChapelBot(OptimizedBot):
         num_province = game.supply.pile_length(pile_name="Province")
         num_chapel = self.get_card_count(card=chapel)
 
-        if num_chapel < 1 and money >= 3:
+        if num_chapel < 1 and money >= 2:
             yield chapel
         if deck_money > 15 and money >= 8:
             yield province
