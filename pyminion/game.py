@@ -115,8 +115,6 @@ class Game:
                 basic_piles.append(Pile([card] * VICTORY_LENGTH))
             elif card.name == "Curse":
                 basic_piles.append(Pile([card] * CURSE_LENGTH))
-            else:
-                raise InvalidGameSetup(f"Invalid basic card: {card}")
 
         return basic_piles
 
