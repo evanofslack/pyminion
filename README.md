@@ -30,7 +30,7 @@ To play an interactive game through the command line against a bot, initialize a
 ```python
 from pyminion.expansions.base import base_cards 
 from pyminion.game import Game
-from pyminion.bots import BigMoney
+from pyminion.bots.examples import BigMoney
 from pyminion.players import Human
 
 # Initialize human and bot
@@ -51,7 +51,7 @@ Defining new bots is relatively straightforward. Inherit from the `Bot` class an
 For example, here is a simple big money + smithy bot:
 
 ```python
-from pyminion.bots import Bot
+from pyminion.bots.base_bot import Bot
 from pyminion.game import Game
 from pyminion.expansions.base import silver, gold, province, smithy
 

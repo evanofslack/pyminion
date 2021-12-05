@@ -10,7 +10,7 @@ For example, this card can technically play chapel, but it would choose not to t
 When inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods. This is an example of a bot created from `Bot`:
 
 ```python
-from pyminion.bots import Bot
+from pyminion.bots.base_bot import Bot
 from pyminion.game import Game
 from pyminion.expansions.base import silver, gold, province, smithy
 
@@ -46,7 +46,7 @@ Again, when inheriting from this class, it is only necessary to overwrite the `a
 For example, here is a bot based on `OptimizedBot that will buy and play Workshop:
 
 ```python
-from pyminion.bots import OptimizedBot
+from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Card
 from pyminion.expansions.base import workshop, duchy, estate, gold, province, silver
 from pyminion.game import Game
@@ -80,7 +80,7 @@ class WorkshopBot(OptimizedBot):
             yield silver
 ```
 
-OptimizedBot already defines a method for how Workshop will be played:
+`OptimizedBot` already defines a method for how Workshop will be played:
 
 ```python
 def workshop(self, game: "Game") -> Card:
