@@ -70,7 +70,7 @@ class Player:
         self.playmat = playmat if playmat else Playmat()
         self.state = state if state else State()
         self.player_id = player_id
-        self.turns: int = 1
+        self.turns: int = 0
         self.shuffles: int = 0
 
     def __repr__(self):
@@ -424,6 +424,7 @@ class Human(Player):
 
     def start_buy_phase(self, game: "Game") -> None:
         while self.state.buys:
+            logger.info(f"\nSupply:{game.supply}")
             logger.info(f"Money: {self.state.money}")
             logger.info(f"Buys: {self.state.buys}")
 
@@ -442,8 +443,8 @@ class Human(Player):
                 return
 
     def take_turn(self, game: "Game") -> None:
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
