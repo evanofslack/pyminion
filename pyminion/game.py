@@ -188,7 +188,7 @@ class Game:
         The game is over if any 3 supply piles are empty or
         if the province pile is empty.
 
-        Return True if the game is overs
+        Return True if the game is over
 
         """
         empty_piles: int = 0
@@ -238,7 +238,7 @@ class Game:
                     tie = False
                 elif player.turns == winner.turns:
                     tie = True
-        return None if tie else winner  # todo return just the players that tie
+        return None if tie else winner
 
     def get_stats(self):
         if winner := self.get_winner():
