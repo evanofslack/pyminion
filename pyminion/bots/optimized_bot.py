@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from pyminion.bots import Bot
 from pyminion.core import Card
-from pyminion.expansions.base import Estate, duchy, estate, silver
+from pyminion.expansions.base import duchy, estate, silver
 from pyminion.players import Player
 
 if TYPE_CHECKING:
@@ -14,7 +14,12 @@ logger = logging.getLogger()
 
 class OptimizedBot(Bot):
     """
-    Bot with logical implementations for playing and reacting to all cards in the base set.
+    Implements opinionated logic for playing and reacting to all cards in the base set.
+
+    The intention is to inherit from this class to make concrete bot implementations.
+    If inheriting from this bot, it is possible to change the way that a single card is executed
+    by overwriting the card specific method at the bottom of this file.
+
 
     """
 
@@ -58,7 +63,9 @@ class OptimizedBot(Bot):
         self, valid_cards: List[Card], player: Player, game: "Game"
     ) -> List[Card]:
         """
-        Determine which cards should be trashed.
+        Determine which cards should be trashed:
+
+        Always trash Curse
         Trash Estate if number of provinces in supply >= 5
         Trash Copper if money in deck > 3 (keep enough to buy silver)
         Finally, sort the cards as to prioritize trashing estate over copper
@@ -219,6 +226,7 @@ class OptimizedBot(Bot):
                 return False
         return True
 
+    # CARD SPECIFIC IMPLEMENTATIONS
     def moneylender(self) -> bool:
         return True
 
@@ -235,7 +243,7 @@ class OptimizedBot(Bot):
         self,
         game: "Game" = None,
         valid_cards: List[Card] = None,
-        relevant_cards: Optional[List[Card]] = None,
+        relevant_cards: List[Card] = None,
         trash: bool = False,
         discard: bool = False,
         binary: bool = False,
