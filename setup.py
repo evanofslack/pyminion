@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyminion",
-    version="0.1.5",
+    version="0.2.0",
     author="Evan Slack",
     author_email="evan.slack@outlook.com",
     description="Dominion but make it python",
