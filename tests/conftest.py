@@ -1,5 +1,5 @@
 import pytest
-from pyminion.bots import BigMoney, OptimizedBot
+from pyminion.bots import BigMoney, Bot, OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash
 from pyminion.expansions.base import (
     base_cards,
@@ -46,6 +46,13 @@ def bot(deck):
 @pytest.fixture
 def bm_bot(deck):
     bot = BigMoney(player_id="bot")
+    bot.deck = deck
+    return bot
+
+
+@pytest.fixture
+def base_bot(deck):
+    bot = Bot(player_id="bot")
     bot.deck = deck
     return bot
 

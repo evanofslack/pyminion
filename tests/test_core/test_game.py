@@ -120,25 +120,3 @@ def test_game_win(multiplayer_game: Game):
 def test_game_win_turns(multiplayer_game: Game):
     multiplayer_game.players[1].turns += 1
     assert multiplayer_game.get_winner() == multiplayer_game.players[0]
-
-
-def test_game_1_player_play(bm_bot: BigMoney):
-    game = Game(
-        players=[bm_bot],
-        expansions=[base_cards],
-        kingdom_cards=[smithy],
-        use_logger=False,
-    )
-    game.play()
-    assert game.get_winner() == bm_bot
-
-
-def test_game_2_player_play(bm_bot: BigMoney):
-    game = Game(
-        players=[bm_bot, bm_bot],
-        expansions=[base_cards],
-        kingdom_cards=[smithy],
-        use_logger=False,
-    )
-    game.play()
-    game.get_winner()
