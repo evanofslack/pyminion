@@ -3,7 +3,7 @@ Run a single game between two bots.
 
 """
 
-from pyminion.bots import BigMoney, BigMoneyUltimate
+from pyminion.bots.examples import BigMoney, BigMoneyUltimate
 from pyminion.expansions.base import base_cards, smithy
 from pyminion.game import Game
 

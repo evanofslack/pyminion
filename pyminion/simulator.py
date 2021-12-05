@@ -2,7 +2,7 @@ import copy
 import logging
 from typing import List, Union
 
-from pyminion.bots import Bot
+from pyminion.bots.base_bot import Bot
 from pyminion.game import Game
 from pyminion.players import Human, Player
 

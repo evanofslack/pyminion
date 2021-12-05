@@ -2,7 +2,7 @@
 Play a game through the terminal. Either by yourself, with another human, or against a bot. 
 
 """
-from pyminion.bots import BigMoney
+from pyminion.bots.examples import BigMoney
 from pyminion.expansions.base import base_cards
 from pyminion.game import Game
 from pyminion.players import Human

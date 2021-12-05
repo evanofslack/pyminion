@@ -1,5 +1,7 @@
 import pytest
-from pyminion.bots import BigMoney, Bot, OptimizedBot
+from pyminion.bots.base_bot import Bot
+from pyminion.bots.examples import BigMoney
+from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash
 from pyminion.expansions.base import (
     base_cards,

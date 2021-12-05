@@ -1,6 +1,6 @@
 import logging
 
-from pyminion.bots import Bot
+from pyminion.bots.base_bot import Bot
 from pyminion.expansions.base import gold, province, silver, smithy
 from pyminion.game import Game
 

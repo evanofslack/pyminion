@@ -1,7 +1,7 @@
 import logging
 from typing import Iterator
 
-from pyminion.bots import OptimizedBot
+from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Card
 from pyminion.expansions.base import chapel, duchy, estate, gold, province, silver
 from pyminion.game import Game

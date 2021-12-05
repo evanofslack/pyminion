@@ -2,7 +2,7 @@
 Simulate multiple games between two or more bots. 
 
 """
-from pyminion.bots import BigMoney, BigMoneySmithy
+from pyminion.bots.examples import BigMoney, BigMoneySmithy
 from pyminion.expansions.base import base_cards, smithy
 from pyminion.game import Game
 from pyminion.simulator import Simulator
