@@ -50,19 +50,3 @@ def test_moneylender_human_no_coppers(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 0
     assert human.state.money == 0
     assert len(game.trash) == 0
-
-
-def test_moneylender_bot(bot: OptimizedBot, game: Game):
-    bot.hand.add(moneylender)
-    bot.hand.add(copper)
-    assert len(bot.hand) == 2
-    assert len(game.trash) == 0
-
-    bot.hand.cards[0].play(bot, game)
-    assert len(bot.hand) == 0
-    assert len(bot.playmat) == 1
-    assert type(bot.playmat.cards[0]) is Moneylender
-    assert bot.state.actions == 0
-    assert bot.state.money == 3
-    assert len(game.trash) == 1
-    assert type(game.trash.cards[0]) is Copper

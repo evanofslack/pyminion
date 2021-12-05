@@ -91,12 +91,3 @@ def test_throne_a_throne(human: Human, game: Game, monkeypatch):
 
     assert len(human.playmat) == 4
     assert len(human.hand) == 12  # +3 cards played 4 times = 12 cards
-
-
-def test_throne_bot(bot: OptimizedBot, game: Game):
-    bot.hand.add(throne_room)
-    bot.hand.add(village)
-    bot.hand.add(smithy)
-    bot.play(throne_room, game)
-    assert len(bot.playmat) == 2
-    assert smithy in bot.playmat.cards

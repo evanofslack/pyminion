@@ -392,7 +392,7 @@ class Chapel(Action):
                 valid_cards=player.hand.cards,
             )
 
-            if len(trash_cards) > 4:
+            if trash_cards and len(trash_cards) > 4:
                 raise InvalidMultiCardInput(
                     "You cannot trash more than 4 cards with chapel"
                 )
@@ -409,11 +409,12 @@ class Chapel(Action):
                 game=game,
                 required=False,
             )
-            if len(trash_cards) > 4:
+            if trash_cards and len(trash_cards) > 4:
                 raise InvalidMultiCardInput(
                     "Attempted to trash more than 4 cards with chapel"
                 )
-
+        if not trash_cards:
+            return
         for card in trash_cards:
             player.trash(card, game.trash)
 

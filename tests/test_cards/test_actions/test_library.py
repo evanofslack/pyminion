@@ -37,28 +37,3 @@ def test_library_keep_action(human: Human, game: Game, monkeypatch):
     human.play(library, game)
     assert len(human.hand) == 7
     assert len(human.discard_pile) == 0
-
-
-def test_library_bot(bot: OptimizedBot, game: Game):
-    bot.hand.add(library)
-    bot.play(library, game)
-    assert len(bot.hand) == 7
-    assert len(bot.playmat) == 1
-    assert bot.state.actions == 0
-
-
-def test_library_bot_no_action(bot: OptimizedBot, game: Game):
-    bot.hand.add(library)
-    bot.deck.add(smithy)
-    bot.play(library, game)
-    assert len(bot.hand) == 7
-    assert len(bot.discard_pile) == 1
-
-
-def test_library_bot_extra_action(bot: OptimizedBot, game: Game):
-    bot.hand.add(library)
-    bot.state.actions = 2
-    bot.deck.add(smithy)
-    bot.play(library, game)
-    assert len(bot.hand) == 7
-    assert len(bot.discard_pile) == 0

@@ -4,7 +4,7 @@ from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, estate
 
 
-def make_empty_pile():
+def test_make_empty_pile():
     empty = Pile()
     assert len(empty) == 0
     assert empty.name is None

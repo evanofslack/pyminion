@@ -39,21 +39,3 @@ def test_militia_opponent_discards(multiplayer_game: Game, monkeypatch):
     player.play(militia, multiplayer_game)
     assert len(opponent.hand) == 3
     assert len(opponent.discard_pile) == 2
-
-
-def test_militia_opponent_discards(multiplayer_bot_game: Game):
-    player = multiplayer_bot_game.players[0]
-    player.hand.add(militia)
-    opponent = multiplayer_bot_game.players[1]
-    opponent.hand.cards = []
-    for i in range(3):
-        opponent.hand.add(gold)
-    opponent.hand.add(copper)
-    opponent.hand.add(estate)
-    assert len(opponent.discard_pile) == 0
-
-    player.play(militia, multiplayer_bot_game)
-    assert len(opponent.hand) == 3
-    assert len(opponent.discard_pile) == 2
-    assert copper in opponent.discard_pile.cards
-    assert estate in opponent.discard_pile.cards
