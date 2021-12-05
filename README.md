@@ -28,7 +28,7 @@ python3 -m pip install pyminion
 To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
 ```python
-from pyminion.expansions.base import base_cards, 
+from pyminion.expansions.base import base_cards 
 from pyminion.game import Game
 from pyminion.bots import BigMoney
 from pyminion.players import Human
@@ -46,7 +46,7 @@ game.play()
 ```
 ### Creating Bots
 
-Defining new bots is relatively straightforward. Just inherit from the `Bot` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
+Defining new bots is relatively straightforward. Inherit from the `Bot` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
 
 For example, here is a simple big money + smithy bot:
 
@@ -87,7 +87,11 @@ Simulating multiple games is good metric for determining bot performance. To cre
 ```python
 from pyminion.simulator import Simulator
 
-sim = Simulator(game=game, iterations=500)
+bm = BigMoney()
+bm_smithy = BigMoneySmithy()
+
+game = Game(players=[bm, bm_smithy], expansions=[base_cards])
+sim = Simulator(game, iterations=1000)
 sim.run()
 ```
 
@@ -106,6 +110,6 @@ Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for s
 
 ## Contributing
 
-Install this library, test it out, and report any bugs. A welcome contribution would be to create new bots, esspecially an implementation that uses machine learning to determine optimal play. 
+Install this library, test it out, and report any bugs. A welcome contribution would be to create new bots, especially an implementation that uses machine learning to determine optimal play. 
 
 If you would like to contribute, please create a branch, add commits, and [open a pull request](https://github.com/evanofslack/pyminion/pulls).
