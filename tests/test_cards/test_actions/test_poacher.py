@@ -1,5 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, duchy, estate, poacher
+from pyminion.expansions.base import duchy, estate, poacher
 from pyminion.game import Game
 from pyminion.players import Human
 

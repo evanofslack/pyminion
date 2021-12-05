@@ -1,14 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import (
-    Cellar,
-    Copper,
-    Estate,
-    cellar,
-    copper,
-    duchy,
-    estate,
-    silver,
-)
+from pyminion.expansions.base import Cellar, Copper, Estate, cellar, copper, estate
 from pyminion.game import Game
 from pyminion.players import Human
 

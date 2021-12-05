@@ -1,5 +1,4 @@
 import pytest
-from pyminion.bots import BigMoney, OptimizedBot
 from pyminion.core import Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import base_cards, duchy, estate, gold, province, smithy
@@ -16,12 +15,12 @@ def test_game_fixture(game: Game):
 
 def test_game_too_many_players(human: Human):
     with pytest.raises(InvalidPlayerCount):
-        game = Game(players=[human, human, human, human, human], expansions=None)
+        Game(players=[human, human, human, human, human], expansions=None)
 
 
 def test_game_too_few_players():
     with pytest.raises(InvalidPlayerCount):
-        game = Game(players=[], expansions=None)
+        Game(players=[], expansions=None)
 
 
 def test_game_create_supply(game: Game):

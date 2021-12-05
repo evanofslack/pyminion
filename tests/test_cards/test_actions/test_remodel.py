@@ -1,5 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, gold, remodel
+from pyminion.expansions.base import copper, remodel
 from pyminion.game import Game
 from pyminion.players import Human
 

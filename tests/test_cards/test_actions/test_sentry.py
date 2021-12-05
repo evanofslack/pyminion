@@ -1,7 +1,4 @@
-from typing import Optional
-
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, duchy, estate, gold, sentry, smithy
+from pyminion.expansions.base import copper, estate, gold, sentry
 from pyminion.game import Game
 from pyminion.players import Human
 

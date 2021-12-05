@@ -2,21 +2,17 @@
 Run a single game between two bots. 
 
 """
-from logging import log
 
 from pyminion.bots import BigMoney, BigMoneyUltimate
 from pyminion.expansions.base import base_cards, smithy
 from pyminion.game import Game
 
-bot_1 = BigMoney(player_id="Bot 1")
-bot_2 = BigMoneyUltimate(player_id="Bot 2")
+bm = BigMoney(player_id="BM")
+bm_ultimate = BigMoneyUltimate(player_id="BM_Ultimate")
 
-
-players = [bot_1, bot_2]
-expansions = [base_cards]
 
 game = Game(
-    players=[bot_1, bot_2],
+    players=[bm, bm_ultimate],
     expansions=[base_cards],
     kingdom_cards=[smithy],
 )

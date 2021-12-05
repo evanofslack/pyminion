@@ -1,5 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import Estate, province, workshop
+from pyminion.expansions.base import workshop
 from pyminion.game import Game
 from pyminion.players import Human
 
@@ -15,5 +14,5 @@ def test_workshop_gain_valid(human: Human, game: Game, monkeypatch):
     assert len(human.playmat) == 1
     assert len(human.discard_pile) == 1
     assert human.state.actions == 0
-    assert type(human.discard_pile.cards[0]) is Estate
+    assert human.discard_pile.cards[0].name == "Estate"
     assert len(game.supply.piles[3]) == 4

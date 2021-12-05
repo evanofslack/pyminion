@@ -98,8 +98,8 @@ class Bot(Player):
                 return
 
     def take_turn(self, game: "Game") -> None:
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_turn()
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)

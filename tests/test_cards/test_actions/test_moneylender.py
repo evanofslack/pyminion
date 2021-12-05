@@ -1,4 +1,3 @@
-from pyminion.bots import OptimizedBot
 from pyminion.expansions.base import Copper, Moneylender, copper, moneylender
 from pyminion.game import Game
 from pyminion.players import Human
