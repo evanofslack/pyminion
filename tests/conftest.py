@@ -1,5 +1,5 @@
 import pytest
-from pyminion.bots import OptimizedBot
+from pyminion.bots import BigMoney, OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash
 from pyminion.expansions.base import (
     base_cards,
@@ -44,6 +44,13 @@ def bot(deck):
 
 
 @pytest.fixture
+def bm_bot(deck):
+    bot = BigMoney(player_id="bot")
+    bot.deck = deck
+    return bot
+
+
+@pytest.fixture
 def trash():
     trash = Trash()
     return trash
@@ -76,7 +83,6 @@ def game(player):
 def multiplayer_game():
 
     human1 = Human(player_id="human_1")
-
     human2 = Human(player_id="human_2")
 
     game = Game(
@@ -92,7 +98,6 @@ def multiplayer_game():
 def multiplayer_bot_game():
 
     bot1 = OptimizedBot(player_id="bot_1")
-
     bot2 = OptimizedBot(player_id="bot_2")
 
     game = Game(
