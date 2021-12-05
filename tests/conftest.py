@@ -1,5 +1,5 @@
 import pytest
-from pyminion.bots.base_bot import Bot
+from pyminion.bots.bot import Bot
 from pyminion.bots.examples import BigMoney
 from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash

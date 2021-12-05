@@ -1,5 +1,5 @@
 import pytest
-from pyminion.bots.base_bot import Bot
+from pyminion.bots.bot import Bot
 from pyminion.expansions.base import copper, estate, gold
 from pyminion.game import Game
 
