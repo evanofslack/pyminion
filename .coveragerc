@@ -1,5 +1,5 @@
 [run]
-omit = *tests*, pyminion/bots/examples*
+omit = tests*, pyminion/bots/examples*
 
 [report]
 exclude_lines =
