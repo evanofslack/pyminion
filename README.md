@@ -51,7 +51,7 @@ Defining new bots is relatively straightforward. Inherit from the `Bot` class an
 For example, here is a simple big money + smithy bot:
 
 ```python
-from pyminion.bots.base_bot import Bot
+from pyminion.bots.bot import Bot
 from pyminion.game import Game
 from pyminion.expansions.base import silver, gold, province, smithy
 

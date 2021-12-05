@@ -3,14 +3,14 @@
 Pyminion provides a couple of different base classes that can be used to implement new bots. The goal is to provide a convenient starting point from which new bots can be built. 
 ## `Bot`
 
- The first class that can be used is `Bot` found in `base_bot.py`. While this class is capable of playing any card in the base set of Dominion, cards that require logical input are not optimized. 
+ The first class that can be used is `Bot` found in `bot.py`. While this class is capable of playing any card in the base set of Dominion, cards that require logical input are not optimized. 
 
 For example, this card can technically play chapel, but it would choose not to trash any cards. Similarly, when facing a discard attack from militia, this bot would just discard the first few cards in its hand.
 
 When inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods. This is an example of a bot created from `Bot`:
 
 ```python
-from pyminion.bots.base_bot import Bot
+from pyminion.bots.bot import Bot
 from pyminion.game import Game
 from pyminion.expansions.base import silver, gold, province, smithy
 
