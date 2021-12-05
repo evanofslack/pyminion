@@ -1,8 +1,11 @@
-## Creating Bots
+# Creating Bots
 
-Pyminion provides a couple of different base classes that can be used to implement new bots. The simpler class is `Bot` found in `base_bot.py`. While this class is capable of playing any card in the base set of Dominion, any card that requires input is not optimized. 
+Pyminion provides a couple of different base classes that can be used to implement new bots. The goal is to provide a convenient starting point from which new bots can be built. 
+## `Bot`
 
-For example, this card can technically play chapel, but it would choose not to trash any cards. It can also play workshop, but it will just gain the first card in the supply that is less than 4 money. Similarly, when facing a discard attack from militia, this bot would just discard the first few cards in its hand. 
+ The first class that can be used is `Bot` found in `base_bot.py`. While this class is capable of playing any card in the base set of Dominion, cards that require logical input are not optimized. 
+
+For example, this card can technically play chapel, but it would choose not to trash any cards. Similarly, when facing a discard attack from militia, this bot would just discard the first few cards in its hand.
 
 When inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods. This is an example of a bot created from `Bot`:
 
@@ -34,7 +37,11 @@ class BigMoneySmithy(Bot):
             yield silver
 ```
 
-The second class that can be used to implement new bots is `OptimizedBot` found in `optimized_bot.py`. This class has some hardcoded logic that dictates how the bot will play certain cards. This class is overall "smarter" than `Bot`. Again, when inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods but it is also possible to overwrite any of the card specific methods. 
+## `OptimizedBot`
+
+The second class that can be used to implement new bots is `OptimizedBot` found in `optimized_bot.py`. This class has some predefined logic that dictates how the bot will play certain cards. This class is overall "smarter" than `Bot`. For example, when this bot plays chapel, it will trash estates (as long as the game isn't close to ending) and will trash copper (as long as it has at least 3 money in its deck). When responding to militia discard attacks, this bot will prioritize discarding victory cards, then cheap treasures and actions. 
+
+Again, when inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods but it is also possible to overwrite any of the card specific methods. 
 
 For example, here is a bot based on `OptimizedBot that will buy and play Workshop:
 
@@ -54,7 +61,7 @@ class WorkshopBot(OptimizedBot):
         super().__init__(player_id=player_id)
 
     def action_priority(self, game: Game):
-        yield chapel
+        yield workshop
 
     def buy_priority(self, game: Game):
 
@@ -73,7 +80,7 @@ class WorkshopBot(OptimizedBot):
             yield silver
 ```
 
-OptimizedBot already defines a method for how workshop will be played:
+OptimizedBot already defines a method for how Workshop will be played:
 
 ```python
 def workshop(self, game: "Game") -> Card:
@@ -83,16 +90,20 @@ def workshop(self, game: "Game") -> Card:
         return silver
 ```
 
-But we can easily override this method to create a new strategy. We can implement a bot that instead buys Gardens like so:
+But we can easily override this method to create a new strategy. We can implement a bot that instead uses Workshop to gain Gardens: 
 
 ```python
 from pyminion.expansions.base import gardens
+
 class WorkshopBot(OptimizedBot):
 
     ... # previous code
 
     def workshop(self, game: "Game") -> Card:
-        return gardens
+        if gardens in game.supply.available_cards()
+            return gardens
+        else:
+            return silver
 ```
 
 To see other implementations of bots please see [/bots/examples](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots/examples)
