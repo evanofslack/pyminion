@@ -1,4 +1,4 @@
-from pyminion.bots import OptimizedBot
+from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.expansions.base import (
     artisan,
     bureaucrat,

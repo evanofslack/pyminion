@@ -1,7 +1,7 @@
 import logging
 from typing import Iterator
 
-from pyminion.bots import Bot
+from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Card
 from pyminion.expansions.base import (
     bandit,
@@ -17,7 +17,7 @@ from pyminion.game import Game
 logger = logging.getLogger()
 
 
-class BanditBot(Bot):
+class BanditBot(OptimizedBot):
     """
     Attempt the following buys in order:
 
