@@ -4,6 +4,7 @@ from pyminion.expansions.base import (
     Estate,
     Silver,
     bureaucrat,
+    copper,
     duchy,
     estate,
 )
@@ -47,9 +48,7 @@ def test_bureaucrat_opponent_no_victory(multiplayer_game: Game, monkeypatch):
     player = multiplayer_game.players[0]
     player.hand.add(bureaucrat)
     opponent = multiplayer_game.players[1]
-    victory_cards = [card for card in opponent.hand.cards if "Victory" in card.type]
-    for card in victory_cards:
-        opponent.hand.remove(card)
+    opponent.hand.cards = [copper, copper]
     opp_hand_len = len(opponent.hand)
 
     player.hand.cards[-1].play(player, multiplayer_game)
