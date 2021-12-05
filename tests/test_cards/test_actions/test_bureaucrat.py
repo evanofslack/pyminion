@@ -1,11 +1,9 @@
-from pyminion.bots import OptimizedBot
 from pyminion.expansions.base import (
     Bureaucrat,
     Estate,
     Silver,
     bureaucrat,
     copper,
-    duchy,
     estate,
 )
 from pyminion.game import Game

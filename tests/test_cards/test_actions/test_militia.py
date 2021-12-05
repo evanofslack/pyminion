@@ -1,5 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, estate, gold, militia, silver
+from pyminion.expansions.base import militia
 from pyminion.game import Game
 
 

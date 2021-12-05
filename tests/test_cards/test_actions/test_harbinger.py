@@ -1,14 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import (
-    Silver,
-    copper,
-    duchy,
-    estate,
-    gold,
-    harbinger,
-    province,
-    silver,
-)
+from pyminion.expansions.base import Silver, harbinger, silver
 from pyminion.game import Game
 from pyminion.players import Human
 

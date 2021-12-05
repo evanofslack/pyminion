@@ -1,7 +1,7 @@
 import pytest
 from pyminion.decisions import multiple_card_decision
 from pyminion.exceptions import InvalidMultiCardInput
-from pyminion.expansions.base import Moneylender, copper, estate
+from pyminion.expansions.base import copper, estate
 
 valid_cards = [copper, copper, estate]
 

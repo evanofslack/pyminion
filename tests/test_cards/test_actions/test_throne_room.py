@@ -1,4 +1,3 @@
-from pyminion.bots import OptimizedBot
 from pyminion.expansions.base import smithy, throne_room, village
 from pyminion.game import Game
 from pyminion.players import Human

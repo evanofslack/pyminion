@@ -2,25 +2,16 @@
 Simulate multiple games between two or more bots. 
 
 """
-from pyminion.bots import (
-    BanditBot,
-    BigMoney,
-    BigMoneySmithy,
-    BigMoneyUltimate,
-    ChapelBot,
-)
-from pyminion.expansions.base import bandit, base_cards, smithy
+from pyminion.bots import BigMoney, BigMoneySmithy
+from pyminion.expansions.base import base_cards, smithy
 from pyminion.game import Game
-from pyminion.players import Human
 from pyminion.simulator import Simulator
 
-bot_1 = BigMoney()
-bot_2 = BigMoneySmithy()
+bm = BigMoney()
+bm_smithy = BigMoneySmithy()
 
 
-game = Game(
-    players=[bot_1, bot_2], expansions=[base_cards], kingdom_cards=[smithy, bandit]
-)
+game = Game(players=[bm, bm_smithy], expansions=[base_cards], kingdom_cards=[smithy])
 
 sim = Simulator(game, iterations=1000)
 

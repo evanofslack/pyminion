@@ -1,13 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import (
-    Chapel,
-    Copper,
-    Estate,
-    chapel,
-    copper,
-    estate,
-    province,
-)
+from pyminion.expansions.base import Chapel, Copper, Estate, chapel, copper, estate
 from pyminion.game import Game
 from pyminion.players import Human
 

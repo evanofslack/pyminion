@@ -1,10 +1,9 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, gold, mine, silver
+from pyminion.expansions.base import copper, mine
 from pyminion.game import Game
 from pyminion.players import Human
 
 
-def test_mine_no_treasures(human: Human, game: Game, monkeypatch):
+def test_mine_no_treasures(human: Human, game: Game):
     human.hand.add(mine)
     human.play(mine, game)
     assert len(game.trash) == 0

@@ -1,5 +1,5 @@
 from pyminion.bots import Bot
-from pyminion.expansions.base import copper, moat
+from pyminion.expansions.base import moat
 from pyminion.game import Game
 
 

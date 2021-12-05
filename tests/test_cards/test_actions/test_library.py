@@ -1,12 +1,9 @@
-from typing import Optional
-
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import copper, duchy, estate, gold, library, smithy
+from pyminion.expansions.base import library, smithy
 from pyminion.game import Game
 from pyminion.players import Human
 
 
-def test_library_draw_7(human: Human, game: Game, monkeypatch):
+def test_library_draw_7(human: Human, game: Game):
     human.hand.add(library)
     human.play(library, game)
     assert len(human.hand) == 7

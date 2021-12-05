@@ -1,5 +1,4 @@
-from pyminion.bots import OptimizedBot
-from pyminion.expansions.base import artisan, silver, village
+from pyminion.expansions.base import artisan, silver
 from pyminion.game import Game
 from pyminion.players import Human
 

@@ -1,6 +1,6 @@
 import pytest
 from pyminion.bots import Bot
-from pyminion.expansions.base import copper, estate, gold, silver
+from pyminion.expansions.base import copper, estate, gold
 from pyminion.game import Game
 
 
@@ -19,7 +19,7 @@ def test_discard_resp_none(base_bot: Bot, game: Game):
     card = base_bot.discard_resp(
         card=None, valid_cards=[copper, estate, gold], game=Game, required=False
     )
-    assert card == None
+    assert card is None
 
 
 def test_multiple_discard_resp(base_bot: Bot, game: Game):
@@ -41,7 +41,7 @@ def test_multiple_discard_resp_none(base_bot: Bot, game: Game):
         num_discard=2,
         required=False,
     )
-    assert cards == None
+    assert cards is None
 
 
 def test_gain_resp(base_bot: Bot, game: Game):
@@ -61,7 +61,7 @@ def test_gain_resp_none(base_bot: Bot, game: Game):
         game=Game,
         required=False,
     )
-    assert card == None
+    assert card is None
 
 
 def test_multiple_gain_resp(base_bot: Bot, game: Game):
@@ -83,7 +83,7 @@ def test_multiple_gain_resp_none(base_bot: Bot, game: Game):
         num_gain=2,
         required=False,
     )
-    assert cards == None
+    assert cards is None
 
 
 def test_trash_resp(base_bot: Bot, game: Game):
@@ -97,7 +97,7 @@ def test_trash_resp_none(base_bot: Bot, game: Game):
     card = base_bot.trash_resp(
         card=None, valid_cards=[copper, estate, gold], game=Game, required=False
     )
-    assert card == None
+    assert card is None
 
 
 def test_multiple_trash_resp(base_bot: Bot, game: Game):
@@ -119,7 +119,7 @@ def test_multiple_trash_resp_none(base_bot: Bot, game: Game):
         num_trash=2,
         required=False,
     )
-    assert cards == None
+    assert cards is None
 
 
 def test_topdeck_resp(base_bot: Bot, game: Game):
@@ -133,7 +133,7 @@ def test_topdeck_resp_none(base_bot: Bot, game: Game):
     card = base_bot.topdeck_resp(
         card=None, valid_cards=[copper, estate, gold], game=Game, required=False
     )
-    assert card == None
+    assert card is None
 
 
 def test_double_play_resp(base_bot: Bot, game: Game):
@@ -147,7 +147,7 @@ def test_double_play_resp_none(base_bot: Bot, game: Game):
     card = base_bot.double_play_resp(
         card=None, valid_cards=[copper, estate, gold], game=Game, required=False
     )
-    assert card == None
+    assert card is None
 
 
 def test_is_attacked(base_bot: Bot, game: Game):

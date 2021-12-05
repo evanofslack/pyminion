@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator
 
 from pyminion.bots import Bot
 from pyminion.expansions.base import gold, province, silver, smithy
