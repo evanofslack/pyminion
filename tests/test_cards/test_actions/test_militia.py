@@ -41,7 +41,7 @@ def test_militia_opponent_discards(multiplayer_game: Game, monkeypatch):
     assert len(opponent.discard_pile) == 2
 
 
-def test_militia_opponent_discards(multiplayer_bot_game: Game):
+def test_militia_bot_opponent_discards(multiplayer_bot_game: Game):
     player = multiplayer_bot_game.players[0]
     player.hand.add(militia)
     opponent = multiplayer_bot_game.players[1]
