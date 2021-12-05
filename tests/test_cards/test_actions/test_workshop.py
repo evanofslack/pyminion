@@ -17,17 +17,3 @@ def test_workshop_gain_valid(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 0
     assert type(human.discard_pile.cards[0]) is Estate
     assert len(game.supply.piles[3]) == 4
-
-
-def test_workshop_bot(bot: OptimizedBot, game: Game):
-    bot.hand.add(workshop)
-    bot.play(workshop, game)
-    assert bot.discard_pile.cards[-1].name == "Silver"
-
-
-def test_workshop_bot_late_game(bot: OptimizedBot, game: Game):
-    bot.hand.add(workshop)
-    for i in range(4):
-        game.supply.gain_card(province)
-    bot.play(workshop, game)
-    assert bot.discard_pile.cards[-1].name == "Estate"

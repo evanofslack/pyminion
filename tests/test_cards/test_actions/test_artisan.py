@@ -51,16 +51,3 @@ def test_artisan_valid_gain_diff_topdeck(human: Human, game: Game, monkeypatch):
     assert len(human.playmat) == 1
     assert human.state.actions == 0
     assert len(game.supply.piles[1]) == 39
-
-
-def test_artisan_bot(bot: OptimizedBot, game: Game):
-    bot.hand.add(artisan)
-    bot.play(artisan, game)
-    assert bot.deck.cards[-1].name == "Silver"
-
-
-def test_artisan_bot_actions(bot: OptimizedBot, game: Game):
-    bot.hand.add(artisan)
-    bot.hand.add(village)
-    bot.play(artisan, game)
-    assert bot.deck.cards[-1].name == "Village"

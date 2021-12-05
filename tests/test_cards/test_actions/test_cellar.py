@@ -66,20 +66,3 @@ def test_cellar_discard_none(human: Human, game: Game, monkeypatch):
     assert len(human.hand) == 0
     assert len(human.playmat) == 1
     assert human.state.actions == 1
-
-
-def test_cellar_bot_no_discard(bot: OptimizedBot, game: Game):
-    bot.hand.add(cellar)
-    bot.play(target_card=cellar, game=game)
-    assert len(bot.discard_pile) == 0
-
-
-def test_cellar_bot_yes_discard(bot: OptimizedBot, game: Game):
-    bot.hand.add(cellar)
-    bot.hand.add(copper)  # discard me
-    bot.hand.add(estate)  # discard me
-    bot.hand.add(duchy)  # discard me
-    bot.hand.add(silver)
-    bot.hand.add(cellar)
-    bot.play(target_card=cellar, game=game)
-    assert len(bot.discard_pile) == 3

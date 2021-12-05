@@ -23,30 +23,3 @@ def test_mine_gain_valid(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 0
     assert game.trash.cards[0].name == "Copper"
     assert human.hand.cards[-1].name == "Silver"
-
-
-def test_mine_bot_no_treasure(bot: OptimizedBot, game: Game):
-    bot.hand.add(mine)
-    bot.play(mine, game)
-    assert len(game.trash) == 0
-
-
-def test_mine_bot_copper(bot: OptimizedBot, game: Game):
-    bot.hand.add(mine)
-    bot.hand.add(copper)
-    bot.play(mine, game)
-    assert bot.hand.cards[-1].name == "Silver"
-
-
-def test_mine_bot_silver(bot: OptimizedBot, game: Game):
-    bot.hand.add(mine)
-    bot.hand.add(silver)
-    bot.play(mine, game)
-    assert bot.hand.cards[-1].name == "Gold"
-
-
-def test_mine_bot_gold(bot: OptimizedBot, game: Game):
-    bot.hand.add(mine)
-    bot.hand.add(gold)
-    bot.play(mine, game)
-    assert bot.hand.cards[-1].name == "Gold"

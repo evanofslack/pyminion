@@ -25,23 +25,3 @@ def test_harbinger_valid_topdeck(human: Human, game: Game, monkeypatch):
     assert len(human.discard_pile) == 0
     assert human.state.actions == 1
     assert type(human.deck.cards[-1]) is Silver
-
-
-def test_harbinger_bot_no_topdeck_victory(bot: OptimizedBot, game: Game):
-    bot.hand.add(harbinger)
-    bot.discard_pile.add(estate)
-    bot.discard_pile.add(duchy)
-    bot.discard_pile.add(province)
-    bot.discard_pile.add(copper)
-    bot.play(harbinger, game)
-    assert len(bot.discard_pile) == 4
-
-
-def test_harbinger_bot_topdeck_expensive_card(bot: OptimizedBot, game: Game):
-    bot.hand.add(harbinger)
-    bot.discard_pile.add(silver)
-    bot.discard_pile.add(gold)  # Topdeck me
-    bot.discard_pile.add(province)
-    bot.play(harbinger, game)
-    assert len(bot.discard_pile) == 2
-    assert bot.deck.cards[-1].name == "Gold"
