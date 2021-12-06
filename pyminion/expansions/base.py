@@ -1427,7 +1427,6 @@ class Library(Action):
 
         set_aside = AbstractDeck()
         while len(player.hand) < 7:
-            logger.debug(f"Hand: {player.hand}")
 
             if len(player.deck) == 0 and len(player.discard_pile) == 0:
                 return
@@ -1440,10 +1439,8 @@ class Library(Action):
                     if player.binary_decision(
                         prompt=f"You drew {drawn_card}, would you like to skip it? y/n: "
                     ):
-                        logger.debug(f"{player} sets aside {drawn_card}")
                         pass
                     else:
-                        logger.debug(f"{player} adds {drawn_card} to hand")
                         player.hand.add(set_aside.remove(drawn_card))
 
                     pass
@@ -1456,7 +1453,6 @@ class Library(Action):
             else:
                 player.hand.add(set_aside.remove(drawn_card))
 
-        logger.debug(f"Skipped Cards: {set_aside}")
         set_aside.move_to(destination=player.discard_pile)
 
 
