@@ -1492,7 +1492,7 @@ sentry = Sentry()
 library = Library()
 
 
-base_cards = [
+base_set = [
     artisan,
     bandit,
     bureaucrat,
