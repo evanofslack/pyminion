@@ -1,7 +1,7 @@
 import pytest
 from pyminion.core import Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
-from pyminion.expansions.base import base_cards, duchy, estate, gold, province, smithy
+from pyminion.expansions.base import base_set, duchy, estate, gold, province, smithy
 from pyminion.game import Game
 from pyminion.players import Human
 
@@ -28,7 +28,7 @@ def test_game_create_supply(game: Game):
 
 
 def test_setup_1_player(human: Human):
-    game = Game(players=[human], expansions=[base_cards])
+    game = Game(players=[human], expansions=[base_set])
     game.supply = game._create_supply()
     assert game.supply.pile_length(pile_name="Curse") == 10
     assert game.supply.pile_length(pile_name="Province") == 5
@@ -36,7 +36,7 @@ def test_setup_1_player(human: Human):
 
 
 def test_setup_2_players(human: Human):
-    game = Game(players=[human, human], expansions=[base_cards])
+    game = Game(players=[human, human], expansions=[base_set])
     game.supply = game._create_supply()
     assert game.supply.pile_length(pile_name="Curse") == 10
     assert game.supply.pile_length(pile_name="Province") == 8
@@ -44,7 +44,7 @@ def test_setup_2_players(human: Human):
 
 
 def test_setup_3_players(human: Human):
-    game = Game(players=[human, human, human], expansions=[base_cards])
+    game = Game(players=[human, human, human], expansions=[base_set])
     game.supply = game._create_supply()
     assert game.supply.pile_length(pile_name="Curse") == 20
     assert game.supply.pile_length(pile_name="Province") == 12
@@ -52,7 +52,7 @@ def test_setup_3_players(human: Human):
 
 
 def test_setup_4_players(human: Human):
-    game = Game(players=[human, human, human, human], expansions=[base_cards])
+    game = Game(players=[human, human, human, human], expansions=[base_set])
     game.supply = game._create_supply()
     assert game.supply.pile_length(pile_name="Curse") == 30
     assert game.supply.pile_length(pile_name="Province") == 12
@@ -62,7 +62,7 @@ def test_setup_4_players(human: Human):
 def test_setup_user_selected_card(human):
     game = Game(
         players=[human, human, human, human],
-        expansions=[base_cards],
+        expansions=[base_set],
         kingdom_cards=[smithy],
     )
     game.supply = game._create_supply()
@@ -73,7 +73,7 @@ def test_setup_invalid_user_selected_card(human):
     fake_card = Card(name="fake", cost=0, type=("Action",))
     game = Game(
         players=[human, human, human, human],
-        expansions=[base_cards],
+        expansions=[base_set],
         kingdom_cards=[fake_card],
     )
     with pytest.raises(InvalidGameSetup):

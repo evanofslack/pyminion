@@ -4,7 +4,7 @@ from pyminion.bots.examples import BigMoney
 from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash
 from pyminion.expansions.base import (
-    base_cards,
+    base_set,
     copper,
     duchy,
     estate,
@@ -81,7 +81,7 @@ def supply():
 def game(player):
     game = Game(
         players=[player],
-        expansions=[base_cards],
+        expansions=[base_set],
         # start_cards=start_cards,
     )
     game.supply = game._create_supply()
@@ -96,7 +96,7 @@ def multiplayer_game():
 
     game = Game(
         players=[human1, human2],
-        expansions=[base_cards],
+        expansions=[base_set],
     )
     game.start()
 
@@ -111,7 +111,7 @@ def multiplayer_bot_game():
 
     game = Game(
         players=[bot1, bot2],
-        expansions=[base_cards],
+        expansions=[base_set],
     )
     game.start()
 
