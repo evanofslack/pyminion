@@ -28,7 +28,7 @@ python3 -m pip install pyminion
 To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
 
 ```python
-from pyminion.expansions.base import base_cards 
+from pyminion.expansions.base import base_set 
 from pyminion.game import Game
 from pyminion.bots.examples import BigMoney
 from pyminion.players import Human
@@ -38,7 +38,7 @@ human = Human()
 bot = BigMoney()
 
 # Setup the game
-game = Game(players=[human, bot], expansions=[base_cards])
+game = Game(players=[human, bot], expansions=[base_set])
 
 # Play game
 game.play()
@@ -90,7 +90,7 @@ from pyminion.simulator import Simulator
 bm = BigMoney()
 bm_smithy = BigMoneySmithy()
 
-game = Game(players=[bm, bm_smithy], expansions=[base_cards])
+game = Game(players=[bm, bm_smithy], expansions=[base_set])
 sim = Simulator(game, iterations=1000)
 sim.run()
 ```
