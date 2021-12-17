@@ -39,11 +39,11 @@ class BigMoneySmithy(Bot):
 
 ## `OptimizedBot`
 
-The second class that can be used to implement new bots is `OptimizedBot` found in `optimized_bot.py`. This class has some predefined logic that dictates how the bot will play certain cards. This class is overall "smarter" than `Bot`. For example, when this bot plays chapel, it will trash estates (as long as the game isn't close to ending) and will trash copper (as long as it has at least 3 money in its deck). When responding to militia discard attacks, this bot will prioritize discarding victory cards, then cheap treasures and actions. 
+The second class that can be used to implement new bots is `OptimizedBot` found in `optimized_bot.py`. This class has some predefined logic that dictates how the bot will play certain cards. This class is overall "smarter" than `Bot`. For example, when this bot plays chapel, it will trash estates (as long as the game isn't close to ending) and will trash copper (as long as it has at least 3 money in its deck). When responding to militia discard attacks, this bot will prioritize discarding victory cards, followed by cheap treasures and actions. 
 
 Again, when inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods but it is also possible to overwrite any of the card specific methods. 
 
-For example, here is a bot based on `OptimizedBot that will buy and play Workshop:
+For example, here is a bot based on `OptimizedBot` that will buy and play Workshop:
 
 ```python
 from pyminion.bots.optimized_bot import OptimizedBot
