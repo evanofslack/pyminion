@@ -1464,32 +1464,32 @@ duchy = Duchy()
 province = Province()
 curse = Curse()
 
-gardens = Gardens()
-smithy = Smithy()
-village = Village()
-laboratory = Laboratory()
-market = Market()
-moneylender = Moneylender()
-cellar = Cellar()
-chapel = Chapel()
-workshop = Workshop()
-festival = Festival()
-harbinger = Harbinger()
-vassal = Vassal()
 artisan = Artisan()
-poacher = Poacher()
-council_room = CouncilRoom()
-witch = Witch()
-moat = Moat()
-merchant = Merchant()
 bandit = Bandit()
 bureaucrat = Bureaucrat()
-throne_room = ThroneRoom()
-remodel = Remodel()
-mine = Mine()
-militia = Militia()
-sentry = Sentry()
+cellar = Cellar()
+chapel = Chapel()
+council_room = CouncilRoom()
+festival = Festival()
+gardens = Gardens()
+harbinger = Harbinger()
+laboratory = Laboratory()
 library = Library()
+market = Market()
+merchant = Merchant()
+militia = Militia()
+mine = Mine()
+moat = Moat()
+moneylender = Moneylender()
+poacher = Poacher()
+remodel = Remodel()
+sentry = Sentry()
+smithy = Smithy()
+throne_room = ThroneRoom()
+vassal = Vassal()
+village = Village()
+witch = Witch()
+workshop = Workshop()
 
 
 base_set = [
@@ -1500,20 +1500,21 @@ base_set = [
     chapel,
     council_room,
     festival,
+    gardens,
     harbinger,
     laboratory,
     library,
-    militia,
-    mine,
     market,
     merchant,
+    militia,
+    mine,
     moat,
     moneylender,
     poacher,
-    smithy,
-    sentry,
-    throne_room,
     remodel,
+    sentry,
+    smithy,
+    throne_room,
     vassal,
     village,
     witch,
