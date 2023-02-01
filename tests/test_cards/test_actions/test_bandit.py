@@ -66,7 +66,7 @@ def test_bandit_empty_gold(multiplayer_game: Game):
 
     # empty the gold pile
     for pile in multiplayer_game.supply.piles:
-        if pile.name == "gold":
+        if pile.name == "Gold":
             pile.cards = []
 
     player = multiplayer_game.players[0]

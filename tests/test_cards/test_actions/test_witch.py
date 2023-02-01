@@ -30,7 +30,7 @@ def test_witch_empty_curses(multiplayer_game: Game):
 
     # empty the curse pile
     for pile in multiplayer_game.supply.piles:
-        if pile.name == "curse":
+        if pile.name == "Curse":
             pile.cards = []
 
     player = multiplayer_game.players[0]

@@ -55,7 +55,7 @@ def test_bureaucrat_empty_silver(multiplayer_game: Game):
 
     # empty the silver pile
     for pile in multiplayer_game.supply.piles:
-        if pile.name == "silver":
+        if pile.name == "Silver":
             pile.cards = []
 
     player = multiplayer_game.players[0]
