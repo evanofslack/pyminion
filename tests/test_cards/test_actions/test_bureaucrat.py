@@ -47,7 +47,7 @@ def test_bureaucrat_opponent_no_victory(multiplayer_game: Game, monkeypatch):
     assert len(opponent.hand) == opp_hand_len
 
 
-def test_bureaucrat_empty_silver(multiplayer_game: Game):
+def test_bureaucrat_empty_silver(multiplayer_game: Game, monkeypatch):
     """
     with an empty silver pile, playing bureaucrat should only attack opponents
 
@@ -60,6 +60,8 @@ def test_bureaucrat_empty_silver(multiplayer_game: Game):
 
     player = multiplayer_game.players[0]
     player.hand.add(bureaucrat)
+
+    monkeypatch.setattr("builtins.input", lambda _: "Estate")
     player.hand.cards[-1].play(player, multiplayer_game)
 
     assert len(player.discard_pile) == 0
