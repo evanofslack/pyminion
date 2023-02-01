@@ -1,5 +1,6 @@
+from pyminion.expansions.base import (Bandit, Gold, Silver, bandit, copper,
+                                      gold, silver)
 from pyminion.game import Game
-from pyminion.expansions.base import Bandit, Gold, Silver, bandit, copper, gold, silver
 
 
 def test_bandit_gains_gold(multiplayer_game: Game):
@@ -55,3 +56,26 @@ def test_bandit_discard_two_non_treasure(multiplayer_game: Game):
     player.hand.cards[-1].play(player, multiplayer_game)
     assert len(multiplayer_game.trash) == 0
     assert len(opponent.discard_pile) == 2
+
+
+def test_bandit_empty_gold(multiplayer_game: Game):
+    """
+    with an empty gold pile, playing witch should only trash opponents cards
+
+    """
+
+    # empty the gold pile
+    for pile in multiplayer_game.supply.piles:
+        if pile.name == "gold":
+            pile.cards = []
+
+    player = multiplayer_game.players[0]
+    player.hand.add(bandit)
+    player.hand.cards[-1].play(player, multiplayer_game)
+
+    assert len(player.discard_pile) == 0
+    assert len(player.playmat) == 1
+    assert type(player.playmat.cards[0]) is Bandit
+    assert player.state.actions == 0
+    assert player.state.money == 0
+    assert player.state.buys == 1
