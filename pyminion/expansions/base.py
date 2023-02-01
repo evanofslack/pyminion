@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 from pyminion.bots.bot import Bot
 from pyminion.core import AbstractDeck, Action, Card, Treasure, Victory
 from pyminion.decisions import validate_input
-from pyminion.exceptions import InvalidMultiCardInput, InvalidSingleCardInput
+from pyminion.exceptions import (EmptyPile, InvalidMultiCardInput,
+                                 InvalidSingleCardInput)
 from pyminion.players import Human, Player
 
 if TYPE_CHECKING:
@@ -826,10 +827,15 @@ class Witch(Action):
         for opponent in game.players:
             if opponent is not player:
                 if opponent.is_attacked(player=player, attack_card=self):
-                    opponent.gain(
-                        card=curse,
-                        supply=game.supply,
-                    )
+
+                    # attempt to gain a curse. if curse pile is empty, proceed
+                    try:
+                        opponent.gain(
+                            card=curse,
+                            supply=game.supply,
+                        )
+                    except EmptyPile:
+                        pass
 
 
 class Moat(Action):
@@ -917,7 +923,11 @@ class Bandit(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.gain(card=gold, supply=game.supply)
+        # attempt to gain a gold. if gold pile is empty, proceed
+        try:
+            player.gain(card=gold, supply=game.supply)
+        except EmptyPile:
+            pass
 
         for opponent in game.players:
             if opponent is not player:
@@ -970,7 +980,11 @@ class Bureaucrat(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.gain(card=silver, supply=game.supply, destination=player.deck)
+        # attempt to gain a silver. if silver pile is empty, proceed
+        try:
+            player.gain(card=silver, supply=game.supply, destination=player.deck)
+        except EmptyPile:
+            pass
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(

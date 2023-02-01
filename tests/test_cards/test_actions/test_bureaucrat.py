@@ -1,11 +1,5 @@
-from pyminion.expansions.base import (
-    Bureaucrat,
-    Estate,
-    Silver,
-    bureaucrat,
-    copper,
-    estate,
-)
+from pyminion.expansions.base import (Bureaucrat, Estate, Silver, bureaucrat,
+                                      copper, estate)
 from pyminion.game import Game
 
 
@@ -51,3 +45,28 @@ def test_bureaucrat_opponent_no_victory(multiplayer_game: Game, monkeypatch):
 
     player.hand.cards[-1].play(player, multiplayer_game)
     assert len(opponent.hand) == opp_hand_len
+
+
+def test_bureaucrat_empty_silver(multiplayer_game: Game, monkeypatch):
+    """
+    with an empty silver pile, playing bureaucrat should only attack opponents
+
+    """
+
+    # empty the silver pile
+    for pile in multiplayer_game.supply.piles:
+        if pile.name == "Silver":
+            pile.cards = []
+
+    player = multiplayer_game.players[0]
+    player.hand.add(bureaucrat)
+
+    monkeypatch.setattr("builtins.input", lambda _: "Estate")
+    player.hand.cards[-1].play(player, multiplayer_game)
+
+    assert len(player.discard_pile) == 0
+    assert len(player.playmat) == 1
+    assert type(player.playmat.cards[0]) is Bureaucrat
+    assert player.state.actions == 0
+    assert player.state.money == 0
+    assert player.state.buys == 1
