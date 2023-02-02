@@ -1,8 +1,9 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.bots.bot import Bot
 from pyminion.core import Card
+from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
 from pyminion.players import Player
 
@@ -91,16 +92,16 @@ class OptimizedBot(Bot):
         return sorted_trash_cards
 
     def binary_resp(
-        self, card: Card, relevant_cards: Optional[List[Card]] = None
+        self, card: Card, game: "Game", relevant_cards: Optional[List[Card]] = None
     ) -> bool:
         if card.name == "Moneylender":
             return self.moneylender()
         if card.name == "Vassal":
-            return self.vassal(relevant_card=relevant_cards)
+            return self.vassal(relevant_cards=relevant_cards)
         if card.name == "Sentry":
-            return self.sentry(relevant_cards=relevant_cards, binary=True)
+            return self.sentry(game=game, relevant_cards=relevant_cards, binary=True)
         if card.name == "Library":
-            return self.library(relevant_card=relevant_cards)
+            return self.library(relevant_cards=relevant_cards)
         else:
             return True
 
@@ -133,7 +134,7 @@ class OptimizedBot(Bot):
             return self.militia(valid_cards=valid_cards, num_discard=num_discard)
 
         if card.name == "Sentry":
-            return self.sentry(valid_cards=valid_cards, discard=True)
+            return self.sentry(game=game, valid_cards=valid_cards, discard=True)
 
     def gain_resp(
         self,
@@ -174,7 +175,7 @@ class OptimizedBot(Bot):
         valid_cards: List[Card],
         game: "Game",
         required: bool = True,
-    ) -> Card:
+    ) -> Optional[Card]:
         if card.name == "Remodel":
             return self.remodel(valid_cards=valid_cards, trash=True)
         if card.name == "Mine":
@@ -230,10 +231,10 @@ class OptimizedBot(Bot):
     def moneylender(self) -> bool:
         return True
 
-    def vassal(self, relevant_card: Card) -> bool:
+    def vassal(self, relevant_cards: Optional[List[Card]]) -> bool:
         return True
 
-    def library(self, relevant_card: Card) -> bool:
+    def library(self, relevant_cards: Optional[List[Card]]) -> bool:
         if self.state.actions == 0:
             return True
         else:
@@ -241,18 +242,22 @@ class OptimizedBot(Bot):
 
     def sentry(
         self,
-        game: "Game" = None,
-        valid_cards: List[Card] = None,
-        relevant_cards: List[Card] = None,
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        relevant_cards: Optional[List[Card]] = None,
         trash: bool = False,
         discard: bool = False,
         binary: bool = False,
-    ) -> bool:
+    ) -> Union[List[Card], bool]:
         if trash:
+            if not valid_cards:
+                return []
             return self.determine_trash_cards(
                 valid_cards=valid_cards, player=self, game=game
             )
         if discard:
+            if not valid_cards:
+                return []
             return [
                 card
                 for card in valid_cards
@@ -263,6 +268,10 @@ class OptimizedBot(Bot):
         if binary:
             return False
 
+        raise InvalidBotImplementation(
+            "Either gain, topdeck or binary must be true when playing sentry"
+        )
+
     def cellar(self, valid_cards: List[Card]) -> Optional[List[Card]]:
         return [
             card
@@ -270,13 +279,21 @@ class OptimizedBot(Bot):
             if card.name == "Copper" or "Victory" in card.type or "Curse" in card.type
         ]
 
-    def poacher(self, valid_cards: List[Card], num_discard: int) -> List[Card]:
+    def poacher(
+        self, valid_cards: List[Card], num_discard: Optional[int]
+    ) -> List[Card]:
+        if not num_discard:
+            return []
         discard_order = self.sort_for_discard(
             cards=valid_cards, actions=self.state.actions
         )
         return discard_order[:num_discard]
 
-    def militia(self, valid_cards: List[Card], num_discard: int) -> List[Card]:
+    def militia(
+        self, valid_cards: List[Card], num_discard: Optional[int]
+    ) -> List[Card]:
+        if not num_discard:
+            return []
         discard_order = self.sort_for_discard(
             cards=valid_cards, actions=self.state.actions
         )
@@ -285,12 +302,12 @@ class OptimizedBot(Bot):
     def artisan(
         self,
         game: "Game",
-        valid_cards: List[Card] = None,
+        valid_cards: Optional[List[Card]] = None,
         gain: bool = False,
         topdeck: bool = False,
     ) -> Card:
         if topdeck:
-            for card in valid_cards:
+            for card in self.hand.cards:
                 if "Action" in card.type and self.state.actions == 0:
                     return card
             else:
@@ -300,6 +317,10 @@ class OptimizedBot(Bot):
                 return duchy
             else:
                 return silver
+
+        raise InvalidBotImplementation(
+            "Either gain or topdeck must be true when playing artisian"
+        )
 
     def workshop(self, game: "Game") -> Card:
         if game.supply.pile_length(pile_name="Province") < 3:
@@ -318,6 +339,10 @@ class OptimizedBot(Bot):
             max_price_card = max(valid_cards, key=lambda card: card.cost)
             return max_price_card
 
+        raise InvalidBotImplementation(
+            "Either gain or trash must be true when playing remodel"
+        )
+
     def mine(
         self, valid_cards: List[Card], trash: bool = False, gain: bool = False
     ) -> Card:
@@ -328,6 +353,10 @@ class OptimizedBot(Bot):
         if gain:
             max_price_card = max(valid_cards, key=lambda card: card.cost)
             return max_price_card
+
+        raise InvalidBotImplementation(
+            "Either gain or trash must be true when playing mine"
+        )
 
     def chapel(self, game: "Game", valid_cards: List[Card]) -> Optional[List[Card]]:
         trash_cards = self.determine_trash_cards(

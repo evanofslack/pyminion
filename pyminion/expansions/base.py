@@ -299,7 +299,7 @@ class Moneylender(Action):
             )
 
         if isinstance(player, Bot):
-            response = player.binary_resp(card=self)
+            response = player.binary_resp(game=game, card=self)
 
         if response:
             player.trash(target_card=copper, trash=game.trash)
@@ -601,7 +601,7 @@ class Vassal(Action):
                 prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  "
             )
         if isinstance(player, Bot):
-            decision = player.binary_resp(card=self)
+            decision = player.binary_resp(game=game, card=self)
 
         if not decision:
             return
@@ -1399,7 +1399,7 @@ class Sentry(Action):
                     revealed.remove(card)
             reorder = False
             if len(revealed.cards) == 2:
-                reorder = player.binary_resp(card=self)
+                reorder = player.binary_resp(game=game, card=self)
 
         if trash_cards:
             for card in trash_cards:
@@ -1459,7 +1459,9 @@ class Library(Action):
 
                     pass
                 if isinstance(player, Bot):
-                    if player.binary_resp(card=self, relevant_cards=[drawn_card]):
+                    if player.binary_resp(
+                        game=game, card=self, relevant_cards=[drawn_card]
+                    ):
                         pass
                     else:
                         player.hand.add(set_aside.remove(drawn_card))

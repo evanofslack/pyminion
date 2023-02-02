@@ -87,3 +87,10 @@ class InvalidGameSetup(Exception):
     Invalid game setup
 
     """
+
+
+class InvalidBotImplementation(Exception):
+    """
+    Invalid game setup
+
+    """

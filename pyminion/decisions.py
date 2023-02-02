@@ -4,17 +4,15 @@ from collections import Counter
 from typing import Callable, List, Optional, Tuple, Type, Union
 
 from pyminion.core import Card
-from pyminion.exceptions import (
-    InvalidBinaryInput,
-    InvalidMultiCardInput,
-    InvalidSingleCardInput,
-)
+from pyminion.exceptions import (InvalidBinaryInput, InvalidMultiCardInput,
+                                 InvalidSingleCardInput)
 
 logger = logging.getLogger()
 
 
 def validate_input(
-    func: Callable = None, exceptions: Tuple[Type[Exception], ...] = Exception
+    func: Optional[Callable] = None,
+    exceptions: Union[Tuple[Type[Exception], ...], Type[Exception]] = (),
 ):
     """
     Decorator to ensure that a user enters valid input when prompted.
