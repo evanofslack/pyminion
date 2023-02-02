@@ -587,12 +587,14 @@ class Vassal(Action):
             super().generic_play(player)
 
         player.state.money += 2
-        player.draw(destination=player.discard_pile)
+        player.draw(destination=player.discard_pile, silent=True)
 
         if not player.discard_pile:
             return
 
         discard_card = player.discard_pile.cards[-1]
+
+        logger.info(f"{player} discards {discard_card}")
 
         if "Action" not in discard_card.type:
             return
@@ -938,7 +940,9 @@ class Bandit(Action):
                 if opponent.is_attacked(player=player, attack_card=self):
 
                     revealed_cards = AbstractDeck()
-                    opponent.draw(num_cards=2, destination=revealed_cards)
+                    opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
+
+                    logger.info(f"{opponent} reveals {revealed_cards}")
 
                     trash_card = None
                     for card in revealed_cards.cards:
@@ -1360,29 +1364,30 @@ class Sentry(Action):
         player.state.actions += 1
 
         revealed = AbstractDeck()
-        player.draw(num_cards=2, destination=revealed)
-
-        def get_trash_cards() -> Optional[List[Card]]:
-            trash_cards = player.multiple_card_decision(
-                prompt="Enter the cards you would like to trash: ",
-                valid_cards=revealed.cards,
-            )
-            return trash_cards
-
-        def get_discard_cards(
-            revealed: AbstractDeck,
-        ) -> Optional[List[Card]]:
-            if not revealed.cards:
-                return None
-
-            discard_cards = player.multiple_card_decision(
-                prompt="Enter the cards you would like to discard: ",
-                valid_cards=revealed.cards,
-            )
-            return discard_cards
+        player.draw(num_cards=2, destination=revealed, silent=True)
+        logger.info(f"{player} looks at {revealed}")
 
         if isinstance(player, Human):
-            logger.info(f"{player} looks at {revealed}")
+
+            def get_trash_cards() -> Optional[List[Card]]:
+                trash_cards = player.multiple_card_decision(
+                    prompt="Enter the cards you would like to trash: ",
+                    valid_cards=revealed.cards,
+                )
+                return trash_cards
+
+            def get_discard_cards(
+                revealed: AbstractDeck,
+            ) -> Optional[List[Card]]:
+                if not revealed.cards:
+                    return None
+
+                discard_cards = player.multiple_card_decision(
+                    prompt="Enter the cards you would like to discard: ",
+                    valid_cards=revealed.cards,
+                )
+                return discard_cards
+
             trash_cards = get_trash_cards()
             if trash_cards:
                 for card in trash_cards:
@@ -1426,9 +1431,11 @@ class Sentry(Action):
         if trash_cards:
             for card in trash_cards:
                 game.trash.add(card)
+                logger.info(f"{player} trashes {card}")
         if discard_cards:
             for card in discard_cards:
                 player.discard_pile.add(card)
+                logger.info(f"{player} discards {card}")
         if revealed.cards:
             if reorder:
                 for card in revealed.cards:
@@ -1436,6 +1443,7 @@ class Sentry(Action):
             else:
                 for card in reversed(revealed.cards):
                     player.deck.add(card)
+            logger.info(f"{player} topdecks {len(revealed.cards)} cards")
 
 
 class Library(Action):
@@ -1491,7 +1499,9 @@ class Library(Action):
             else:
                 player.hand.add(set_aside.remove(drawn_card))
 
-        set_aside.move_to(destination=player.discard_pile)
+        if set_aside.cards:
+            logger.info(f"{player} discards {set_aside}")
+            set_aside.move_to(destination=player.discard_pile)
 
 
 copper = Copper()
