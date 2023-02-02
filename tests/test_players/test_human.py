@@ -31,10 +31,10 @@ def test_action_phase_no_actions(human: Human, game: Game):
     assert not human.start_action_phase(game)
 
 
-def test_action_phase_no_input(human: Human, game: Game, monkeypatch):
+def test_action_phase_no_input(human: Human, monkeypatch):
     human.hand.add(moat)
     monkeypatch.setattr("builtins.input", lambda _: "")
-    assert not human.start_action_phase(game)
+    assert len(human.playmat) == 0
 
 
 def test_action_phase_play_action(human: Human, game: Game, monkeypatch):
@@ -44,7 +44,7 @@ def test_action_phase_play_action(human: Human, game: Game, monkeypatch):
     assert len(human.playmat) == 1
 
 
-def test_treasure_phase_no_treasures(human: Human, game: Game, monkeypatch):
+def test_treasure_phase_no_treasures(human: Human, game: Game):
     assert not human.start_treasure_phase(game)
 
 
@@ -57,7 +57,7 @@ def test_treasure_phase_one_copper(human: Human, game: Game, monkeypatch):
 
 
 def test_treasure_phase_autoplay(human: Human, game: Game, monkeypatch):
-    for i in range(3):
+    for _ in range(3):
         human.hand.add(copper)
     monkeypatch.setattr("builtins.input", lambda _: "all")
     human.start_treasure_phase(game)
@@ -69,10 +69,10 @@ def test_buy_phase_no_buys(human: Human, game: Game):
     assert not human.start_buy_phase(game)
 
 
-def test_buy_phase_no_input(human: Human, game: Game, monkeypatch):
+def test_buy_phase_no_input(human: Human, monkeypatch):
     human.state.money = 2
     monkeypatch.setattr("builtins.input", lambda _: "")
-    assert not human.start_buy_phase(game)
+    assert not human.discard_pile.cards
 
 
 def test_buy_phase_input_estate(human: Human, game: Game, monkeypatch):

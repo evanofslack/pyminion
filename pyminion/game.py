@@ -5,15 +5,8 @@ from typing import List, Optional
 
 from pyminion.core import Card, Deck, DeckCounter, Pile, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
-from pyminion.expansions.base import (
-    copper,
-    curse,
-    duchy,
-    estate,
-    gold,
-    province,
-    silver,
-)
+from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
+                                      province, silver)
 from pyminion.players import Player
 
 logger = logging.getLogger()
@@ -38,8 +31,8 @@ class Game:
         self,
         players: List[Player],
         expansions: List[List[Card]],
-        kingdom_cards: List[Card] = None,
-        start_deck: List[Card] = None,
+        kingdom_cards: Optional[List[Card]] = None,
+        start_deck: Optional[List[Card]] = None,
         random_order: bool = True,
         use_logger: bool = True,
         log_file_name: str = "game.log",
@@ -64,7 +57,7 @@ class Game:
             f_handler.setFormatter(f_format)
             logger.addHandler(f_handler)
 
-    def _create_basic_piles(self) -> List[Card]:
+    def _create_basic_piles(self) -> List[Pile]:
         """
         Create the basic piles that are applicable to almost all games of Dominion.
 
@@ -75,7 +68,7 @@ class Game:
             CURSE_LENGTH = 10
             COPPER_LENGTH = 53
 
-        if len(self.players) == 2:
+        elif len(self.players) == 2:
             VICTORY_LENGTH = 8
             CURSE_LENGTH = 10
             COPPER_LENGTH = 46
@@ -85,7 +78,7 @@ class Game:
             CURSE_LENGTH = 20
             COPPER_LENGTH = 39
 
-        elif len(self.players) == 4:
+        else:
             VICTORY_LENGTH = 12
             CURSE_LENGTH = 30
             COPPER_LENGTH = 32
@@ -118,7 +111,7 @@ class Game:
 
         return basic_piles
 
-    def _create_kingdom_piles(self) -> List[Card]:
+    def _create_kingdom_piles(self) -> List[Pile]:
         """
         Create the kingdom piles that vary from kingdom to kingdom. This should be 10 piles each with 10 cards.
 
@@ -193,12 +186,18 @@ class Game:
         """
         empty_piles: int = 0
         for pile in self.supply.piles:
+
+            # are provinces empty?
             if pile.name == "Province" and len(pile) == 0:
                 return True
+
+            # are three piles empty?
             if len(pile) == 0:
                 empty_piles += 1
-        if empty_piles >= 3:
-            return True
+                if empty_piles >= 3:
+                    return True
+
+        return False
 
     def play(self):
         self.start()

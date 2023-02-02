@@ -171,7 +171,7 @@ class Bot(Player):
         valid_cards: List[Card],
         game: "Game",
         required: bool = True,
-    ) -> Card:
+    ) -> Optional[Card]:
         if required:
             return valid_cards[0]
         else:

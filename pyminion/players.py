@@ -1,33 +1,15 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
-from pyminion.core import (
-    AbstractDeck,
-    Card,
-    Deck,
-    DiscardPile,
-    Hand,
-    Playmat,
-    Supply,
-    Trash,
-)
-from pyminion.decisions import (
-    binary_decision,
-    multiple_card_decision,
-    single_card_decision,
-    validate_input,
-)
-from pyminion.exceptions import (
-    CardNotFound,
-    EmptyPile,
-    InsufficientBuys,
-    InsufficientMoney,
-    InvalidBinaryInput,
-    InvalidCardPlay,
-    InvalidMultiCardInput,
-    InvalidSingleCardInput,
-)
+from pyminion.core import (AbstractDeck, Card, Deck, DiscardPile, Hand,
+                           Playmat, Supply, Trash)
+from pyminion.decisions import (binary_decision, multiple_card_decision,
+                                single_card_decision, validate_input)
+from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
+                                 InsufficientMoney, InvalidBinaryInput,
+                                 InvalidCardPlay, InvalidMultiCardInput,
+                                 InvalidSingleCardInput)
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -57,12 +39,12 @@ class Player:
 
     def __init__(
         self,
-        deck: Deck = None,
-        discard_pile: DiscardPile = None,
-        hand: Hand = None,
-        playmat: Playmat = None,
-        state: State = None,
-        player_id: str = None,
+        deck: Optional[Deck] = None,
+        discard_pile: Optional[DiscardPile] = None,
+        hand: Optional[Hand] = None,
+        playmat: Optional[Playmat] = None,
+        state: Optional[State] = None,
+        player_id: str = "",
     ):
         self.deck = deck if deck else Deck()
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
@@ -87,7 +69,9 @@ class Player:
         self.discard_pile.cards = []
         self.hand.cards = []
 
-    def draw(self, num_cards: int = 1, destination: AbstractDeck = None) -> None:
+    def draw(
+        self, num_cards: int = 1, destination: Optional[AbstractDeck] = None
+    ) -> None:
         """
         Draw cards from deck and add them to the specified destination.
         Defaults to drawing one card and adding to the player's hand.
@@ -185,7 +169,7 @@ class Player:
         logger.info(f"{self} buys {card}")
 
     def gain(
-        self, card: Card, supply: "Supply", destination: AbstractDeck = None
+        self, card: Card, supply: "Supply", destination: Optional[AbstractDeck] = None
     ) -> None:
         """
         Gain a card from the supply and add to destination.
@@ -322,7 +306,7 @@ class Human(Player):
 
     def __init__(
         self,
-        deck: Deck = None,
+        deck: Optional[Deck] = None,
         player_id: str = "human",
     ):
         super().__init__(deck=deck, player_id=player_id)
@@ -342,7 +326,7 @@ class Human(Player):
     def single_card_decision(
         prompt: str,
         valid_cards: List[Card],
-    ) -> Optional[Card]:
+    ) -> Optional[Union[Card, str]]:
         """
         Wrap single_card_decision with @validate_input decorator to
         repeat prompt if input is invalid.
@@ -381,46 +365,43 @@ class Human(Player):
                 return
 
             @validate_input(exceptions=InvalidSingleCardInput)
-            def choose_action(game: "Game") -> bool:
+            def choose_action(game: "Game") -> None:
                 logger.info(f"Hand: {self.hand}")
                 card = single_card_decision(
                     prompt="Choose an action card to play: ",
                     valid_cards=viable_actions,
                 )
-                if not card:
-                    return False
+                if not card or isinstance(card, str):
+                    return
                 self.play(card, game)
-                return True
-
-            if not choose_action(game):
                 return
+
+            choose_action(game)
 
     def start_treasure_phase(self, game: "Game") -> None:
         viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
         while viable_treasures:
 
             @validate_input(exceptions=InvalidSingleCardInput)
-            def choose_treasure(game: "Game") -> bool:
+            def choose_treasure(game: "Game") -> None:
                 logger.info(f"Hand: {self.hand}")
                 response = single_card_decision(
                     prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
                     valid_cards=viable_treasures,
                     valid_mixin="all",
                 )
-                if not response:
-                    return False
                 if response == "all":
                     self.autoplay_treasures(
                         viable_treasures=viable_treasures, game=game
                     )
-                    return True
+                    return
+                if not response or isinstance(response, str):
+                    return
                 self.exact_play(response, game)
                 logger.info(f"{self.player_id} played {response}")
                 viable_treasures.remove(response)
-                return True
 
-            if not choose_treasure(game):
-                return
+            choose_treasure(game)
 
     def start_buy_phase(self, game: "Game") -> None:
         while self.state.buys:
@@ -429,18 +410,16 @@ class Human(Player):
             logger.info(f"Buys: {self.state.buys}")
 
             @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
-            def choose_buy(game: "Game") -> bool:
+            def choose_buy(game: "Game") -> None:
                 card = single_card_decision(
                     prompt="Choose a card to buy: ",
                     valid_cards=game.supply.avaliable_cards(),
                 )
-                if not card:
-                    return False
+                if not card or isinstance(card, str):
+                    return
                 self.buy(card, game.supply)
-                return True
 
-            if not choose_buy(game):
-                return
+            choose_buy(game)
 
     def take_turn(self, game: "Game") -> None:
         self.start_turn()

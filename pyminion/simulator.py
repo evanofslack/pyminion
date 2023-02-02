@@ -9,6 +9,14 @@ from pyminion.players import Human, Player
 logger = logging.getLogger()
 
 
+def get_percent(occurrence: int, total: int) -> float:
+    """
+    helper function to compute percent
+
+    """
+    return round(((occurrence / total) * 100), 3)
+
+
 class Simulator:
     """
     Simulate multiple games of dominion and compute statistics
@@ -22,7 +30,7 @@ class Simulator:
     def __init__(self, game: Game, iterations: int = 100):
         self.game = game
         self.iterations = iterations
-        self.winners: List[Union[Player, Human, Bot]] = None
+        self.winners: List[Union[Player, Human, Bot]]
 
     def run(self) -> None:
         logger.info(f"Simulating {self.iterations} games...")
@@ -35,17 +43,13 @@ class Simulator:
         self.winners = winners
         self.get_stats()
 
-    @staticmethod
-    def get_percent(occurrence: int, total: int) -> float:
-        return round(((occurrence / total) * 100), 3)
-
-    def get_stats(self):
-        logger.info(f"\n\nSimulation of {self.iterations} games")
+    def get_stats(self) -> None:
+        logger.info(f"\nSimulation of {self.iterations} games")
         for player in self.game.players:
             logger.info(
-                f"{player.player_id} wins: {self.get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
+                f"{player.player_id} wins: {get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
             )
 
         logger.info(
-            f"Ties: {self.get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
+            f"Ties: {get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
         )

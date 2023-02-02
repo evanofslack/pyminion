@@ -101,7 +101,7 @@ class AbstractDeck:
 
     """
 
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         if cards:
             self.cards = cards
         else:
@@ -126,7 +126,7 @@ class AbstractDeck:
 
 
 class Deck(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
 
     def draw(self) -> Card:
@@ -138,17 +138,17 @@ class Deck(AbstractDeck):
 
 
 class DiscardPile(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
 
 
 class Hand(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
 
 
 class Pile(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
         if cards and len(set(cards)) == 1:
             self.name = cards[0].name
@@ -165,12 +165,12 @@ class Pile(AbstractDeck):
 
 
 class Playmat(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
 
 
 class Trash(AbstractDeck):
-    def __init__(self, cards: List[Card] = None):
+    def __init__(self, cards: Optional[List[Card]] = None):
         super().__init__(cards)
 
 
@@ -180,7 +180,7 @@ class Supply:
 
     """
 
-    def __init__(self, piles: List[Pile] = None):
+    def __init__(self, piles: Optional[List[Pile]] = None):
         if piles:
             self.piles = piles
         else:
@@ -192,7 +192,7 @@ class Supply:
     def __len__(self):
         return len(self.piles)
 
-    def gain_card(self, card: Card) -> Optional[Card]:
+    def gain_card(self, card: Card) -> Card:
         """
         Gain a card from the supply.
 
