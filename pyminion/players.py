@@ -70,26 +70,32 @@ class Player:
         self.hand.cards = []
 
     def draw(
-        self, num_cards: int = 1, destination: Optional[AbstractDeck] = None
+        self,
+        num_cards: int = 1,
+        destination: Optional[AbstractDeck] = None,
+        silent: bool = False,
     ) -> None:
         """
         Draw cards from deck and add them to the specified destination.
         Defaults to drawing one card and adding to the player's hand.
 
+        By default, drawn cards and deck shuffles are logged.
+        Call with silent = True to disable logging of drawn cards
+
         """
         if destination is None:
             destination = self.hand
         drawn_cards: AbstractDeck = AbstractDeck()
-        for i in range(num_cards):
+        for _ in range(num_cards):
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
                 pass
             # Deck is empty -> shuffle discard pile into deck
             elif len(self.deck) == 0:
+                logger.info(f"{self} shuffles their deck")
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
                 self.shuffles += 1
-                logger.info(f"{self} shuffles their deck")
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
@@ -97,7 +103,8 @@ class Player:
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
-        logger.info(f"{self} draws {drawn_cards}")
+        if not silent:
+            logger.info(f"{self} draws {drawn_cards}")
 
     def discard(self, target_card: Card) -> None:
         """
