@@ -111,7 +111,7 @@ class Bot(Player):
     # a valid response as to not crash the game.
 
     def binary_resp(
-        self, card: Card, relevant_cards: Optional[List[Card]] = None
+        self, game: "Game", card: Card, relevant_cards: Optional[List[Card]] = None
     ) -> bool:
         return True
 
