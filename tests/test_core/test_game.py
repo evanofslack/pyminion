@@ -1,7 +1,9 @@
 import pytest
+
 from pyminion.core import Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
-from pyminion.expansions.base import base_set, duchy, estate, gold, province, smithy
+from pyminion.expansions.base import (base_set, duchy, estate, gold, province,
+                                      smithy)
 from pyminion.game import Game
 from pyminion.players import Human
 
@@ -86,7 +88,7 @@ def test_game_is_over_false(game: Game):
 
 def test_game_is_over_true_provinces(game: Game):
     # Single player game ony has 5 provinces
-    for i in range(4):
+    for _ in range(4):
         game.supply.gain_card(card=province)
     assert not game.is_over()
     game.supply.gain_card(card=province)
@@ -94,13 +96,13 @@ def test_game_is_over_true_provinces(game: Game):
 
 
 def test_game_is_over_true_three_piles(game: Game):
-    for i in range(5):
+    for _ in range(5):
         game.supply.gain_card(card=estate)
     assert not game.is_over()
-    for i in range(5):
+    for _ in range(5):
         game.supply.gain_card(card=duchy)
     assert not game.is_over()
-    for i in range(29):
+    for _ in range(29):
         game.supply.gain_card(card=gold)
     assert not game.is_over()
     game.supply.gain_card(card=gold)
@@ -108,14 +110,20 @@ def test_game_is_over_true_three_piles(game: Game):
 
 
 def test_game_tie(multiplayer_game: Game):
-    assert multiplayer_game.get_winner() is None
+    # if equal score and equal turns, players tie
+    assert multiplayer_game.get_winners() == [
+        multiplayer_game.players[0],
+        multiplayer_game.players[1],
+    ]
 
 
 def test_game_win(multiplayer_game: Game):
+    # player with more points wins
     multiplayer_game.players[0].deck.add(estate)
-    assert multiplayer_game.get_winner() == multiplayer_game.players[0]
+    assert multiplayer_game.get_winners() == [multiplayer_game.players[0]]
 
 
 def test_game_win_turns(multiplayer_game: Game):
+    # if equal score, player with less turns wins
     multiplayer_game.players[1].turns += 1
-    assert multiplayer_game.get_winner() == multiplayer_game.players[0]
+    assert multiplayer_game.get_winners() == [multiplayer_game.players[0]]

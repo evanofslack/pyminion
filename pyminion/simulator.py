@@ -5,6 +5,7 @@ from typing import List, Union
 from pyminion.bots.bot import Bot
 from pyminion.game import Game
 from pyminion.players import Human, Player
+from pyminion.result import GameResult, SimulatorResult, SimulatorStats
 
 logger = logging.getLogger()
 
@@ -30,26 +31,30 @@ class Simulator:
     def __init__(self, game: Game, iterations: int = 100):
         self.game = game
         self.iterations = iterations
-        self.winners: List[Union[Player, Human, Bot]]
+        self.results: List[GameResult]
 
-    def run(self) -> None:
+    def run(self) -> SimulatorStats:
         logger.info(f"Simulating {self.iterations} games...")
-        winners = []
-        for i in range(self.iterations):
+        for _ in range(self.iterations):
             game = copy.copy((self.game))
-            game.play()
-            winner = game.get_winner()
-            winners.append(winner if winner else "tie")
-        self.winners = winners
-        self.get_stats()
+            result = game.play()
+            self.results.append(result)
 
-    def get_stats(self) -> None:
-        logger.info(f"\nSimulation of {self.iterations} games")
-        for player in self.game.players:
-            logger.info(
-                f"{player.player_id} wins: {get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
-            )
+        return self.summerize_simulation()
 
-        logger.info(
-            f"Ties: {get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
-        )
+        # self.get_stats()
+
+    def summerize_simulation(self) -> SimulatorResult:
+        result = SimulatorResult(iterations=self.iterations, game_results=self.results)
+        return result
+
+    # def get_stats(self) -> None:
+    #     logger.info(f"\nSimulation of {self.iterations} games")
+    #     for player in self.game.players:
+    #         logger.info(
+    #             f"{player.player_id} wins: {get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
+    #         )
+    #
+    #     logger.info(
+    #         f"Ties: {get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
+    #     )
