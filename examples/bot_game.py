@@ -1,5 +1,5 @@
 """
-Run a single game between two bots. 
+Run a single game between two bots.
 
 """
 
@@ -15,7 +15,9 @@ game = Game(
     players=[bm, bm_ultimate],
     expansions=[base_set],
     kingdom_cards=[smithy],
+    use_logger=True,
+    log_file_name="pyminion.log",
 )
 
 if __name__ == "__main__":
-    game.play()
+    result = game.play()
