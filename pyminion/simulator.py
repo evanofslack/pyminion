@@ -1,11 +1,9 @@
 import copy
 import logging
-from typing import List, Union
+from typing import List
 
-from pyminion.bots.bot import Bot
 from pyminion.game import Game
-from pyminion.players import Human, Player
-from pyminion.result import GameResult, SimulatorResult, SimulatorStats
+from pyminion.result import GameResult, SimulatorResult
 
 logger = logging.getLogger()
 
@@ -31,9 +29,9 @@ class Simulator:
     def __init__(self, game: Game, iterations: int = 100):
         self.game = game
         self.iterations = iterations
-        self.results: List[GameResult]
+        self.results: List[GameResult] = []
 
-    def run(self) -> SimulatorStats:
+    def run(self) -> SimulatorResult:
         logger.info(f"Simulating {self.iterations} games...")
         for _ in range(self.iterations):
             game = copy.copy((self.game))

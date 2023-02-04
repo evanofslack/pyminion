@@ -65,6 +65,7 @@ class Player:
 
         """
         self.turns = 0
+        self.shuffles = 0
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
