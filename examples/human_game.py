@@ -1,5 +1,6 @@
 """
-Play a game through the terminal. Either by yourself, with another human, or against a bot.
+Play a game through the terminal.
+Either by yourself, with another human, or against a bot.
 
 """
 
@@ -9,14 +10,13 @@ from pyminion.game import Game
 from pyminion.players import Human
 
 human = Human(player_id="Human")
-bm = BigMoney(player_id="Big Moneu")
+bm = BigMoney(player_id="Big Money")
 
 game = Game(
     players=[human, bm],
     expansions=[base_set],
-    kingdom_cards=[artisan, bandit, witch],
-    use_logger=True,
-    log_file_name="pyminion.log",
+    kingdom_cards=[artisan, bandit, witch],  # specific cards to add to the kingdom
+    random_order=True,  # players start in random order
 )
 
 if __name__ == "__main__":

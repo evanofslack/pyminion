@@ -15,7 +15,9 @@ game = Game(
     players=[bm, bm_smithy],
     expansions=[base_set],
     kingdom_cards=[smithy],
-    use_logger=False,
+    random_order=False,
+    log_stdout=False,
+    log_file=False,
 )
 
 sim = Simulator(game, iterations=1000)
