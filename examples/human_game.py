@@ -1,16 +1,23 @@
 """
-Play a game through the terminal. Either by yourself, with another human, or against a bot. 
+Play a game through the terminal.
+Either by yourself, with another human, or against a bot.
 
 """
+
 from pyminion.bots.examples import BigMoney
-from pyminion.expansions.base import base_set
+from pyminion.expansions.base import artisan, bandit, base_set, witch
 from pyminion.game import Game
 from pyminion.players import Human
 
 human = Human(player_id="Human")
-bot = BigMoney(player_id="Bot 1")
+bm = BigMoney(player_id="Big Money")
 
-game = Game(players=[human, bot], expansions=[base_set])
+game = Game(
+    players=[human, bm],
+    expansions=[base_set],
+    kingdom_cards=[artisan, bandit, witch],  # specific cards to add to the kingdom
+    random_order=True,  # players start in random order
+)
 
 if __name__ == "__main__":
-    game.play()
+    result = game.play()

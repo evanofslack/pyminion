@@ -1,10 +1,10 @@
 import copy
 import logging
-from typing import List, Union
+from typing import Dict, List
 
-from pyminion.bots.bot import Bot
 from pyminion.game import Game
-from pyminion.players import Human, Player
+from pyminion.players import Player
+from pyminion.result import GameResult, PlayerSimulatorResult, SimulatorResult
 
 logger = logging.getLogger()
 
@@ -30,26 +30,52 @@ class Simulator:
     def __init__(self, game: Game, iterations: int = 100):
         self.game = game
         self.iterations = iterations
-        self.winners: List[Union[Player, Human, Bot]]
+        self.results: List[GameResult] = []
 
-    def run(self) -> None:
+    def run(self) -> SimulatorResult:
         logger.info(f"Simulating {self.iterations} games...")
-        winners = []
-        for i in range(self.iterations):
+        for _ in range(self.iterations):
             game = copy.copy((self.game))
-            game.play()
-            winner = game.get_winner()
-            winners.append(winner if winner else "tie")
-        self.winners = winners
-        self.get_stats()
+            result = game.play()
+            self.results.append(result)
 
-    def get_stats(self) -> None:
-        logger.info(f"\nSimulation of {self.iterations} games")
+        return self.get_sim_result()
+
+    def get_sim_result(self) -> SimulatorResult:
+
+        # make temp hashmap to store player sim results
+        player_results: Dict[Player, PlayerSimulatorResult] = {}
+
+        # initialize each player result with default values
         for player in self.game.players:
-            logger.info(
-                f"{player.player_id} wins: {get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
+            player_results[player] = PlayerSimulatorResult(
+                player=player, wins=0, losses=0, ties=0
             )
 
-        logger.info(
-            f"Ties: {get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
+        # iterate through each simulated game to determine win record
+        for result in self.results:
+
+            # single player wins
+            if len(result.winners) == 1:
+                player_results[result.winners[0]].wins += 1
+
+            # multiple players tie
+            else:
+                for player in result.winners:
+                    player_results[player].ties += 1
+
+            # rest of players are losers
+            for player in self.game.players:
+                if player not in result.winners:
+                    player_results[player].losses += 1
+
+        player_results_final: List[PlayerSimulatorResult] = list(
+            player_results.values()
         )
+
+        sim_result = SimulatorResult(
+            iterations=self.iterations,
+            game_results=self.results,
+            player_results=player_results_final,
+        )
+        return sim_result

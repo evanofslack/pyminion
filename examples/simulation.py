@@ -1,5 +1,5 @@
 """
-Simulate multiple games between two or more bots. 
+Simulate multiple games between two or more bots.
 
 """
 from pyminion.bots.examples import BigMoney, BigMoneySmithy
@@ -11,9 +11,17 @@ bm = BigMoney()
 bm_smithy = BigMoneySmithy()
 
 
-game = Game(players=[bm, bm_smithy], expansions=[base_set], kingdom_cards=[smithy])
+game = Game(
+    players=[bm, bm_smithy],
+    expansions=[base_set],
+    kingdom_cards=[smithy],
+    random_order=False,
+    log_stdout=False,
+    log_file=False,
+)
 
 sim = Simulator(game, iterations=1000)
 
 if __name__ == "__main__":
-    sim.run()
+    result = sim.run()
+    print(result)

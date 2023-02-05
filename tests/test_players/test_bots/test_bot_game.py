@@ -3,15 +3,15 @@ from pyminion.expansions.base import base_set, smithy
 from pyminion.game import Game
 
 
-def test_game_1_player_play(bm_bot: BigMoney):
+def test_game_single_player_play(bm_bot: BigMoney):
+    # single player always wins by default
     game = Game(
         players=[bm_bot],
         expansions=[base_set],
         kingdom_cards=[smithy],
-        use_logger=False,
     )
     game.play()
-    assert game.get_winner() == bm_bot
+    assert game.get_winners() == [bm_bot]
 
 
 def test_game_2_player_play(bm_bot: BigMoney):
@@ -19,10 +19,9 @@ def test_game_2_player_play(bm_bot: BigMoney):
         players=[bm_bot, bm_bot],
         expansions=[base_set],
         kingdom_cards=[smithy],
-        use_logger=False,
     )
     game.play()
-    game.get_winner()
+    assert len(game.get_winners()) >= 1
 
 
 def test_game_2_player_with_actions():
@@ -31,7 +30,6 @@ def test_game_2_player_with_actions():
         players=[bot, bot],
         expansions=[base_set],
         kingdom_cards=[smithy],
-        use_logger=False,
     )
     game.play()
-    game.get_winner()
+    assert len(game.get_winners()) >= 1
