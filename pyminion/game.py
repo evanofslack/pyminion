@@ -281,7 +281,7 @@ class Game:
         player_summaries = []
         winners = self.get_winners()
 
-        for player in self.players:
+        for order, player in enumerate(self.players):
 
             # player won
             if player in winners and len(winners) == 1:
@@ -301,6 +301,7 @@ class Game:
                 score=player.get_victory_points(),
                 turns=player.turns,
                 shuffles=player.shuffles,
+                turn_order=order + 1,
                 deck=DeckCounter(player.get_all_cards()),
             )
             player_summaries.append(summary)

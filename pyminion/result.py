@@ -31,17 +31,33 @@ class PlayerSummary:
     score: int
     turns: int
     shuffles: int
+    turn_order: int
     deck: "DeckCounter"
 
     def __repr__(self):
+
+        order_format = "None"
+        if self.turn_order == 1:
+            order_format = "1st"
+
+        elif self.turn_order == 2:
+            order_format = "2nd"
+
+        elif self.turn_order == 3:
+            order_format = "3rd"
+
+        elif self.turn_order == 4:
+            order_format = "4th"
+
         player = f"Player: {self.player.player_id}"
         result = f"Result: {self.result.name}"
         score = f"Score: {self.score}"
         turns = f"Turns: {self.turns}"
         shuffles = f"Shuffles: {self.shuffles}"
+        order = f"Turn Order: {order_format}"
         deck = f"Deck: {self.deck}"
 
-        return f"{player}\n{result}\n{score}\n{turns}\n{shuffles}\n{deck}"
+        return f"{player}\n{result}\n{score}\n{turns}\n{shuffles}\n{order}\n{deck}"
 
 
 @dataclass
