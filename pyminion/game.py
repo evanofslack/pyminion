@@ -23,7 +23,8 @@ class Game:
         kingdom_cards: Specify any specific cards to be used in the supply.
         start_deck: List of cards each player will start the game with. Default = [7 Coppers + 3 Estates].
         random_order: If True, scrambles the order of players (to offset first player advantage).
-        use_logger: If True, logs the game to a log file.
+        log_stdout: If True, logs game to stdout.
+        log_file: If True, logs game to log file.
         log_file_name: Name of the file to be logged to. Default = "game.log"
 
     """
@@ -35,7 +36,8 @@ class Game:
         kingdom_cards: Optional[List[Card]] = None,
         start_deck: Optional[List[Card]] = None,
         random_order: bool = True,
-        use_logger: bool = True,
+        log_stdout: bool = True,
+        log_file: bool = False,
         log_file_name: str = "game.log",
     ):
 
@@ -50,7 +52,15 @@ class Game:
         self.random_order = random_order
         self.trash = Trash()
 
-        if use_logger:
+        if log_stdout:
+            # Set up a handler that logs to stdout
+            c_handler = logging.StreamHandler()
+            c_handler.setLevel(logging.INFO)
+            c_format = logging.Formatter("%(message)s")
+            c_handler.setFormatter(c_format)
+            logger.addHandler(c_handler)
+
+        if log_file:
             # Set up a handler that dumps the log to a file
             f_handler = logging.FileHandler(log_file_name, mode="w")
             f_handler.setLevel(logging.INFO)
