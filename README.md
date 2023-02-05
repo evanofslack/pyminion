@@ -93,18 +93,18 @@ from pyminion.simulator import Simulator
 bm = BigMoney()
 bm_smithy = BigMoneySmithy()
 
-game = Game(players=[bm, bm_smithy], expansions=[base_set], kingdom_cards=[smithy])
+game = Game(players=[bm, bm_smithy], expansions=[base_set], kingdom_cards=[smithy], log_stdout=False)
 sim = Simulator(game, iterations=1000)
-sim.run()
+result = sim.run()
+print(result)
 ```
 
 with the following terminal output: 
 ```console
 ~$ python simulation.py
-Simulation of 1000 games
-big_money wins: 16.8% (168)
-big_money_smithy wins: 57.5% (575)
-Ties: 25.7% (257)
+Simulation Result: ran 1000 games
+big_money won 110, lost 676, tied 214
+big_money_smithy won 676, lost 110, tied 214
 ```
 Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.  
 ## Support
