@@ -1,9 +1,10 @@
 import copy
 import logging
-from typing import List
+from typing import Dict, List
 
 from pyminion.game import Game
-from pyminion.result import GameResult, SimulatorResult
+from pyminion.players import Player
+from pyminion.result import GameResult, PlayerSimulatorResult, SimulatorResult
 
 logger = logging.getLogger()
 
@@ -38,21 +39,43 @@ class Simulator:
             result = game.play()
             self.results.append(result)
 
-        return self.summerize_simulation()
+        return self.get_sim_result()
 
-        # self.get_stats()
+    def get_sim_result(self) -> SimulatorResult:
 
-    def summerize_simulation(self) -> SimulatorResult:
-        result = SimulatorResult(iterations=self.iterations, game_results=self.results)
-        return result
+        # make temp hashmap to store player sim results
+        player_results: Dict[Player, PlayerSimulatorResult] = {}
 
-    # def get_stats(self) -> None:
-    #     logger.info(f"\nSimulation of {self.iterations} games")
-    #     for player in self.game.players:
-    #         logger.info(
-    #             f"{player.player_id} wins: {get_percent(self.winners.count(player), self.iterations)}% ({self.winners.count(player)})"
-    #         )
-    #
-    #     logger.info(
-    #         f"Ties: {get_percent(self.winners.count('tie'), self.iterations)}% ({self.winners.count('tie')})\n"
-    #     )
+        # initialize each player result with default values
+        for player in self.game.players:
+            player_results[player] = PlayerSimulatorResult(
+                player=player, wins=0, losses=0, ties=0
+            )
+
+        # iterate through each simulated game to determine win record
+        for result in self.results:
+
+            # single player wins
+            if len(result.winners) == 1:
+                player_results[result.winners[0]].wins += 1
+
+            # multiple players tie
+            else:
+                for player in result.winners:
+                    player_results[player].ties += 1
+
+            # rest of players are losers
+            for player in self.game.players:
+                if player not in result.winners:
+                    player_results[player].losses += 1
+
+        player_results_final: List[PlayerSimulatorResult] = list(
+            player_results.values()
+        )
+
+        sim_result = SimulatorResult(
+            iterations=self.iterations,
+            game_results=self.results,
+            player_results=player_results_final,
+        )
+        return sim_result

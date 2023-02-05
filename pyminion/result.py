@@ -27,7 +27,7 @@ class PlayerSummary:
     """
 
     player: "Player"
-    result: "GameOutcome"
+    result: GameOutcome
     score: int
     turns: int
     shuffles: int
@@ -35,7 +35,7 @@ class PlayerSummary:
 
     def __repr__(self):
         player = f"Player: {self.player.player_id}"
-        result = f"Result: {self.result}"
+        result = f"Result: {self.result.name}"
         score = f"Score: {self.score}"
         turns = f"Turns: {self.turns}"
         shuffles = f"Shuffles: {self.shuffles}"
@@ -64,9 +64,17 @@ class GameResult:
 
         format_summaries = ""
         for s in self.player_summaries:
-            format_summaries += f"\n\n{s}"
+            format_summaries += f"\n{s}"
 
         return f"Game Result: {result}{format_summaries}"
+
+
+@dataclass
+class PlayerSimulatorResult:
+    player: "Player"
+    wins: int
+    losses: int
+    ties: int
 
 
 @dataclass
@@ -78,3 +86,13 @@ class SimulatorResult:
 
     iterations: int
     game_results: List[GameResult]
+    player_results: List[PlayerSimulatorResult]
+
+    def __repr__(self):
+        title = f"ran {self.iterations} games"
+
+        format_results = ""
+        for result in self.player_results:
+            format_results += f"\n{result.player.player_id} won {result.wins}, lost {result.losses}, tied {result.ties}"
+
+        return f"Simulation Result: {title}{format_results}"
