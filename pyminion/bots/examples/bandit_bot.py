@@ -3,6 +3,7 @@ from typing import Iterator
 
 from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Card
+from pyminion.cardtype import CardType
 from pyminion.expansions.base import (
     bandit,
     duchy,
@@ -50,7 +51,7 @@ class BanditBot(OptimizedBot):
         num_smithy = self.get_card_count(card=smithy)
         num_bandit = self.get_card_count(card=bandit)
         num_treasure = len(
-            [card for card in self.get_all_cards() if "Treasure" in card.type]
+            [card for card in self.get_all_cards() if CardType.Treasure in card.type]
         )
 
         if deck_money > 15 and money >= 8:

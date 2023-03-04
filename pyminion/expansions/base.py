@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from pyminion.bots.bot import Bot
 from pyminion.core import AbstractDeck, Action, Card, Treasure, Victory
+from pyminion.cardtype import CardType
 from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
@@ -21,7 +22,7 @@ class Copper(Treasure):
         self,
         name: str = "Copper",
         cost: int = 0,
-        type: Tuple[str] = ("Treasure",),
+        type: Tuple[CardType] = (CardType.Treasure,),
         money: int = 1,
     ):
         super().__init__(name, cost, type, money)
@@ -37,7 +38,7 @@ class Silver(Treasure):
         self,
         name: str = "Silver",
         cost: int = 3,
-        type: Tuple[str] = ("Treasure",),
+        type: Tuple[CardType] = (CardType.Treasure,),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money)
@@ -61,7 +62,7 @@ class Gold(Treasure):
         self,
         name: str = "Gold",
         cost: int = 6,
-        type: Tuple[str] = ("Treasure",),
+        type: Tuple[CardType] = (CardType.Treasure,),
         money: int = 3,
     ):
         super().__init__(name, cost, type, money)
@@ -77,7 +78,7 @@ class Estate(Victory):
         self,
         name: str = "Estate",
         cost: int = 2,
-        type: Tuple[str] = ("Victory",),
+        type: Tuple[CardType] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -91,7 +92,7 @@ class Duchy(Victory):
         self,
         name: str = "Duchy",
         cost: int = 5,
-        type: Tuple[str] = ("Victory",),
+        type: Tuple[CardType] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -105,7 +106,7 @@ class Province(Victory):
         self,
         name: str = "Province",
         cost: int = 8,
-        type: Tuple[str] = ("Victory",),
+        type: Tuple[CardType] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -117,9 +118,9 @@ class Province(Victory):
 class Curse(Victory):
     def __init__(
         self,
-        name: str = "Curse",
+        name: str = CardType.Curse,
         cost: int = 0,
-        type: Tuple[str] = ("Curse",),
+        type: Tuple[CardType] = (CardType.Curse,),
     ):
         super().__init__(name, cost, type)
 
@@ -138,7 +139,7 @@ class Gardens(Victory):
         self,
         name: str = "Gardens",
         cost: int = 4,
-        type: Tuple[str] = ("Victory",),
+        type: Tuple[CardType] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -158,7 +159,7 @@ class Smithy(Action):
         self,
         name: str = "Smithy",
         cost: int = 4,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         draw: int = 3,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -185,7 +186,7 @@ class Village(Action):
         self,
         name: str = "Village",
         cost: int = 3,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 2,
         draw: int = 1,
     ):
@@ -214,7 +215,7 @@ class Laboratory(Action):
         self,
         name: str = "Laboratory",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 2,
     ):
@@ -243,7 +244,7 @@ class Market(Action):
         self,
         name: str = "Market",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -275,7 +276,7 @@ class Moneylender(Action):
         self,
         name: str = "Moneylender",
         cost: int = 4,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -319,7 +320,7 @@ class Cellar(Action):
         self,
         name: str = "Cellar",
         cost: int = 2,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
     ):
         super().__init__(name, cost, type, actions=actions)
@@ -371,7 +372,7 @@ class Chapel(Action):
         self,
         name: str = "Chapel",
         cost: int = 2,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -431,7 +432,7 @@ class Workshop(Action):
         self,
         name: str = "Workshop",
         cost: int = 3,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -487,7 +488,7 @@ class Festival(Action):
         self,
         name: str = "Festival",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 2,
         money: int = 2,
     ):
@@ -519,7 +520,7 @@ class Harbinger(Action):
         self,
         name: str = "Harbinger",
         cost: int = 3,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -572,7 +573,7 @@ class Vassal(Action):
         self,
         name: str = "Vassal",
         cost: int = 3,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money=money)
@@ -596,7 +597,7 @@ class Vassal(Action):
 
         logger.info(f"{player} discards {discard_card}")
 
-        if "Action" not in discard_card.type:
+        if CardType.Action not in discard_card.type:
             return
 
         if isinstance(player, Human):
@@ -627,7 +628,7 @@ class Artisan(Action):
         self,
         name: str = "Artisan",
         cost: int = 6,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -709,7 +710,7 @@ class Poacher(Action):
         self,
         name: str = "Poacher",
         cost: int = 4,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -780,7 +781,7 @@ class CouncilRoom(Action):
         self,
         name: str = "Council Room",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         draw: int = 4,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -814,7 +815,7 @@ class Witch(Action):
         self,
         name: str = "Witch",
         cost: int = 5,
-        type: Tuple[str] = ("Action", "Attack"),
+        type: Tuple[CardType] = (CardType.Action, CardType.Attack),
         draw: int = 2,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -857,7 +858,7 @@ class Moat(Action):
         self,
         name: str = "Moat",
         cost: int = 2,
-        type: Tuple[str] = ("Action", "Reaction"),
+        type: Tuple[CardType] = (CardType.Action, CardType.Reaction),
         draw: int = 2,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -886,7 +887,7 @@ class Merchant(Action):
         self,
         name: str = "Merchant",
         cost: int = 3,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -916,7 +917,7 @@ class Bandit(Action):
         self,
         name: str = "Bandit",
         cost: int = 5,
-        type: Tuple[str] = ("Action", "Attack"),
+        type: Tuple[CardType] = (CardType.Action, CardType.Attack),
     ):
         super().__init__(name, cost, type)
 
@@ -951,7 +952,7 @@ class Bandit(Action):
                         elif card.name == "Gold" and not trash_card:
                             trash_card = card
                         elif (
-                            "Treasure" in card.type
+                            CardType.Treasure in card.type
                             and card.name != "Copper"
                             and not trash_card
                         ):
@@ -975,7 +976,7 @@ class Bureaucrat(Action):
         self,
         name: str = "Bureaucrat",
         cost: int = 4,
-        type: Tuple[str] = ("Action", "Attack"),
+        type: Tuple[CardType] = (CardType.Action, CardType.Attack),
     ):
         super().__init__(name, cost, type)
 
@@ -1001,7 +1002,7 @@ class Bureaucrat(Action):
 
                 victory_cards = []
                 for card in opponent.hand.cards:
-                    if "Victory" in card.type:
+                    if CardType.Victory in card.type:
                         victory_cards.append(card)
 
                 if not victory_cards:
@@ -1045,7 +1046,7 @@ class ThroneRoom(Action):
         self,
         name: str = "Throne Room",
         cost: int = 4,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1058,7 +1059,7 @@ class ThroneRoom(Action):
         if generic_play:
             super().generic_play(player)
 
-        action_cards = [card for card in player.hand.cards if "Action" in card.type]
+        action_cards = [card for card in player.hand.cards if CardType.Action in card.type]
 
         if not action_cards:
             return
@@ -1098,7 +1099,7 @@ class Remodel(Action):
         self,
         name: str = "Remodel",
         cost: int = 4,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1184,7 +1185,7 @@ class Mine(Action):
         self,
         name: str = "Mine",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1197,7 +1198,7 @@ class Mine(Action):
         if generic_play:
             super().generic_play(player)
 
-        treasures = [card for card in player.hand.cards if "Treasure" in card.type]
+        treasures = [card for card in player.hand.cards if CardType.Treasure in card.type]
 
         if not treasures:
             return
@@ -1226,7 +1227,7 @@ class Mine(Action):
 
                 if not gain_card or isinstance(gain_card, str):
                     raise InvalidSingleCardInput("You must gain a card")
-                if "Treasure" not in trash_card.type:
+                if CardType.Treasure not in trash_card.type:
                     raise InvalidSingleCardInput("Card must be a Treasure")
                 if gain_card.cost > trash_card.cost + 3:
                     raise InvalidSingleCardInput(
@@ -1254,7 +1255,7 @@ class Mine(Action):
                 valid_cards=[
                     card
                     for card in game.supply.avaliable_cards()
-                    if "Treasure" in card.type and card.cost <= trash_card.cost + 3
+                    if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
                 ],
                 game=game,
                 required=True,
@@ -1278,7 +1279,7 @@ class Militia(Action):
         self,
         name: str = "Militia",
         cost: int = 4,
-        type: Tuple[str] = ("Action", "Attack"),
+        type: Tuple[CardType] = (CardType.Action, CardType.Attack),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money=money)
@@ -1345,7 +1346,7 @@ class Sentry(Action):
         self,
         name: str = "Sentry",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -1456,7 +1457,7 @@ class Library(Action):
         self,
         name: str = "Library",
         cost: int = 5,
-        type: Tuple[str] = ("Action",),
+        type: Tuple[CardType] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1478,7 +1479,7 @@ class Library(Action):
             player.draw(num_cards=1, destination=set_aside)
             drawn_card = set_aside.cards[-1]
 
-            if "Action" in drawn_card.type:
+            if CardType.Action in drawn_card.type:
                 if isinstance(player, Human):
                     if player.binary_decision(
                         prompt=f"You drew {drawn_card}, would you like to skip it? y/n: "

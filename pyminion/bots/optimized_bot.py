@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.bots.bot import Bot
 from pyminion.core import Card
+from pyminion.cardtype import CardType
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
 from pyminion.players import Player
@@ -44,16 +45,16 @@ class OptimizedBot(Bot):
         victory_cards = [
             card
             for card in sorted_cards
-            if "Victory" in card.type or "Curse" in card.type
+            if CardType.Victory in card.type or CardType.Curse in card.type
         ]
         non_victory_cards = [
             card
             for card in sorted_cards
-            if "Victory" not in card.type and "Curse" not in card.type
+            if CardType.Victory not in card.type and CardType.Curse not in card.type
         ]
-        treasure_cards = [card for card in non_victory_cards if "Treasure" in card.type]
+        treasure_cards = [card for card in non_victory_cards if CardType.Treasure in card.type]
         action_cards = [
-            card for card in non_victory_cards if "Treasure" not in card.type
+            card for card in non_victory_cards if CardType.Treasure not in card.type
         ]
         if actions == 0:
             return victory_cards + action_cards + treasure_cards
@@ -76,7 +77,7 @@ class OptimizedBot(Bot):
         deck_money = player.get_deck_money()
         trash_cards = []
         for card in valid_cards:
-            if card.name == "Curse":
+            if card.name == CardType.Curse:
                 trash_cards.append(card)
             elif (
                 card.name == "Estate"
@@ -262,8 +263,8 @@ class OptimizedBot(Bot):
                 card
                 for card in valid_cards
                 if card.name == "Copper"
-                or "Victory" in card.type
-                or "Curse" in card.type
+                or CardType.Victory in card.type
+                or CardType.Curse in card.type
             ]
         if binary:
             return False
@@ -276,7 +277,7 @@ class OptimizedBot(Bot):
         return [
             card
             for card in valid_cards
-            if card.name == "Copper" or "Victory" in card.type or "Curse" in card.type
+            if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
         ]
 
     def poacher(
@@ -308,7 +309,7 @@ class OptimizedBot(Bot):
     ) -> Card:
         if topdeck:
             for card in self.hand.cards:
-                if "Action" in card.type and self.state.actions == 0:
+                if CardType.Action in card.type and self.state.actions == 0:
                     return card
             else:
                 return self.hand.cards[-1]
@@ -368,7 +369,7 @@ class OptimizedBot(Bot):
 
     def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
         # Do not topdeck victory cards
-        best_topdeck = [card for card in valid_cards if "Victory" not in card.type]
+        best_topdeck = [card for card in valid_cards if CardType.Victory not in card.type]
         if not best_topdeck:
             return None
         # Topdeck highest price card if price > 2

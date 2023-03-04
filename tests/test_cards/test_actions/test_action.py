@@ -2,8 +2,9 @@ import pytest
 from pyminion.core import Action
 from pyminion.exceptions import InsufficientActions
 from pyminion.players import Player
+from pyminion.cardtype import CardType
 
-action = Action(name="test", cost="0", type="Action", actions=0, draw=0, money=0)
+action = Action(name="test", cost="0", type=CardType.Action, actions=0, draw=0, money=0)
 
 
 def test_action_common_play(player: Player):
