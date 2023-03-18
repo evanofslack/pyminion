@@ -2,8 +2,7 @@ import logging
 from typing import Iterator
 
 from pyminion.bots.optimized_bot import OptimizedBot
-from pyminion.core import Card
-from pyminion.cardtype import CardType
+from pyminion.core import CardType, Card
 from pyminion.expansions.base import (
     bandit,
     duchy,

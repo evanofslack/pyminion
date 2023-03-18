@@ -1,8 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Iterator, List, Optional
 
-from pyminion.core import Card
-from pyminion.cardtype import CardType
+from pyminion.core import CardType, Card
 from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.players import Player
 

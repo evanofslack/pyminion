@@ -1,5 +1,4 @@
 from pyminion.expansions.base import Witch, curse, witch
-from pyminion.cardtype import CardType
 from pyminion.game import Game
 
 
@@ -31,7 +30,7 @@ def test_witch_empty_curses(multiplayer_game: Game):
 
     # empty the curse pile
     for pile in multiplayer_game.supply.piles:
-        if pile.name == CardType.Curse:
+        if pile.name == "Curse":
             pile.cards = []
 
     player = multiplayer_game.players[0]

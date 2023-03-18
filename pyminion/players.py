@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pyminion.core import (AbstractDeck, Card, Deck, DiscardPile, Hand,
+from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decisions import (binary_decision, multiple_card_decision,
                                 single_card_decision, validate_input)
@@ -10,7 +10,6 @@ from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidBinaryInput,
                                  InvalidCardPlay, InvalidMultiCardInput,
                                  InvalidSingleCardInput)
-from pyminion.cardtype import (CardType)
 
 if TYPE_CHECKING:
     from pyminion.game import Game

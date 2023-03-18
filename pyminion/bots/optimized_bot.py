@@ -2,8 +2,7 @@ import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.bots.bot import Bot
-from pyminion.core import Card
-from pyminion.cardtype import CardType
+from pyminion.core import CardType, Card
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
 from pyminion.players import Player

@@ -24,7 +24,7 @@ from pyminion.expansions.base import (
     village,
     workshop,
 )
-from pyminion.cardtype import CardType
+from pyminion.core import CardType
 from pyminion.game import Game
 
 

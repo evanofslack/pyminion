@@ -3,8 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from pyminion.bots.bot import Bot
-from pyminion.core import AbstractDeck, Action, Card, Treasure, Victory
-from pyminion.cardtype import CardType
+from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
 from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
@@ -118,7 +117,7 @@ class Province(Victory):
 class Curse(Victory):
     def __init__(
         self,
-        name: str = CardType.Curse,
+        name: str = "Curse",
         cost: int = 0,
         type: Tuple[CardType] = (CardType.Curse,),
     ):
