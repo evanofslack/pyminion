@@ -216,6 +216,17 @@ class Supply:
             if card.name == pile.name:
                 pile.add(card)
 
+    def trash_card(self, card: Card, trash: "Trash") -> None:
+        """
+        Trash a card from the supply.
+
+        """
+        for pile in self.piles:
+            if card.name == pile.name:
+                pile.remove(card)
+                trash.add(card)
+                break
+
     def avaliable_cards(self) -> List[Card]:
         """
         Returns a list containing a single card from each non-empty pile in the supply.

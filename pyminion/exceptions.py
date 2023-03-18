@@ -75,6 +75,13 @@ class InvalidMultiCardInput(InvalidInput):
     """
 
 
+class InvalidMultiOptionInput(InvalidInput):
+    """
+    Invalid response, not a valid option
+
+    """
+
+
 class InvalidPlayerCount(Exception):
     """
     Invalid number of players in game

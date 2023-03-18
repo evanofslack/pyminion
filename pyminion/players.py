@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from pyminion.core import (AbstractDeck, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decisions import (binary_decision, multiple_card_decision,
-                                single_card_decision, validate_input)
+                                single_card_decision, validate_input,
+                                multiple_option_decision)
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidBinaryInput,
                                  InvalidCardPlay, InvalidMultiCardInput,
-                                 InvalidSingleCardInput)
+                                 InvalidSingleCardInput, InvalidMultiOptionInput)
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -355,6 +356,18 @@ class Human(Player):
 
         """
         return multiple_card_decision(prompt=prompt, valid_cards=valid_cards)
+
+    @staticmethod
+    @validate_input(exceptions=InvalidMultiOptionInput)
+    def multiple_option_decision(
+        options: List[str],
+    ) -> int:
+        """
+        Wrap multiple_option_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return multiple_option_decision(options)
 
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         for card in self.hand.cards:

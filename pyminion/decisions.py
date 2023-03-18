@@ -5,7 +5,7 @@ from typing import Callable, List, Optional, Tuple, Type, Union
 
 from pyminion.core import Card
 from pyminion.exceptions import (InvalidBinaryInput, InvalidMultiCardInput,
-                                 InvalidSingleCardInput)
+                                 InvalidSingleCardInput, InvalidMultiOptionInput)
 
 logger = logging.getLogger()
 
@@ -123,3 +123,30 @@ def multiple_card_decision(
                 f"Invalid input, attempted to select too many copies of {element}"
             )
     return selected_cards
+
+def multiple_option_decision(
+    options: List[str]
+) -> int:
+    """
+    Get user input when given multiple options
+
+    options are a list of strings describing the options that a user can choose
+    from.
+
+    Raise exception if user provided selection is not a valid option
+
+    """
+    print("Choose one of the following:")
+    for i, option in enumerate(options):
+        print(f"{i + 1}: {option}")
+    choice = input("Choice: ")
+
+    try:
+        choice_num = int(choice)
+    except ValueError:
+        raise InvalidMultiOptionInput(f"'{choice}' is not a valid number")
+
+    if choice_num <= 0 or choice_num > len(options):
+        raise InvalidMultiOptionInput(f"'{choice_num}' is not a valid option")
+
+    return choice_num - 1

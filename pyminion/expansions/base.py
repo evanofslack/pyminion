@@ -1540,7 +1540,7 @@ witch = Witch()
 workshop = Workshop()
 
 
-base_set = [
+base_set: List[Card] = [
     artisan,
     bandit,
     bureaucrat,
