@@ -2,7 +2,7 @@ import logging
 from typing import Iterator
 
 from pyminion.bots.bot import Bot
-from pyminion.core import Card
+from pyminion.core import CardType, Card
 from pyminion.expansions.base import duchy, estate, gold, province, silver, smithy
 from pyminion.game import Game
 
@@ -39,7 +39,7 @@ class BigMoneyUltimate(Bot):
         num_province = game.supply.pile_length(pile_name="Province")
         num_smithy = self.get_card_count(card=smithy)
         num_treasure = len(
-            [card for card in self.get_all_cards() if "Treasure" in card.type]
+            [card for card in self.get_all_cards() if CardType.Treasure in card.type]
         )
 
         if deck_money > 15 and money >= 8:

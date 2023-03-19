@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pyminion.core import (AbstractDeck, Card, Deck, DiscardPile, Hand,
+from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decisions import (binary_decision, multiple_card_decision,
                                 single_card_decision, validate_input,
@@ -132,10 +132,10 @@ class Player:
             raise CardNotFound(f"Invalid play, {target_card} not in hand")
         for card in self.hand.cards:
             if card.name == target_card.name:
-                if "Action" in card.type:
+                if CardType.Action in card.type:
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
-                if "Treasure" in card.type:
+                if CardType.Treasure in card.type:
                     card.play(player=self, game=game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
@@ -146,9 +146,9 @@ class Player:
         This is method is necessary when playing cards not in the player's hand, such as vassal.
 
         """
-        if "Action" in card.type:
+        if CardType.Action in card.type:
             card.play(player=self, game=game, generic_play=generic_play)
-        elif "Treasure" in card.type:
+        elif CardType.Treasure in card.type:
             card.play(player=self, game=game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
@@ -270,7 +270,7 @@ class Player:
         """
         total_vp: int = 0
         for card in self.get_all_cards():
-            if "Victory" in card.type or "Curse" in card.type:
+            if CardType.Victory in card.type or CardType.Curse in card.type:
                 total_vp += card.score(self)
         return total_vp
 
@@ -281,7 +281,7 @@ class Player:
         """
         total_money: int = 0
         for card in self.get_all_cards():
-            if "Treasure" in card.type:
+            if CardType.Treasure in card.type:
                 total_money += card.money
         return total_money
 
@@ -292,7 +292,7 @@ class Player:
         """
         total_money: int = 0
         for card in self.get_all_cards():
-            if "Action" in card.type:
+            if CardType.Action in card.type:
                 total_money += card.money
         return total_money
 
@@ -381,7 +381,7 @@ class Human(Player):
     def start_action_phase(self, game: "Game") -> None:
         while self.state.actions:
 
-            viable_actions = [card for card in self.hand.cards if "Action" in card.type]
+            viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
             if not viable_actions:
                 return
 
@@ -400,7 +400,7 @@ class Human(Player):
             choose_action(game)
 
     def start_treasure_phase(self, game: "Game") -> None:
-        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
+        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         while viable_treasures:
 
             @validate_input(exceptions=InvalidSingleCardInput)

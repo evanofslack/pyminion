@@ -24,6 +24,7 @@ from pyminion.expansions.base import (
     village,
     workshop,
 )
+from pyminion.core import CardType
 from pyminion.game import Game
 
 
@@ -44,7 +45,7 @@ def test_bureaucrat_bot(bot: OptimizedBot, multiplayer_bot_game: Game):
     bot = multiplayer_bot_game.players[0]
     bot.hand.add(bureaucrat)
     opponent = multiplayer_bot_game.players[1]
-    victory_cards = [card for card in opponent.hand.cards if "Victory" in card.type]
+    victory_cards = [card for card in opponent.hand.cards if CardType.Victory in card.type]
     for card in victory_cards:
         opponent.hand.remove(card)
     opponent.hand.add(duchy)

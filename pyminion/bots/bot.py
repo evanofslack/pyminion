@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Iterator, List, Optional
 
-from pyminion.core import Card
+from pyminion.core import CardType, Card
 from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.players import Player
 
@@ -47,7 +47,7 @@ class Bot(Player):
         Attempts to play cards from the action_priority queue if possible
 
         """
-        viable_actions = [card for card in self.hand.cards if "Action" in card.type]
+        viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
         logger.info(f"{self.player_id}'s hand: {self.hand}")
         while viable_actions and self.state.actions:
             for card in self.action_priority(game=game):
@@ -64,7 +64,7 @@ class Bot(Player):
         At start of action phase, bot simply plays all of their treasures
 
         """
-        viable_treasures = [card for card in self.hand.cards if "Treasure" in card.type]
+        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         self.autoplay_treasures(viable_treasures=viable_treasures, game=game)
 
     def buy_priority(self, game: "Game") -> Iterator[Card]:
