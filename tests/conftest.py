@@ -11,6 +11,7 @@ from pyminion.expansions.base import (
     gold,
     province,
     silver,
+    smithy,
 )
 from pyminion.game import Game
 from pyminion.players import Human, Player
@@ -82,6 +83,7 @@ def game(player):
     game = Game(
         players=[player],
         expansions=[base_set],
+        kingdom_cards=[smithy],
         # start_cards=start_cards,
     )
     game.supply = game._create_supply()

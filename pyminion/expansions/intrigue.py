@@ -154,9 +154,11 @@ class Lurker(Action):
                             "Card was not gained when playing Lurker"
                         )
 
-            game.supply.trash_card(trash_card, game.trash)
-            game.trash.remove(gain_card)
-            player.discard_pile.add(gain_card)
+            if option == 0:
+                game.supply.trash_card(trash_card, game.trash)
+            else:
+                game.trash.remove(gain_card)
+                player.discard_pile.add(gain_card)
 
 
 courtyard = Courtyard()
