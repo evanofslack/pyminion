@@ -1,4 +1,3 @@
-import copy
 import logging
 import random
 from typing import List, Optional
@@ -186,7 +185,7 @@ class Game:
 
         for player in self.players:
             player.reset()
-            player.discard_pile = Deck(copy.deepcopy(self.start_deck))
+            player.discard_pile = Deck(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(5)
 
