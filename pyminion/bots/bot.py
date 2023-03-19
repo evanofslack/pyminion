@@ -214,5 +214,13 @@ class Bot(Player):
         else:
             return None
 
+    def multiple_option_decision(
+        self,
+        card: Card,
+        options: List[str],
+        game: "Game",
+    ) -> int:
+        return 0
+
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         return True

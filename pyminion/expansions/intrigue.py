@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from pyminion.bots.bot import Bot
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
+from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
 from pyminion.players import Human, Player
@@ -75,10 +76,10 @@ class Lurker(Action):
         player.state.actions += 1
 
         supply_action_cards = [
-            c for c in game.supply.avaliable_cards() if "Action" in c.type
+            c for c in game.supply.avaliable_cards() if CardType.Action in c.type
         ]
         trash_action_cards = [
-            c for c in game.trash.cards if "Action" in c.type
+            c for c in game.trash.cards if CardType.Action in c.type
         ]
 
         if len(supply_action_cards) > 0 or len(trash_action_cards) > 0:
@@ -87,35 +88,48 @@ class Lurker(Action):
             elif len(trash_action_cards) == 0:
                 option = 0
             else:
+                options = [
+                    "Trash an Action card from the Supply",
+                    "Gain an Action card from the trash",
+                ]
                 if isinstance(player, Human):
-                    option = player.multiple_option_decision([
-                        "Trash an Action card from the Supply",
-                        "Gain an Action card from the trash",
-                    ])
+                    option = player.multiple_option_decision(options)
                 elif isinstance(player, Bot):
-                    # TODO
-                    option = 0
+                    option = player.multiple_option_decision(
+                        self,
+                        options,
+                        game,
+                    )
+
+            @validate_input(exceptions=InvalidSingleCardInput)
+            def get_trash_card() -> Card:
+                trash_card = player.single_card_decision(
+                    "Choose a card from the Supply to trash",
+                    supply_action_cards,
+                )
+
+                if trash_card is None or isinstance(trash_card, str):
+                    raise InvalidSingleCardInput("You must trash a card")
+
+                return trash_card
+
+            @validate_input(exceptions=InvalidSingleCardInput)
+            def get_gain_card() -> Card:
+                gain_card = player.single_card_decision(
+                    "Choose a card to gain from the trash",
+                    trash_action_cards,
+                )
+
+                if gain_card is None or isinstance(gain_card, str):
+                    raise InvalidSingleCardInput("You must gain a card")
+
+                return gain_card
 
             if isinstance(player, Human):
                 if option == 0:
-                    # TODO: wrap in function
-                    trash_card = player.single_card_decision(
-                        "Choose a card from the Supply to trash",
-                        supply_action_cards,
-                    )
-                    if trash_card is None or isinstance(trash_card, str):
-                        raise InvalidSingleCardInput("You must trash a card")
-                    game.supply.trash_card(trash_card, game.trash)
+                    trash_card = get_trash_card()
                 else:
-                    # TODO: wrap in function
-                    gain_card = player.single_card_decision(
-                        "Choose a card to gain from the trash",
-                        trash_action_cards,
-                    )
-                    if gain_card is None or isinstance(gain_card, str):
-                        raise InvalidSingleCardInput("You must gain a card")
-                    game.trash.remove(gain_card)
-                    player.discard_pile.add(gain_card)
+                    gain_card = get_gain_card()
             elif isinstance(player, Bot):
                 if option == 0:
                     trash_card = player.trash_resp(
@@ -128,7 +142,6 @@ class Lurker(Action):
                         raise InvalidBotImplementation(
                             "Card was not trashed when playing Lurker"
                         )
-                    game.supply.trash_card(trash_card, game.trash)
                 else:
                     gain_card = player.gain_resp(
                         card=self,
@@ -140,11 +153,15 @@ class Lurker(Action):
                         raise InvalidBotImplementation(
                             "Card was not gained when playing Lurker"
                         )
-                    game.trash.remove(gain_card)
-                    player.discard_pile.add(gain_card)
+
+            game.supply.trash_card(trash_card, game.trash)
+            game.trash.remove(gain_card)
+            player.discard_pile.add(gain_card)
+
 
 courtyard = Courtyard()
 lurker = Lurker()
+
 
 intrigue_set: List[Card] = [
     courtyard,
