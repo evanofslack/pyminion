@@ -2,7 +2,7 @@ import logging
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from pyminion.bots.bot import Bot
-from pyminion.core import AbstractDeck, Action, Card, Treasure, Victory
+from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
 from pyminion.players import Human, Player
@@ -10,7 +10,9 @@ from pyminion.players import Human, Player
 if TYPE_CHECKING:
     from pyminion.game import Game
 
+
 logger = logging.getLogger()
+
 
 class Courtyard(Action):
     """
@@ -21,7 +23,7 @@ class Courtyard(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Courtyard", cost=2, type=("Action",))
+        super().__init__(name="Courtyard", cost=2, type=(CardType.Action,))
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -50,6 +52,7 @@ class Courtyard(Action):
         player.hand.remove(topdeck_card)
         player.deck.add(topdeck_card)
 
+
 class Lurker(Action):
     """
     +1 Action
@@ -59,7 +62,7 @@ class Lurker(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Lurker", cost=2, type=("Action",))
+        super().__init__(name="Lurker", cost=2, type=(CardType.Action,))
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
