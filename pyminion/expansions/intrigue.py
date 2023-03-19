@@ -7,6 +7,7 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
 from pyminion.players import Human, Player
+from pyminion.expansions.base import duchy
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -52,6 +53,23 @@ class Courtyard(Action):
 
         player.hand.remove(topdeck_card)
         player.deck.add(topdeck_card)
+
+
+class Duke(Victory):
+    """
+    Worth 1VP per Duchy you have.
+
+    """
+
+    def __init__(self):
+        super().__init__("Duke", 5, (CardType.Victory,))
+
+    def score(self, player: Player) -> int:
+        vp = 0
+        for card in player.get_all_cards():
+            if card.name == duchy.name:
+                vp += 1
+        return vp
 
 
 class Lurker(Action):
@@ -162,10 +180,12 @@ class Lurker(Action):
 
 
 courtyard = Courtyard()
+duke = Duke()
 lurker = Lurker()
 
 
 intrigue_set: List[Card] = [
     courtyard,
+    duke,
     lurker,
 ]
