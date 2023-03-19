@@ -1,6 +1,6 @@
 import pytest
 
-from pyminion.core import Card, Supply, Trash
+from pyminion.core import CardType, Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (base_set, duchy, estate, gold, province,
                                       smithy)
@@ -72,7 +72,7 @@ def test_setup_user_selected_card(human):
 
 
 def test_setup_invalid_user_selected_card(human):
-    fake_card = Card(name="fake", cost=0, type=("Action",))
+    fake_card = Card(name="fake", cost=0, type=(CardType.Action,))
     game = Game(
         players=[human, human, human, human],
         expansions=[base_set],

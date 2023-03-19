@@ -3,7 +3,7 @@ import logging
 import random
 from typing import List, Optional
 
-from pyminion.core import Card, Deck, DeckCounter, Pile, Supply, Trash
+from pyminion.core import CardType, Card, Deck, DeckCounter, Pile, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
@@ -115,9 +115,9 @@ class Game:
                 basic_piles.append(Pile([card] * SILVER_LENGTH))
             elif card.name == "Gold":
                 basic_piles.append(Pile([card] * GOLD_LENGTH))
-            elif "Victory" in card.type:
+            elif CardType.Victory in card.type:
                 basic_piles.append(Pile([card] * VICTORY_LENGTH))
-            elif card.name == "Curse":
+            elif CardType.Curse in card.type:
                 basic_piles.append(Pile([card] * CURSE_LENGTH))
 
         return basic_piles

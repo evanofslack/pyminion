@@ -6,10 +6,24 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 if TYPE_CHECKING:
     from pyminion.players import Player
 
+from enum import Enum
 from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
 
 logger = logging.getLogger()
 
+
+
+class CardType(Enum):
+    """
+    Enum class for all card types that are currently used in the implemented expansions
+
+    """
+    Treasure = 1
+    Victory = 2
+    Curse = 3
+    Action = 4
+    Attack = 5
+    Reaction = 6
 
 class Card:
 
@@ -18,7 +32,7 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int, type: Tuple[str]):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         self.name = name
         self.cost = cost
         self.type = type
@@ -28,7 +42,7 @@ class Card:
 
 
 class Victory(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[str]):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         super().__init__(name, cost, type)
 
     def score(self):
@@ -40,7 +54,7 @@ class Victory(Card):
 
 
 class Treasure(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[str], money: int):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType], money: int):
         super().__init__(name, cost, type)
         self.money = money
 
@@ -57,7 +71,7 @@ class Action(Card):
         self,
         name: str,
         cost: int,
-        type: Tuple[str],
+        type: Tuple[CardType],
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
