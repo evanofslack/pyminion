@@ -179,13 +179,56 @@ class Lurker(Action):
                 player.discard_pile.add(gain_card)
 
 
+class Nobles(Action, Victory):
+    """
+    Choose one: +3 Cards; or +2 Actions.
+
+    """
+
+    def __init__(self):
+        Action.__init__(self, "Nobles", 6, (CardType.Action, CardType.Victory))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        options = [
+            "+3 Cards",
+            "+2 Actions",
+        ]
+        if isinstance(player, Human):
+            option = player.multiple_option_decision(options)
+        elif isinstance(player, Bot):
+            option = player.multiple_option_decision(
+                self,
+                options,
+                game,
+            )
+
+        if option == 0:
+            player.draw(3)
+        else:
+            player.state.actions += 2
+
+    def score(self, player: Player) -> int:
+        vp = 2
+        return vp
+
+
 courtyard = Courtyard()
 duke = Duke()
 lurker = Lurker()
+nobles = Nobles()
 
 
 intrigue_set: List[Card] = [
     courtyard,
     duke,
     lurker,
+    nobles,
 ]
