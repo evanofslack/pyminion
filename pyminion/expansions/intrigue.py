@@ -220,10 +220,38 @@ class Nobles(Action, Victory):
         return vp
 
 
+class ShantyTown(Action):
+    """
+    +2 Actions
+
+    Reveal your hand.
+    If you have no Action cards in hand, +2 Cards.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Shanty Town", cost=3, type=(CardType.Action,))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.actions += 2
+
+        if not any(CardType.Action in c.type for c in player.hand.cards):
+            player.draw(2)
+
+
 courtyard = Courtyard()
 duke = Duke()
 lurker = Lurker()
 nobles = Nobles()
+shanty_town = ShantyTown()
 
 
 intrigue_set: List[Card] = [
@@ -231,4 +259,5 @@ intrigue_set: List[Card] = [
     duke,
     lurker,
     nobles,
+    shanty_town,
 ]
