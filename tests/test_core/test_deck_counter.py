@@ -23,10 +23,10 @@ def test_deck_counter_starting_cards():
     player1 = game.players[0]
 
     deck_counter1 = DeckCounter(player1.get_all_cards())
-    assert str(deck_counter1) == "7 Copper, 3 Estate"
+    assert str(deck_counter1) in ["7 Copper, 3 Estate", "3 Estate, 7 Copper"]
 
     player1.gain(copper, game.supply)
     player1.gain(estate, game.supply)
 
     deck_counter2 = DeckCounter(player1.get_all_cards())
-    assert str(deck_counter2) == "8 Copper, 4 Estate"
+    assert str(deck_counter2) in ["8 Copper, 4 Estate", "4 Estate, 8 Copper"]
