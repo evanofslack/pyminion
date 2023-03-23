@@ -7,13 +7,54 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
 from pyminion.players import Human, Player
-from pyminion.expansions.base import duchy
+from pyminion.expansions.base import duchy, estate
 
 if TYPE_CHECKING:
     from pyminion.game import Game
 
 
 logger = logging.getLogger()
+
+
+class Baron(Action):
+    """
+    +1 Buy
+
+    You may discard an Estate for +4 money. If you don't, gain an Estate.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Baron", cost=4, type=(CardType.Action,))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.buys += 1
+
+        discard_estate = False
+        if estate in player.hand.cards:
+            options = [
+                "Discard estate for +4 money",
+                "Gain an estate",
+            ]
+            if isinstance(player, Human):
+                response = player.multiple_option_decision(options)
+            elif isinstance(player, Bot):
+                response = player.multiple_option_decision(self, options, game)
+
+            discard_estate = response == 0
+
+        if discard_estate:
+            player.discard(estate)
+            player.state.money += 4
+        elif game.supply.pile_length(estate.name) > 0:
+            player.gain(estate, game.supply)
 
 
 class Courtyard(Action):
@@ -247,6 +288,7 @@ class ShantyTown(Action):
             player.draw(2)
 
 
+baron = Baron()
 courtyard = Courtyard()
 duke = Duke()
 lurker = Lurker()
@@ -255,6 +297,7 @@ shanty_town = ShantyTown()
 
 
 intrigue_set: List[Card] = [
+    baron,
     courtyard,
     duke,
     lurker,
