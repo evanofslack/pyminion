@@ -122,7 +122,7 @@ class Lurker(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Lurker", cost=2, type=(CardType.Action,))
+        super().__init__(name="Lurker", cost=2, type=(CardType.Action,), actions=1)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
@@ -271,7 +271,7 @@ class ShantyTown(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Shanty Town", cost=3, type=(CardType.Action,))
+        super().__init__(name="Shanty Town", cost=3, type=(CardType.Action,), actions=2)
 
     def play(
         self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
