@@ -288,12 +288,86 @@ class ShantyTown(Action):
             player.draw(2)
 
 
+class Steward(Action):
+    """
+    Choose one: +2 Cards; or +2 money; or trash 2 cards from your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Steward", cost=3, type=(CardType.Action,))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        options = [
+            "+2 Cards",
+            "+2 Money",
+            "Trash 2 cards from your hand",
+        ]
+        if isinstance(player, Human):
+            option = player.multiple_option_decision(options)
+        elif isinstance(player, Bot):
+            option = player.multiple_option_decision(self, options, game)
+
+        if option == 0:
+            player.draw(2)
+        elif option == 1:
+            player.state.money += 2
+        else:
+            trash_cards = self._get_trash_cards(player, game)
+            for card in trash_cards:
+                player.trash(card, game.trash)
+
+    def _get_trash_cards(self, player: Union[Human, Bot], game: "Game") -> List[Card]:
+
+        if len(player.hand) <= 2:
+            return player.hand.cards[:]
+
+        @validate_input(exceptions=InvalidMultiCardInput)
+        def get_trash_cards() -> List[Card]:
+            trash_cards = player.multiple_card_decision(
+                prompt="Enter 2 cards you would like to trash from your hand: ",
+                valid_cards=player.hand.cards,
+            )
+            if trash_cards is None or len(trash_cards) != 2:
+                raise InvalidMultiCardInput(
+                    "You must trash 2 cards with steward"
+                )
+            return trash_cards
+
+        trash_cards: List[Card] = []
+        if isinstance(player, Human):
+            trash_cards = get_trash_cards()
+
+        elif isinstance(player, Bot):
+            resp = player.multiple_trash_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+                required=True,
+            )
+            if resp is None or len(resp) != 2:
+                raise InvalidMultiCardInput(
+                    "You must trash 2 cards with steward"
+                )
+            trash_cards = resp
+
+        return trash_cards
+
 baron = Baron()
 courtyard = Courtyard()
 duke = Duke()
 lurker = Lurker()
 nobles = Nobles()
 shanty_town = ShantyTown()
+steward = Steward()
 
 
 intrigue_set: List[Card] = [
@@ -303,4 +377,5 @@ intrigue_set: List[Card] = [
     lurker,
     nobles,
     shanty_town,
+    steward,
 ]
