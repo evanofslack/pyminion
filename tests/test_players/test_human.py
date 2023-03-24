@@ -3,28 +3,28 @@ from pyminion.game import Game
 from pyminion.players import Human
 
 
-def test_yes_input(human: Human, monkeypatch):
+def test_yes_input(human: Human, game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "y")
-    assert human.binary_decision(prompt="test") is True
+    assert human.get_binary_decision(prompt="test", card=copper, game=game) is True
     monkeypatch.setattr("builtins.input", lambda _: "yes")
-    assert human.binary_decision(prompt="test") is True
+    assert human.get_binary_decision(prompt="test", card=copper, game=game) is True
 
 
-def test_no_input(human: Human, monkeypatch):
+def test_no_input(human: Human, game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "n")
-    assert human.binary_decision(prompt="test") is False
+    assert human.get_binary_decision(prompt="test", card=copper, game=game) is False
     monkeypatch.setattr("builtins.input", lambda _: "no")
-    assert human.binary_decision(prompt="test") is False
+    assert human.get_binary_decision(prompt="test", card=copper, game=game) is False
 
 
-def test_is_attacked_no_moat(human: Human, monkeypatch):
-    assert human.is_attacked(player=None, attack_card=None)
+def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):
+    assert human.is_attacked(player=human, attack_card=witch, game=game)
 
 
-def test_is_attacked_yes_moat(human: Human, monkeypatch):
+def test_is_attacked_yes_moat(human: Human, game: Game, monkeypatch):
     human.hand.add(card=moat)
     monkeypatch.setattr("builtins.input", lambda _: "yes")
-    assert not human.is_attacked(player=human, attack_card=witch)
+    assert not human.is_attacked(player=human, attack_card=witch, game=game)
 
 
 def test_action_phase_no_actions(human: Human, game: Game):

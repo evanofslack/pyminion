@@ -294,13 +294,11 @@ class Moneylender(Action):
         if copper not in player.hand.cards:
             return
 
-        if isinstance(player, Human):
-            response = player.binary_decision(
-                prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
-            )
-
-        elif isinstance(player, Bot):
-            response = player.binary_resp(game=game, card=self)
+        response = player.get_binary_decision(
+            prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
+            card=self,
+            game=game,
+        )
 
         if response:
             player.trash(target_card=copper, trash=game.trash)
@@ -599,12 +597,11 @@ class Vassal(Action):
         if CardType.Action not in discard_card.type:
             return
 
-        if isinstance(player, Human):
-            decision = player.binary_decision(
-                prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  "
-            )
-        elif isinstance(player, Bot):
-            decision = player.binary_resp(game=game, card=self)
+        decision = player.get_binary_decision(
+            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  ",
+            card=self,
+            game=game,
+        )
 
         if not decision:
             return
@@ -832,7 +829,7 @@ class Witch(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self):
+                if opponent.is_attacked(player=player, attack_card=self, game=game):
 
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
@@ -937,7 +934,7 @@ class Bandit(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self):
+                if opponent.is_attacked(player=player, attack_card=self, game=game):
 
                     revealed_cards = AbstractDeck()
                     opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
@@ -996,7 +993,7 @@ class Bureaucrat(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self
+                player=player, attack_card=self, game=game
             ):
 
                 victory_cards = []
@@ -1296,7 +1293,7 @@ class Militia(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self
+                player=player, attack_card=self, game=game
             ):
 
                 num_discard = len(opponent.hand) - 3
@@ -1401,8 +1398,10 @@ class Sentry(Action):
                 logger.info(
                     f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
                 )
-                reorder = player.binary_decision(
-                    prompt="Would you like to switch the order of the cards?"
+                reorder = player.get_binary_decision(
+                    prompt="Would you like to switch the order of the cards?",
+                    card=self,
+                    game=game,
                 )
 
         elif isinstance(player, Bot):
@@ -1426,7 +1425,11 @@ class Sentry(Action):
                     revealed.remove(card)
             reorder = False
             if len(revealed.cards) == 2:
-                reorder = player.binary_resp(game=game, card=self)
+                reorder = player.get_binary_decision(
+                    prompt="Would you like to switch the order of the cards?",
+                    card=self,
+                    game=game,
+                )
 
         if trash_cards:
             for card in trash_cards:
@@ -1479,22 +1482,14 @@ class Library(Action):
             drawn_card = set_aside.cards[-1]
 
             if CardType.Action in drawn_card.type:
-                if isinstance(player, Human):
-                    if player.binary_decision(
-                        prompt=f"You drew {drawn_card}, would you like to skip it? y/n: "
-                    ):
-                        pass
-                    else:
-                        player.hand.add(set_aside.remove(drawn_card))
-
-                    pass
-                if isinstance(player, Bot):
-                    if player.binary_resp(
-                        game=game, card=self, relevant_cards=[drawn_card]
-                    ):
-                        pass
-                    else:
-                        player.hand.add(set_aside.remove(drawn_card))
+                should_skip = player.get_binary_decision(
+                    prompt=f"You drew {drawn_card}, would you like to skip it? y/n: ",
+                    card=self,
+                    game=game,
+                    relevant_cards=[drawn_card],
+                )
+                if not should_skip:
+                    player.hand.add(set_aside.remove(drawn_card))
 
             else:
                 player.hand.add(set_aside.remove(drawn_card))

@@ -1,12 +1,12 @@
 import pytest
 
 from pyminion.bots.bot import Bot
-from pyminion.expansions.base import copper, estate, gold
+from pyminion.expansions.base import copper, estate, gold, witch
 from pyminion.game import Game
 
 
 def test_binary_resp(base_bot: Bot, game: Game):
-    assert base_bot.binary_resp(card=None, game=game, relevant_cards=None)
+    assert base_bot.get_binary_decision(prompt="test", card=copper, game=game, relevant_cards=None)
 
 
 def test_discard_resp(base_bot: Bot, game: Game):
@@ -152,7 +152,7 @@ def test_double_play_resp_none(base_bot: Bot, game: Game):
 
 
 def test_is_attacked(base_bot: Bot, game: Game):
-    assert base_bot.is_attacked(player=None, attack_card=None)
+    assert base_bot.is_attacked(player=base_bot, attack_card=witch, game=game)
 
 
 def test_action_priority(base_bot: Bot, game: Game):

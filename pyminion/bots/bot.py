@@ -110,8 +110,12 @@ class Bot(Player):
     # when creating new bots. In this class, these methods just return
     # a valid response as to not crash the game.
 
-    def binary_resp(
-        self, game: "Game", card: Card, relevant_cards: Optional[List[Card]] = None
+    def get_binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
     ) -> bool:
         return True
 
@@ -214,5 +218,5 @@ class Bot(Player):
         else:
             return None
 
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
         return True

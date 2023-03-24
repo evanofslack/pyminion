@@ -91,8 +91,12 @@ class OptimizedBot(Bot):
 
         return sorted_trash_cards
 
-    def binary_resp(
-        self, card: Card, game: "Game", relevant_cards: Optional[List[Card]] = None
+    def get_binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
     ) -> bool:
         if card.name == "Moneylender":
             return self.moneylender()
@@ -221,7 +225,7 @@ class OptimizedBot(Bot):
         if card.name == "Throne Room":
             return self.throne_room(valid_cards=valid_cards)
 
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
                 return False

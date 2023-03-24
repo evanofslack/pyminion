@@ -304,6 +304,9 @@ class Player:
         action_money = self.get_action_money()
         return treasure_money + action_money
 
+    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
+        raise NotImplementedError("is_attacked is not implemented")
+
 
 class Human(Player):
     """
@@ -319,9 +322,14 @@ class Human(Player):
     ):
         super().__init__(deck=deck, player_id=player_id)
 
-    @staticmethod
     @validate_input(exceptions=InvalidBinaryInput)
-    def binary_decision(prompt: str) -> bool:
+    def get_binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
+    ) -> bool:
         """
         Wrap binary_decision with @validate_input decorator to
         repeat prompt if input is invalid.
@@ -356,11 +364,14 @@ class Human(Player):
         """
         return multiple_card_decision(prompt=prompt, valid_cards=valid_cards)
 
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
+    def is_attacked(self, player: Player, attack_card: Card, game: "Game") -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
-                block = self.binary_decision(
-                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: "
+                block = self.get_binary_decision(
+                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
+                    card=card,
+                    game=game,
+                    relevant_cards=[attack_card],
                 )
                 return not block
         return True
