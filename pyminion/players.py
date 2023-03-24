@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
+from pyminion.decision_maker import DecisionMaker
 from pyminion.decisions import (binary_decision, multiple_card_decision,
                                 single_card_decision, validate_input)
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
@@ -30,7 +31,7 @@ class State:
     buys: int = 1
 
 
-class Player:
+class Player(DecisionMaker):
     """
     Basic representation of a player including the piles of cards they own
     and the basic actions they can take to manipulate the state of the game.
@@ -244,7 +245,7 @@ class Player:
 
     def get_all_cards(self) -> List[Card]:
         """
-        Get a list of all the cards the player has in their possesion.
+        Get a list of all the cards the player has in their possession.
 
         """
         all_cards = (
