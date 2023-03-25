@@ -25,6 +25,11 @@ class Baron(Action):
 
     """
 
+    @unique
+    class Choice(IntEnum):
+        DiscardEstate = 0
+        GainEstate = 1
+
     def __init__(self):
         super().__init__(name="Baron", cost=4, type=(CardType.Action,))
 
@@ -49,7 +54,7 @@ class Baron(Action):
             elif isinstance(player, Bot):
                 response = player.multiple_option_decision(self, options, game)[0]
 
-            discard_estate = response == 0
+            discard_estate = (response == Baron.Choice.DiscardEstate)
 
         if discard_estate:
             player.discard(estate)
@@ -142,6 +147,11 @@ class Lurker(Action):
 
     """
 
+    @unique
+    class Choice(IntEnum):
+        TrashAction = 0
+        GainAction = 1
+
     def __init__(self):
         super().__init__(name="Lurker", cost=2, type=(CardType.Action,), actions=1)
 
@@ -164,18 +174,18 @@ class Lurker(Action):
 
         if len(supply_action_cards) > 0 or len(trash_action_cards) > 0:
             if len(supply_action_cards) == 0:
-                option = 1
+                choice = Lurker.Choice.GainAction
             elif len(trash_action_cards) == 0:
-                option = 0
+                choice = Lurker.Choice.TrashAction
             else:
                 options = [
                     "Trash an Action card from the Supply",
                     "Gain an Action card from the trash",
                 ]
                 if isinstance(player, Human):
-                    option = player.multiple_option_decision(options)[0]
+                    choice = player.multiple_option_decision(options)[0]
                 elif isinstance(player, Bot):
-                    option = player.multiple_option_decision(
+                    choice = player.multiple_option_decision(
                         self,
                         options,
                         game,
@@ -206,12 +216,14 @@ class Lurker(Action):
                 return gain_card
 
             if isinstance(player, Human):
-                if option == 0:
+                if choice == Lurker.Choice.TrashAction:
                     trash_card = get_trash_card()
-                else:
+                elif choice == Lurker.Choice.GainAction:
                     gain_card = get_gain_card()
+                else:
+                    raise ValueError(f"Unknown Lurker choice '{choice}'")
             elif isinstance(player, Bot):
-                if option == 0:
+                if choice == Lurker.Choice.TrashAction:
                     trash_card = player.trash_resp(
                         card=self,
                         valid_cards=supply_action_cards,
@@ -222,7 +234,7 @@ class Lurker(Action):
                         raise InvalidBotImplementation(
                             "Card was not trashed when playing Lurker"
                         )
-                else:
+                elif choice == Lurker.Choice.GainAction:
                     gain_card = player.gain_resp(
                         card=self,
                         valid_cards=trash_action_cards,
@@ -233,12 +245,16 @@ class Lurker(Action):
                         raise InvalidBotImplementation(
                             "Card was not gained when playing Lurker"
                         )
+                else:
+                    raise ValueError(f"Unknown Lurker choice '{choice}'")
 
-            if option == 0:
+            if choice == Lurker.Choice.TrashAction:
                 game.supply.trash_card(trash_card, game.trash)
-            else:
+            elif choice == Lurker.Choice.GainAction:
                 game.trash.remove(gain_card)
                 player.discard_pile.add(gain_card)
+            else:
+                raise ValueError(f"Unknown Lurker choice '{choice}'")
 
 
 class Nobles(Action, Victory):
@@ -246,6 +262,11 @@ class Nobles(Action, Victory):
     Choose one: +3 Cards; or +2 Actions.
 
     """
+
+    @unique
+    class Choice(IntEnum):
+        Cards = 0
+        Actions = 1
 
     def __init__(self):
         Action.__init__(self, "Nobles", 6, (CardType.Action, CardType.Victory))
@@ -264,18 +285,20 @@ class Nobles(Action, Victory):
             "+2 Actions",
         ]
         if isinstance(player, Human):
-            option = player.multiple_option_decision(options)[0]
+            choice = player.multiple_option_decision(options)[0]
         elif isinstance(player, Bot):
-            option = player.multiple_option_decision(
+            choice = player.multiple_option_decision(
                 self,
                 options,
                 game,
             )[0]
 
-        if option == 0:
+        if choice == Nobles.Choice.Cards:
             player.draw(3)
-        else:
+        elif choice == Nobles.Choice.Actions:
             player.state.actions += 2
+        else:
+            raise ValueError(f"Unknown Nobles choice '{choice}'")
 
     def score(self, player: Player) -> int:
         vp = 2
@@ -339,7 +362,7 @@ class Pawn(Action):
             elif choice == Pawn.Choice.Money:
                 player.state.money += 1
             else:
-                raise ValueError(f"Unknown pawn choice '{choice}'")
+                raise ValueError(f"Unknown Pawn choice '{choice}'")
 
 
 class ShantyTown(Action):
@@ -375,6 +398,12 @@ class Steward(Action):
 
     """
 
+    @unique
+    class Choice(IntEnum):
+        Cards = 0
+        Money = 1
+        Trash = 2
+
     def __init__(self):
         super().__init__(name="Steward", cost=3, type=(CardType.Action,))
 
@@ -393,18 +422,20 @@ class Steward(Action):
             "Trash 2 cards from your hand",
         ]
         if isinstance(player, Human):
-            option = player.multiple_option_decision(options)[0]
+            choice = player.multiple_option_decision(options)[0]
         elif isinstance(player, Bot):
-            option = player.multiple_option_decision(self, options, game)[0]
+            choice = player.multiple_option_decision(self, options, game)[0]
 
-        if option == 0:
+        if choice == Steward.Choice.Cards:
             player.draw(2)
-        elif option == 1:
+        elif choice == Steward.Choice.Money:
             player.state.money += 2
-        else:
+        elif choice == Steward.Choice.Trash:
             trash_cards = self._get_trash_cards(player, game)
             for card in trash_cards:
                 player.trash(card, game.trash)
+        else:
+            raise ValueError(f"Unknown Steward choice '{choice}'")
 
     def _get_trash_cards(self, player: Union[Human, Bot], game: "Game") -> List[Card]:
 
