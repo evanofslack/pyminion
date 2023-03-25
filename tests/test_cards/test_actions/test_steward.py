@@ -1,4 +1,4 @@
-from pyminion.expansions.base import Copper, copper
+from pyminion.expansions.base import copper
 from pyminion.expansions.intrigue import Steward, steward
 from pyminion.game import Game
 from pyminion.players import Human
