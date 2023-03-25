@@ -321,7 +321,7 @@ class Lurker(Action):
                 elif choice == Lurker.Choice.GainAction:
                     gain_card = get_gain_card()
                 else:
-                    raise ValueError(f"Unknown Lurker choice '{choice}'")
+                    raise ValueError(f"Unknown lurker choice '{choice}'")
             elif isinstance(player, Bot):
                 if choice == Lurker.Choice.TrashAction:
                     trash_card = player.trash_resp(
@@ -332,7 +332,7 @@ class Lurker(Action):
                     )
                     if not trash_card:
                         raise InvalidBotImplementation(
-                            "Card was not trashed when playing Lurker"
+                            "Card was not trashed when playing lurker"
                         )
                 elif choice == Lurker.Choice.GainAction:
                     gain_card = player.gain_resp(
@@ -343,10 +343,10 @@ class Lurker(Action):
                     )
                     if not gain_card:
                         raise InvalidBotImplementation(
-                            "Card was not gained when playing Lurker"
+                            "Card was not gained when playing lurker"
                         )
                 else:
-                    raise ValueError(f"Unknown Lurker choice '{choice}'")
+                    raise ValueError(f"Unknown lurker choice '{choice}'")
 
             if choice == Lurker.Choice.TrashAction:
                 game.supply.trash_card(trash_card, game.trash)
@@ -354,7 +354,7 @@ class Lurker(Action):
                 game.trash.remove(gain_card)
                 player.discard_pile.add(gain_card)
             else:
-                raise ValueError(f"Unknown Lurker choice '{choice}'")
+                raise ValueError(f"Unknown lurker choice '{choice}'")
 
 
 class Nobles(Action, Victory):
@@ -398,7 +398,7 @@ class Nobles(Action, Victory):
         elif choice == Nobles.Choice.Actions:
             player.state.actions += 2
         else:
-            raise ValueError(f"Unknown Nobles choice '{choice}'")
+            raise ValueError(f"Unknown nobles choice '{choice}'")
 
     def score(self, player: Player) -> int:
         vp = 2
@@ -462,7 +462,7 @@ class Pawn(Action):
             elif choice == Pawn.Choice.Money:
                 player.state.money += 1
             else:
-                raise ValueError(f"Unknown Pawn choice '{choice}'")
+                raise ValueError(f"Unknown pawn choice '{choice}'")
 
 
 class ShantyTown(Action):
@@ -535,7 +535,7 @@ class Steward(Action):
             for card in trash_cards:
                 player.trash(card, game.trash)
         else:
-            raise ValueError(f"Unknown Steward choice '{choice}'")
+            raise ValueError(f"Unknown steward choice '{choice}'")
 
     def _get_trash_cards(self, player: Union[Human, Bot], game: "Game") -> List[Card]:
 
