@@ -219,8 +219,10 @@ class Bot(Player):
         card: Card,
         options: List[str],
         game: "Game",
-    ) -> int:
-        return 0
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        return list(range(num_choices))
 
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         return True

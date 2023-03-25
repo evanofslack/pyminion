@@ -361,7 +361,7 @@ class Human(Player):
     @validate_input(exceptions=InvalidMultiOptionInput)
     def multiple_option_decision(
         options: List[str],
-    ) -> int:
+    ) -> List[int]:
         """
         Wrap multiple_option_decision with @validate_input decorator to
         repeat prompt if input is invalid.

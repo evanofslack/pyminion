@@ -125,8 +125,10 @@ def multiple_card_decision(
     return selected_cards
 
 def multiple_option_decision(
-    options: List[str]
-) -> int:
+    options: List[str],
+    num_choices: int = 1,
+    unique: bool = True,
+) -> List[int]:
     """
     Get user input when given multiple options
 
@@ -136,17 +138,33 @@ def multiple_option_decision(
     Raise exception if user provided selection is not a valid option
 
     """
-    print("Choose one of the following:")
+    prompt = f"Choose {num_choices} of the following"
+    if unique and num_choices > 1:
+        prompt += " (the choices must be different)"
+    prompt += ":"
+    print(prompt)
     for i, option in enumerate(options):
         print(f"{i + 1}: {option}")
-    choice = input("Choice: ")
+    choice_input = input("Choice: ")
+    choice_strings = [x.strip() for x in choice_input.split(",")]
 
-    try:
-        choice_num = int(choice)
-    except ValueError:
-        raise InvalidMultiOptionInput(f"'{choice}' is not a valid number")
+    if len(choice_strings) != num_choices:
+        raise InvalidMultiOptionInput("Invalid input, chose incorrect number of options")
 
-    if choice_num <= 0 or choice_num > len(options):
-        raise InvalidMultiOptionInput(f"'{choice_num}' is not a valid option")
+    choices: List[int] = []
+    for choice in choice_strings:
+        try:
+            choice_num = int(choice)
+        except ValueError:
+            raise InvalidMultiOptionInput(f"'{choice}' is not a valid number")
 
-    return choice_num - 1
+        if choice_num <= 0 or choice_num > len(options):
+            raise InvalidMultiOptionInput(f"'{choice_num}' is not a valid option")
+
+        choice_index = choice_num - 1
+        if unique and choice_index in choices:
+            raise InvalidMultiOptionInput("Choices are not unique")
+
+        choices.append(choice_index)
+
+    return choices

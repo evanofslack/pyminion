@@ -44,9 +44,9 @@ class Baron(Action):
                 "Gain an estate",
             ]
             if isinstance(player, Human):
-                response = player.multiple_option_decision(options)
+                response = player.multiple_option_decision(options)[0]
             elif isinstance(player, Bot):
-                response = player.multiple_option_decision(self, options, game)
+                response = player.multiple_option_decision(self, options, game)[0]
 
             discard_estate = response == 0
 
@@ -172,13 +172,13 @@ class Lurker(Action):
                     "Gain an Action card from the trash",
                 ]
                 if isinstance(player, Human):
-                    option = player.multiple_option_decision(options)
+                    option = player.multiple_option_decision(options)[0]
                 elif isinstance(player, Bot):
                     option = player.multiple_option_decision(
                         self,
                         options,
                         game,
-                    )
+                    )[0]
 
             @validate_input(exceptions=InvalidSingleCardInput)
             def get_trash_card() -> Card:
@@ -263,13 +263,13 @@ class Nobles(Action, Victory):
             "+2 Actions",
         ]
         if isinstance(player, Human):
-            option = player.multiple_option_decision(options)
+            option = player.multiple_option_decision(options)[0]
         elif isinstance(player, Bot):
             option = player.multiple_option_decision(
                 self,
                 options,
                 game,
-            )
+            )[0]
 
         if option == 0:
             player.draw(3)
@@ -332,9 +332,9 @@ class Steward(Action):
             "Trash 2 cards from your hand",
         ]
         if isinstance(player, Human):
-            option = player.multiple_option_decision(options)
+            option = player.multiple_option_decision(options)[0]
         elif isinstance(player, Bot):
-            option = player.multiple_option_decision(self, options, game)
+            option = player.multiple_option_decision(self, options, game)[0]
 
         if option == 0:
             player.draw(2)
