@@ -361,13 +361,15 @@ class Human(Player):
     @validate_input(exceptions=InvalidMultiOptionInput)
     def multiple_option_decision(
         options: List[str],
+        num_choices: int = 1,
+        unique: bool = True,
     ) -> List[int]:
         """
         Wrap multiple_option_decision with @validate_input decorator to
         repeat prompt if input is invalid.
 
         """
-        return multiple_option_decision(options)
+        return multiple_option_decision(options, num_choices, unique)
 
     def is_attacked(self, player: Player, attack_card: Card) -> bool:
         for card in self.hand.cards:

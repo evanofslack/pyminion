@@ -1,3 +1,4 @@
+from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
@@ -281,6 +282,66 @@ class Nobles(Action, Victory):
         return vp
 
 
+class Pawn(Action):
+    """
+    Choose two: +1 Card; +1 Action; +1 Buy; +1 Money.
+    The choices must be different.
+
+    """
+
+    @unique
+    class Choice(IntEnum):
+        Card = 0
+        Action = 1
+        Buy = 2
+        Money = 3
+
+    def __init__(self):
+        super().__init__(name="Pawn", cost=2, type=(CardType.Action,))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        options = [
+            "+1 Card",
+            "+1 Action",
+            "+1 Buy",
+            "+1 Money",
+        ]
+        if isinstance(player, Human):
+            choices = player.multiple_option_decision(
+                options,
+                num_choices=2,
+                unique=True,
+            )
+        elif isinstance(player, Bot):
+            choices = player.multiple_option_decision(
+                self,
+                options,
+                game,
+                num_choices=2,
+                unique=True,
+            )
+
+        for choice in choices:
+            if choice == Pawn.Choice.Card:
+                player.draw(1)
+            elif choice == Pawn.Choice.Action:
+                player.state.actions += 1
+            elif choice == Pawn.Choice.Buy:
+                player.state.buys += 1
+            elif choice == Pawn.Choice.Money:
+                player.state.money += 1
+            else:
+                raise ValueError(f"Unknown pawn choice '{choice}'")
+
+
 class ShantyTown(Action):
     """
     +2 Actions
@@ -388,6 +449,7 @@ duke = Duke()
 harem = Harem()
 lurker = Lurker()
 nobles = Nobles()
+pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
 
@@ -399,6 +461,7 @@ intrigue_set: List[Card] = [
     harem,
     lurker,
     nobles,
+    pawn,
     shanty_town,
     steward,
 ]
