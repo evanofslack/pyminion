@@ -113,6 +113,26 @@ class Duke(Victory):
         return vp
 
 
+class Harem(Treasure, Victory):
+    def __init__(self):
+        Treasure.__init__(
+            self,
+            name="Harem",
+            cost=6,
+            type=(CardType.Treasure, CardType.Victory),
+            money=2,
+        )
+
+    def play(self, player: Player, game: "Game") -> None:
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
+
+    def score(self, player: Player) -> int:
+        vp = 2
+        return vp
+
+
 class Lurker(Action):
     """
     +1 Action
@@ -361,9 +381,11 @@ class Steward(Action):
 
         return trash_cards
 
+
 baron = Baron()
 courtyard = Courtyard()
 duke = Duke()
+harem = Harem()
 lurker = Lurker()
 nobles = Nobles()
 shanty_town = ShantyTown()
@@ -374,6 +396,7 @@ intrigue_set: List[Card] = [
     baron,
     courtyard,
     duke,
+    harem,
     lurker,
     nobles,
     shanty_town,
