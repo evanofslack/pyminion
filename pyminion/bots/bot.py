@@ -214,6 +214,18 @@ class Bot(Player):
         else:
             return None
 
+    def reveal_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+        required: bool = True,
+    ) -> Optional[Card]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
+
     def multiple_option_decision(
         self,
         card: Card,

@@ -8,7 +8,7 @@ from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
 from pyminion.players import Human, Player
-from pyminion.expansions.base import duchy, estate
+from pyminion.expansions.base import duchy, estate, gold
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -61,6 +61,106 @@ class Baron(Action):
             player.state.money += 4
         elif game.supply.pile_length(estate.name) > 0:
             player.gain(estate, game.supply)
+
+
+class Courtier(Action):
+    """
+    Reveal a card from your hand. For each type it has (Action, Attack, etc.),
+    choose one: +1 Action; or +1 Buy; or +3 Money; or gain a Gold. The choices
+    must be different.
+
+    """
+
+    @unique
+    class Choice(IntEnum):
+        Action = 0
+        Buy = 1
+        Money = 2
+        GainGold = 3
+
+    def __init__(self):
+        super().__init__(name="Courtier", cost=5, type=(CardType.Action,))
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        hand_len = len(player.hand)
+
+        if hand_len == 0:
+            return
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_reveal_card() -> Card:
+
+            reveal_card = player.single_card_decision(
+                prompt="Reveal a card from your hand: ",
+                valid_cards=player.hand.cards,
+            )
+
+            if reveal_card is None or isinstance(reveal_card, str):
+                raise InvalidSingleCardInput("Invalid card to reveal")
+
+            return reveal_card
+
+        if hand_len == 1:
+            reveal_card = player.hand.cards[0]
+        elif isinstance(player, Human):
+            reveal_card = get_reveal_card()
+        elif isinstance(player, Bot):
+            reveal_card = player.reveal_resp(
+                card=self,
+                valid_cards=player.hand.cards,
+                game=game,
+            )
+            if reveal_card is None:
+                raise InvalidBotImplementation(
+                    "Card must be revealed when playing courtier"
+                )
+
+        logger.info(f"{player} reveals {reveal_card}")
+
+        num_choices = min(len(reveal_card.type), 4)
+
+        if num_choices == 4:
+            choices = [c.value for c in Courtier.Choice]
+        else:
+            options = [
+                "+1 Action",
+                "+1 Buy",
+                "+3 Money",
+                "Gain a Gold",
+            ]
+            if isinstance(player, Human):
+                choices = player.multiple_option_decision(
+                    options,
+                    num_choices=num_choices,
+                    unique=True,
+                )
+            elif isinstance(player, Bot):
+                choices = player.multiple_option_decision(
+                    self,
+                    options,
+                    game,
+                    num_choices=num_choices,
+                    unique=True,
+                )
+
+        for choice in choices:
+            if choice == Courtier.Choice.Action:
+                player.state.actions += 1
+            elif choice == Courtier.Choice.Buy:
+                player.state.buys += 1
+            elif choice == Courtier.Choice.Money:
+                player.state.money += 3
+            elif choice == Courtier.Choice.GainGold:
+                player.gain(gold, game.supply)
+            else:
+                raise ValueError(f"Unknown courtier choice '{choice}'")
 
 
 class Courtyard(Action):
@@ -475,6 +575,7 @@ class Steward(Action):
 
 
 baron = Baron()
+courtier = Courtier()
 courtyard = Courtyard()
 duke = Duke()
 harem = Harem()
@@ -487,6 +588,7 @@ steward = Steward()
 
 intrigue_set: List[Card] = [
     baron,
+    courtier,
     courtyard,
     duke,
     harem,
