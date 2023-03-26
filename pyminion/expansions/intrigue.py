@@ -357,6 +357,105 @@ class Lurker(Action):
                 raise ValueError(f"Unknown lurker choice '{choice}'")
 
 
+class Masquerade(Action):
+    """
+    +2 Cards
+
+    Each player with any cards in hand passes one to the next such player to
+    their left, at once. Then you may trash a card from your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Masquerade", cost=3, type=(CardType.Action,), draw=2)
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(2)
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_pass_card(p: Human) -> Card:
+            pass_card = p.single_card_decision(
+                "Pick a card to pass to the player on your left: ",
+                p.hand.cards,
+            )
+
+            if pass_card is None or isinstance(pass_card, str):
+                raise InvalidSingleCardInput("Invalid card to pass")
+
+            return pass_card
+
+        @validate_input(exceptions=InvalidSingleCardInput)
+        def get_trash_card() -> Card:
+            trash_card = player.single_card_decision(
+                "Choose a card from your hand to trash",
+                player.hand.cards,
+            )
+
+            if trash_card is None or isinstance(trash_card, str):
+                raise InvalidSingleCardInput("You must trash a card")
+
+            return trash_card
+
+        # get players who have at least 1 card in their hand
+        valid_players = [p for p in game.players if len(p.hand) > 0]
+
+        # prompt each player to choose a card to pass
+        passed_cards: List[Card] = []
+        for p in valid_players:
+            if isinstance(p, Human):
+                pass_card = get_pass_card(p)
+            elif isinstance(p, Bot):
+                pass_card = p.pass_resp(
+                    card=self,
+                    valid_cards=p.hand.cards,
+                    game=game,
+                )
+                if pass_card is None:
+                    raise InvalidBotImplementation(
+                        "Card must be passed in response to masquerade"
+                    )
+
+            passed_cards.append(pass_card)
+
+        # pass the cards
+        for idx, p in enumerate(valid_players):
+            c = passed_cards[idx]
+            p.hand.remove(c)
+            next_idx = (idx + 1) % len(valid_players)
+            next_player = valid_players[next_idx]
+            next_player.hand.add(c)
+            logger.info(f"{p} passes {c} to {next_player}")
+
+        if isinstance(player, Human):
+            trash = player.binary_decision(
+                prompt="Would you like to trash a card from your hand?"
+            )
+        elif isinstance(player, Bot):
+            trash = player.binary_resp(game=game, card=self)
+
+        if trash:
+            if isinstance(player, Human):
+                trash_card = get_trash_card()
+            elif isinstance(player, Bot):
+                trash_card = player.trash_resp(
+                    card=self,
+                    valid_cards=player.hand.cards,
+                    game=game,
+                )
+                if trash_card is None:
+                    raise InvalidBotImplementation("Card must be trashed")
+
+            player.trash(trash_card, game.trash)
+
+
 class Nobles(Action, Victory):
     """
     Choose one: +3 Cards; or +2 Actions.
@@ -580,6 +679,7 @@ courtyard = Courtyard()
 duke = Duke()
 harem = Harem()
 lurker = Lurker()
+masquerade = Masquerade()
 nobles = Nobles()
 pawn = Pawn()
 shanty_town = ShantyTown()
@@ -593,6 +693,7 @@ intrigue_set: List[Card] = [
     duke,
     harem,
     lurker,
+    masquerade,
     nobles,
     pawn,
     shanty_town,

@@ -226,6 +226,14 @@ class Bot(Player):
         else:
             return None
 
+    def pass_resp(
+        self,
+        card: Card,
+        valid_cards: List[Card],
+        game: "Game",
+    ) -> Card:
+        return valid_cards[0]
+
     def multiple_option_decision(
         self,
         card: Card,
