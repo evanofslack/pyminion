@@ -7,7 +7,8 @@ from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victor
 from pyminion.decisions import validate_input
 from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
                                  InvalidMultiCardInput, InvalidSingleCardInput)
-from pyminion.players import Human, Player
+from pyminion.human import Human
+from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game

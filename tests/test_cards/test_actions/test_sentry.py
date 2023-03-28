@@ -1,6 +1,6 @@
 from pyminion.expansions.base import copper, estate, gold, sentry
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_sentry_no_reorder(human: Human, game: Game, monkeypatch):

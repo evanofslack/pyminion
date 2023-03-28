@@ -1,6 +1,6 @@
 from pyminion.expansions.base import copper, moat, witch
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_yes_input(human: Human, game: Game, monkeypatch):

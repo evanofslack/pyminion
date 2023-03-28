@@ -21,7 +21,7 @@ from pyminion.expansions.base import (
     vassal,
 )
 from pyminion.game import Game
-from pyminion.players import Player
+from pyminion.player import Player
 
 
 def test_create_player(decider, deck):

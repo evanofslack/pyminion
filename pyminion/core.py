@@ -4,7 +4,7 @@ from collections import Counter
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from pyminion.players import Player
+    from pyminion.player import Player
 
 from enum import Enum
 from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound

@@ -5,7 +5,7 @@ from pyminion.bots.bot import Bot
 from pyminion.core import CardType, Card
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
-from pyminion.players import Player
+from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game

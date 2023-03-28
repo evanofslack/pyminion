@@ -6,7 +6,7 @@ from pyminion.core import CardType, Card, Deck, DeckCounter, Pile, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
-from pyminion.players import Player
+from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
 
 logger = logging.getLogger()

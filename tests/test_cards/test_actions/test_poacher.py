@@ -1,6 +1,6 @@
 from pyminion.expansions.base import duchy, estate, poacher
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_poacher_no_empty_pile(human: Human, game: Game):

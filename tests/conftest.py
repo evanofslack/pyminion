@@ -14,7 +14,8 @@ from pyminion.expansions.base import (
     silver,
 )
 from pyminion.game import Game, Card
-from pyminion.players import Human, Player
+from pyminion.human import Human
+from pyminion.player import Player
 
 START_COPPER = 7
 START_ESTATE = 3

@@ -25,13 +25,13 @@ python3 -m pip install pyminion
 
 ### Setting up a game
 
-To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots. 
+To play an interactive game through the command line against a bot, initialize a human and a bot and assign them as players. Alternatively, games can be created between multiple humans or multiple bots.
 
 ```python
-from pyminion.expansions.base import base_set 
+from pyminion.expansions.base import base_set
 from pyminion.game import Game
 from pyminion.bots.examples import BigMoney
-from pyminion.players import Human
+from pyminion.human import Human
 
 # Initialize human and bot
 human = Human()
@@ -82,7 +82,7 @@ To see other bot implementations with more advanced decision trees, see [/bots](
 
 ### Running Simulations
 
-Simulating multiple games is good metric for determining bot performance. To create a simulation, pass a pyminion game instance into the `Simulator` class and set the number of iterations to be run. 
+Simulating multiple games is good metric for determining bot performance. To create a simulation, pass a pyminion game instance into the `Simulator` class and set the number of iterations to be run.
 
 ```python
 from pyminion.bots.examples import BigMoney, BigMoneySmithy
@@ -99,20 +99,20 @@ result = sim.run()
 print(result)
 ```
 
-with the following terminal output: 
+with the following terminal output:
 ```console
 ~$ python simulation.py
 Simulation Result: ran 1000 games
 big_money won 110, lost 676, tied 214
 big_money_smithy won 676, lost 110, tied 214
 ```
-Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.  
+Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
 
 ## Contributing
 
-Install this library, test it out, and report any bugs. A welcome contribution would be to create new bots, especially an implementation that uses machine learning to determine optimal play. 
+Install this library, test it out, and report any bugs. A welcome contribution would be to create new bots, especially an implementation that uses machine learning to determine optimal play.
 
 If you would like to contribute, please create a branch, add commits, and [open a pull request](https://github.com/evanofslack/pyminion/pulls).
