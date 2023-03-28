@@ -294,9 +294,10 @@ class Moneylender(Action):
         if copper not in player.hand.cards:
             return
 
-        response = player.get_binary_decision(
+        response = player.decider.binary_decision(
             prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
             card=self,
+            player=player,
             game=game,
         )
 
@@ -597,9 +598,10 @@ class Vassal(Action):
         if CardType.Action not in discard_card.type:
             return
 
-        decision = player.get_binary_decision(
+        decision = player.decider.binary_decision(
             prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  ",
             card=self,
+            player=player,
             game=game,
         )
 
@@ -1398,9 +1400,10 @@ class Sentry(Action):
                 logger.info(
                     f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
                 )
-                reorder = player.get_binary_decision(
+                reorder = player.decider.binary_decision(
                     prompt="Would you like to switch the order of the cards?",
                     card=self,
+                    player=player,
                     game=game,
                 )
 
@@ -1425,9 +1428,10 @@ class Sentry(Action):
                     revealed.remove(card)
             reorder = False
             if len(revealed.cards) == 2:
-                reorder = player.get_binary_decision(
+                reorder = player.decider.binary_decision(
                     prompt="Would you like to switch the order of the cards?",
                     card=self,
+                    player=player,
                     game=game,
                 )
 
@@ -1482,9 +1486,10 @@ class Library(Action):
             drawn_card = set_aside.cards[-1]
 
             if CardType.Action in drawn_card.type:
-                should_skip = player.get_binary_decision(
+                should_skip = player.decider.binary_decision(
                     prompt=f"You drew {drawn_card}, would you like to skip it? y/n: ",
                     card=self,
+                    player=player,
                     game=game,
                     relevant_cards=[drawn_card],
                 )

@@ -5,16 +5,16 @@ from pyminion.players import Human
 
 def test_yes_input(human: Human, game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "y")
-    assert human.get_binary_decision(prompt="test", card=copper, game=game) is True
+    assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is True
     monkeypatch.setattr("builtins.input", lambda _: "yes")
-    assert human.get_binary_decision(prompt="test", card=copper, game=game) is True
+    assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is True
 
 
 def test_no_input(human: Human, game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "n")
-    assert human.get_binary_decision(prompt="test", card=copper, game=game) is False
+    assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is False
     monkeypatch.setattr("builtins.input", lambda _: "no")
-    assert human.get_binary_decision(prompt="test", card=copper, game=game) is False
+    assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is False
 
 
 def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):

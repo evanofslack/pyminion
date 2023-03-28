@@ -6,7 +6,7 @@ from pyminion.game import Game
 
 
 def test_binary_resp(base_bot: Bot, game: Game):
-    assert base_bot.get_binary_decision(prompt="test", card=copper, game=game, relevant_cards=None)
+    assert base_bot.decider.binary_decision(prompt="test", card=copper, player=base_bot, game=game, relevant_cards=None)
 
 
 def test_discard_resp(base_bot: Bot, game: Game):

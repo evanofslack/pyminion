@@ -1,24 +1,25 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Protocol
 
 if TYPE_CHECKING:
-    from pyminion.core import Card
+    from pyminion.core import Card, Player
     from pyminion.game import Game
 
 
-class DecisionMaker:
+class Decider(Protocol):
     """
     Interface for prompting a player for a decision.
 
     """
 
-    def get_binary_decision(
+    def binary_decision(
         self,
         prompt: str,
         card: "Card",
+        player: "Player",
         game: "Game",
         relevant_cards: Optional[List["Card"]] = None,
     ) -> bool:
-        raise NotImplementedError("get_binary_decision is not implemented")
+        raise NotImplementedError("binary_decision is not implemented")
 
     # TODO:
     # get_discard_decision

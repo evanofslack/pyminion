@@ -13,22 +13,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
-class OptimizedBot(Bot):
+class OptimizedBotDecider:
     """
-    Implements opinionated logic for playing and reacting to all cards in the base set.
-
-    The intention is to inherit from this class to make concrete bot implementations.
-    If inheriting from this bot, it is possible to change the way that a single card is executed
-    by overwriting the card specific method at the bottom of this file.
-
+    Optimized representation of Bot decision making.
 
     """
-
-    def __init__(
-        self,
-        player_id: str = "bot",
-    ):
-        super().__init__(player_id=player_id)
 
     @staticmethod
     def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
@@ -91,23 +80,152 @@ class OptimizedBot(Bot):
 
         return sorted_trash_cards
 
-    def get_binary_decision(
+    def binary_decision(
         self,
         prompt: str,
         card: Card,
+        player: "Player",
         game: "Game",
         relevant_cards: Optional[List[Card]] = None,
     ) -> bool:
         if card.name == "Moneylender":
-            return self.moneylender()
+            return self.moneylender(player=player)
         if card.name == "Vassal":
-            return self.vassal(relevant_cards=relevant_cards)
+            return self.vassal(player=player, relevant_cards=relevant_cards)
         if card.name == "Sentry":
-            return self.sentry(game=game, relevant_cards=relevant_cards, binary=True)
+            return self.sentry(player=player, game=game, relevant_cards=relevant_cards, binary=True)
         if card.name == "Library":
-            return self.library(relevant_cards=relevant_cards)
+            return self.library(player=player, relevant_cards=relevant_cards)
         else:
             return True
+
+    # CARD SPECIFIC IMPLEMENTATIONS
+
+    def moneylender(self, player: "Player") -> bool:
+        return True
+
+    def vassal(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
+        return True
+
+    def sentry(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        relevant_cards: Optional[List[Card]] = None,
+        trash: bool = False,
+        discard: bool = False,
+        binary: bool = False,
+    ) -> Union[List[Card], bool]:
+        if trash:
+            if not valid_cards:
+                return []
+            return self.determine_trash_cards(
+                valid_cards=valid_cards, player=player, game=game
+            )
+        if discard:
+            if not valid_cards:
+                return []
+            return [
+                card
+                for card in valid_cards
+                if card.name == "Copper"
+                or CardType.Victory in card.type
+                or CardType.Curse in card.type
+            ]
+        if binary:
+            return False
+
+        raise InvalidBotImplementation(
+            "Either gain, topdeck or binary must be true when playing sentry"
+        )
+
+    def library(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
+        if player.state.actions == 0:
+            return True
+        else:
+            return False
+
+
+class OptimizedBot(Bot):
+    """
+    Implements opinionated logic for playing and reacting to all cards in the base set.
+
+    The intention is to inherit from this class to make concrete bot implementations.
+    If inheriting from this bot, it is possible to change the way that a single card is executed
+    by overwriting the card specific method at the bottom of this file.
+
+
+    """
+
+    def __init__(
+        self,
+        player_id: str = "bot",
+    ):
+        super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
+
+    # TODO: remove
+    @staticmethod
+    def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
+        """
+        Sort list of cards from best discard candidate to worst discard candidate.
+        First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
+        If player has no remaining actions, prioritize discarding victory then action, then treasures.
+        If player has remaining actions, prioritize discarding victory then treasure and action equally.
+
+        """
+
+        sorted_cards = sorted(cards, key=lambda card: card.cost)
+        victory_cards = [
+            card
+            for card in sorted_cards
+            if CardType.Victory in card.type or CardType.Curse in card.type
+        ]
+        non_victory_cards = [
+            card
+            for card in sorted_cards
+            if CardType.Victory not in card.type and CardType.Curse not in card.type
+        ]
+        treasure_cards = [card for card in non_victory_cards if CardType.Treasure in card.type]
+        action_cards = [
+            card for card in non_victory_cards if CardType.Treasure not in card.type
+        ]
+        if actions == 0:
+            return victory_cards + action_cards + treasure_cards
+        else:
+            return victory_cards + non_victory_cards
+
+    # TODO: remove
+    def determine_trash_cards(
+        self, valid_cards: List[Card], player: Player, game: "Game"
+    ) -> List[Card]:
+        """
+        Determine which cards should be trashed:
+
+        Always trash Curse
+        Trash Estate if number of provinces in supply >= 5
+        Trash Copper if money in deck > 3 (keep enough to buy silver)
+        Finally, sort the cards as to prioritize trashing estate over copper
+
+
+        """
+        deck_money = player.get_deck_money()
+        trash_cards = []
+        for card in valid_cards:
+            if card.name == CardType.Curse:
+                trash_cards.append(card)
+            elif (
+                card.name == "Estate"
+                and game.supply.pile_length(pile_name="Province") >= 5
+            ):
+                trash_cards.append(card)
+            elif card.name == "Copper" and deck_money > 3:
+                trash_cards.append(card)
+                deck_money -= 1
+
+        sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
+
+        return sorted_trash_cards
 
     def discard_resp(
         self,
@@ -232,18 +350,7 @@ class OptimizedBot(Bot):
         return True
 
     # CARD SPECIFIC IMPLEMENTATIONS
-    def moneylender(self) -> bool:
-        return True
-
-    def vassal(self, relevant_cards: Optional[List[Card]]) -> bool:
-        return True
-
-    def library(self, relevant_cards: Optional[List[Card]]) -> bool:
-        if self.state.actions == 0:
-            return True
-        else:
-            return False
-
+    # TODO: remove
     def sentry(
         self,
         game: "Game",

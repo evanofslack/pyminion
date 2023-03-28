@@ -1,3 +1,4 @@
+from typing import List, Optional
 import pytest
 from pyminion.bots.bot import Bot
 from pyminion.bots.examples import BigMoney
@@ -12,11 +13,29 @@ from pyminion.expansions.base import (
     province,
     silver,
 )
-from pyminion.game import Game
+from pyminion.game import Game, Card
 from pyminion.players import Human, Player
 
 START_COPPER = 7
 START_ESTATE = 3
+
+
+class TestDecider:
+    def binary_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        relevant_cards: Optional[List["Card"]] = None,
+    ) -> bool:
+        return True
+
+
+@pytest.fixture
+def decider():
+    decider = TestDecider()
+    return decider
 
 
 @pytest.fixture
@@ -27,8 +46,8 @@ def deck():
 
 
 @pytest.fixture
-def player(deck):
-    player = Player(deck=deck, player_id="test")
+def player(decider, deck):
+    player = Player(decider=decider, deck=deck, player_id="test")
     return player
 
 

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
-from pyminion.decision_maker import DecisionMaker
+from pyminion.decider import Decider
 from pyminion.decisions import (binary_decision, multiple_card_decision,
                                 single_card_decision, validate_input)
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
@@ -31,7 +31,7 @@ class State:
     buys: int = 1
 
 
-class Player(DecisionMaker):
+class Player:
     """
     Basic representation of a player including the piles of cards they own
     and the basic actions they can take to manipulate the state of the game.
@@ -40,6 +40,7 @@ class Player(DecisionMaker):
 
     def __init__(
         self,
+        decider: Decider,
         deck: Optional[Deck] = None,
         discard_pile: Optional[DiscardPile] = None,
         hand: Optional[Hand] = None,
@@ -47,6 +48,7 @@ class Player(DecisionMaker):
         state: Optional[State] = None,
         player_id: str = "",
     ):
+        self.decider = decider
         self.deck = deck if deck else Deck()
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
@@ -309,6 +311,29 @@ class Player(DecisionMaker):
         raise NotImplementedError("is_attacked is not implemented")
 
 
+class HumanDecider:
+    """
+    Prompts human for decisions through the terminal.
+
+    """
+
+    @validate_input(exceptions=InvalidBinaryInput)
+    def binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        player: "Player",
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
+    ) -> bool:
+        """
+        Wrap binary_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return binary_decision(prompt=prompt)
+
+
 class Human(Player):
     """
     Human player can make choices as to which cards
@@ -321,22 +346,7 @@ class Human(Player):
         deck: Optional[Deck] = None,
         player_id: str = "human",
     ):
-        super().__init__(deck=deck, player_id=player_id)
-
-    @validate_input(exceptions=InvalidBinaryInput)
-    def get_binary_decision(
-        self,
-        prompt: str,
-        card: Card,
-        game: "Game",
-        relevant_cards: Optional[List[Card]] = None,
-    ) -> bool:
-        """
-        Wrap binary_decision with @validate_input decorator to
-        repeat prompt if input is invalid.
-
-        """
-        return binary_decision(prompt=prompt)
+        super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
 
     @staticmethod
     @validate_input(exceptions=InvalidSingleCardInput)
@@ -368,9 +378,10 @@ class Human(Player):
     def is_attacked(self, player: Player, attack_card: Card, game: "Game") -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
-                block = self.get_binary_decision(
+                block = self.decider.binary_decision(
                     prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
                     card=card,
+                    player=self,
                     game=game,
                     relevant_cards=[attack_card],
                 )

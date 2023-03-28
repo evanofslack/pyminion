@@ -2,6 +2,7 @@ import logging
 from typing import TYPE_CHECKING, Iterator, List, Optional
 
 from pyminion.core import CardType, Card
+from pyminion.decider import Decider
 from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.players import Player
 
@@ -9,6 +10,23 @@ if TYPE_CHECKING:
     from pyminion.game import Game
 
 logger = logging.getLogger()
+
+
+class BotDecider:
+    """
+    Basic representation of Bot decision making.
+
+    """
+
+    def binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        player: "Player",
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
+    ) -> bool:
+        return True
 
 
 class Bot(Player):
@@ -28,9 +46,11 @@ class Bot(Player):
 
     def __init__(
         self,
+        decider: Optional[Decider] = None,
         player_id: str = "bot",
     ):
-        super().__init__(player_id=player_id)
+        decider = decider if decider else BotDecider()
+        super().__init__(decider=decider, player_id=player_id)
 
     def action_priority(self, game: "Game") -> Iterator[Card]:
         """
@@ -109,15 +129,6 @@ class Bot(Player):
     # These methods can be implemented with specific game logic
     # when creating new bots. In this class, these methods just return
     # a valid response as to not crash the game.
-
-    def get_binary_decision(
-        self,
-        prompt: str,
-        card: Card,
-        game: "Game",
-        relevant_cards: Optional[List[Card]] = None,
-    ) -> bool:
-        return True
 
     def discard_resp(
         self,
