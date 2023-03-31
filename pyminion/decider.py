@@ -33,9 +33,19 @@ class Decider(Protocol):
     ) -> List["Card"]:
         raise NotImplementedError("discard_decision is not implemented")
 
+    def trash_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_trash: int = 0,
+        max_num_trash: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("trash_decision is not implemented")
+
     # TODO:
-    # trash_decision
-    # multiple_trash_decision
     # gain_decision
     # multiple_gain_decision
     # topdeck_decision

@@ -77,39 +77,28 @@ def test_multiple_gain_resp_none(base_bot: Bot, game: Game):
 
 
 def test_trash_resp(base_bot: Bot, game: Game):
-    card = base_bot.trash_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=True
+    cards = base_bot.decider.trash_decision(
+        prompt="",
+        card=copper,
+        valid_cards=[copper, estate, gold],
+        player=base_bot,
+        game=game,
+        min_num_trash=1,
     )
-    assert card.name == "Copper"
+    assert len(cards) == 1
+    assert cards[0].name == "Copper"
 
 
 def test_trash_resp_none(base_bot: Bot, game: Game):
-    card = base_bot.trash_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=False
-    )
-    assert card is None
-
-
-def test_multiple_trash_resp(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_trash_resp(
-        card=None,
+    cards = base_bot.decider.trash_decision(
+        prompt="",
+        card=copper,
         valid_cards=[copper, estate, gold],
+        player=base_bot,
         game=game,
-        num_trash=2,
-        required=True,
+        min_num_trash=0,
     )
-    assert len(cards) == 2
-
-
-def test_multiple_trash_resp_none(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_trash_resp(
-        card=None,
-        valid_cards=[copper, estate, gold],
-        game=game,
-        num_trash=2,
-        required=False,
-    )
-    assert cards is None
+    assert len(cards) == 0
 
 
 def test_topdeck_resp(base_bot: Bot, game: Game):

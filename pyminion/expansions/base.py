@@ -379,37 +379,17 @@ class Chapel(Action):
         if not player.hand.cards:
             return
 
-        @validate_input(exceptions=InvalidMultiCardInput)
-        def get_trash_cards() -> Optional[List[Card]]:
+        trash_cards = player.decider.trash_decision(
+            prompt="Enter up to 4 cards you would like to trash from your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=0,
+            max_num_trash=4,
+        )
+        assert len(trash_cards) <= 4
 
-            trash_cards = player.multiple_card_decision(
-                prompt="Enter up to 4 cards you would like to trash from your hand: ",
-                valid_cards=player.hand.cards,
-            )
-
-            if trash_cards and len(trash_cards) > 4:
-                raise InvalidMultiCardInput(
-                    "You cannot trash more than 4 cards with chapel"
-                )
-
-            return trash_cards
-
-        if isinstance(player, Human):
-            trash_cards = get_trash_cards()
-
-        elif isinstance(player, Bot):
-            trash_cards = player.multiple_trash_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=False,
-            )
-            if trash_cards and len(trash_cards) > 4:
-                raise InvalidMultiCardInput(
-                    "Attempted to trash more than 4 cards with chapel"
-                )
-        if not trash_cards:
-            return
         for card in trash_cards:
             player.trash(card, game.trash)
 
@@ -1087,20 +1067,19 @@ class Remodel(Action):
         if generic_play:
             super().generic_play(player)
 
+        trash_cards = player.decider.trash_decision(
+            prompt="Trash a card form your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=1,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
+
         if isinstance(player, Human):
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_trash_card() -> Card:
-
-                trash_card = player.single_card_decision(
-                    prompt="Trash a card form your hand: ",
-                    valid_cards=player.hand.cards,
-                )
-
-                if not trash_card or isinstance(trash_card, str):
-                    raise InvalidSingleCardInput("You must trash a card")
-                return trash_card
-
             @validate_input(exceptions=InvalidSingleCardInput)
             def get_gain_card(trash_card: Card) -> Card:
 
@@ -1117,20 +1096,9 @@ class Remodel(Action):
                     )
                 return gain_card
 
-            trash_card = get_trash_card()
             gain_card = get_gain_card(trash_card)
 
         elif isinstance(player, Bot):
-            trash_card = player.trash_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=True,
-            )
-            if not trash_card:
-                raise InvalidBotImplementation(
-                    "Card must be trashed when playing remodel"
-                )
             gain_card = player.gain_resp(
                 card=self,
                 valid_cards=[
@@ -1178,20 +1146,19 @@ class Mine(Action):
         if not treasures:
             return
 
+        trash_cards = player.decider.trash_decision(
+            prompt="You may trash a Treasure from your hand: ",
+            card=self,
+            valid_cards=treasures,
+            player=player,
+            game=game,
+            min_num_trash=1,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
+
         if isinstance(player, Human):
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_trash_card() -> Optional[Card]:
-
-                trash_card = player.single_card_decision(
-                    prompt="You may trash a Treasure from your hand: ",
-                    valid_cards=treasures,
-                )
-                if isinstance(trash_card, str):
-                    raise InvalidSingleCardInput(f"You can not trash {trash_card}")
-
-                return trash_card
-
             @validate_input(exceptions=InvalidSingleCardInput)
             def get_gain_card(trash_card: Card) -> Card:
 
@@ -1210,21 +1177,9 @@ class Mine(Action):
                     )
                 return gain_card
 
-            trash_card = get_trash_card()
-            if not trash_card:
-                return
             gain_card = get_gain_card(trash_card)
 
         elif isinstance(player, Bot):
-            trash_card = player.trash_resp(
-                card=self,
-                valid_cards=treasures,
-                game=game,
-                required=False,
-            )
-            if not trash_card:
-                return
-
             gain_card = player.gain_resp(
                 card=self,
                 valid_cards=[
@@ -1328,80 +1283,46 @@ class Sentry(Action):
         player.draw(num_cards=2, destination=revealed, silent=True)
         logger.info(f"{player} looks at {revealed}")
 
-        if isinstance(player, Human):
+        trash_cards = player.decider.trash_decision(
+            prompt="Enter the cards you would like to trash: ",
+            card=self,
+            valid_cards=revealed.cards,
+            player=player,
+            game=game,
+            min_num_trash=0,
+            max_num_trash=2,
+        )
 
-            def get_trash_cards() -> Optional[List[Card]]:
-                trash_cards = player.multiple_card_decision(
-                    prompt="Enter the cards you would like to trash: ",
-                    valid_cards=revealed.cards,
-                )
-                return trash_cards
+        for card in trash_cards:
+            revealed.remove(card)
 
-            trash_cards = get_trash_cards()
-            if trash_cards:
-                for card in trash_cards:
-                    revealed.remove(card)
-
-            discard_cards: List[Card] = []
-            if len(revealed.cards) > 0:
-                discard_cards = player.decider.discard_decision(
-                    prompt="Enter the cards you would like to discard: ",
-                    card=self,
-                    valid_cards=revealed.cards,
-                    player=player,
-                    game=game,
-                )
-                for card in discard_cards:
-                    revealed.remove(card)
-
-            reorder = False
-            if len(revealed.cards) == 2:
-                logger.info(
-                    f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
-                )
-                reorder = player.decider.binary_decision(
-                    prompt="Would you like to switch the order of the cards?",
-                    card=self,
-                    player=player,
-                    game=game,
-                )
-
-        elif isinstance(player, Bot):
-            trash_cards = player.multiple_trash_resp(
+        discard_cards: List[Card] = []
+        if len(revealed.cards) > 0:
+            discard_cards = player.decider.discard_decision(
+                prompt="Enter the cards you would like to discard: ",
                 card=self,
                 valid_cards=revealed.cards,
+                player=player,
                 game=game,
-                required=False,
             )
-            if trash_cards:
-                for card in trash_cards:
-                    revealed.remove(card)
+            for card in discard_cards:
+                revealed.remove(card)
 
-            discard_cards: List[Card] = []
-            if len(revealed.cards) > 0:
-                discard_cards = player.decider.discard_decision(
-                    prompt="Enter the cards you would like to discard: ",
-                    card=self,
-                    valid_cards=revealed.cards,
-                    player=player,
-                    game=game,
-                )
-                for card in discard_cards:
-                    revealed.remove(card)
+        reorder = False
+        if len(revealed.cards) == 2:
+            logger.info(
+                f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
+            )
+            reorder = player.decider.binary_decision(
+                prompt="Would you like to switch the order of the cards?",
+                card=self,
+                player=player,
+                game=game,
+            )
 
-            reorder = False
-            if len(revealed.cards) == 2:
-                reorder = player.decider.binary_decision(
-                    prompt="Would you like to switch the order of the cards?",
-                    card=self,
-                    player=player,
-                    game=game,
-                )
-
-        if trash_cards:
-            for card in trash_cards:
-                game.trash.add(card)
-                logger.info(f"{player} trashes {card}")
+        for card in trash_cards:
+            game.trash.add(card)
+            logger.info(f"{player} trashes {card}")
         for card in discard_cards:
             player.discard_pile.add(card)
             logger.info(f"{player} discards {card}")

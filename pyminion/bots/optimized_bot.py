@@ -120,6 +120,30 @@ class OptimizedBotDecider:
         else:
             return valid_cards[:min_num_discard]
 
+    def trash_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_trash: int = 0,
+        max_num_trash: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Remodel":
+            card = self.remodel(player=player, valid_cards=valid_cards, trash=True)
+            return [card]
+        elif card.name == "Mine":
+            card = self.mine(player=player, valid_cards=valid_cards, trash=True)
+            return [card]
+        elif card.name == "Chapel":
+            return self.chapel(player=player, game=game, valid_cards=valid_cards)
+        elif card.name == "Sentry":
+            return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
+        else:
+            return valid_cards[:min_num_trash]
+
+
     # CARD SPECIFIC IMPLEMENTATIONS
 
     def moneylender(self, player: "Player") -> bool:
@@ -194,6 +218,44 @@ class OptimizedBotDecider:
         )
         return discard_order[:num_discard]
 
+    def remodel(
+        self, player: "Player", valid_cards: List[Card], trash: bool = False, gain: bool = False
+    ) -> Card:
+        if trash:
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
+
+        if gain:
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
+        raise InvalidBotImplementation(
+            "Either gain or trash must be true when playing remodel"
+        )
+
+    def mine(
+        self, player: "Player", valid_cards: List[Card], trash: bool = False, gain: bool = False
+    ) -> Card:
+        if trash:
+            min_price_card = min(valid_cards, key=lambda card: card.cost)
+            return min_price_card
+
+        if gain:
+            max_price_card = max(valid_cards, key=lambda card: card.cost)
+            return max_price_card
+
+        raise InvalidBotImplementation(
+            "Either gain or trash must be true when playing mine"
+        )
+
+    def chapel(self, player: "Player", game: "Game", valid_cards: List[Card]) -> List[Card]:
+        trash_cards = self.determine_trash_cards(
+            valid_cards=valid_cards, player=player, game=game
+        )
+        while len(trash_cards) > 4:
+            trash_cards.pop()
+        return trash_cards
+
 
 class OptimizedBot(Bot):
     """
@@ -211,69 +273,6 @@ class OptimizedBot(Bot):
         player_id: str = "bot",
     ):
         super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
-
-    # TODO: remove
-    @staticmethod
-    def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
-        """
-        Sort list of cards from best discard candidate to worst discard candidate.
-        First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
-        If player has no remaining actions, prioritize discarding victory then action, then treasures.
-        If player has remaining actions, prioritize discarding victory then treasure and action equally.
-
-        """
-
-        sorted_cards = sorted(cards, key=lambda card: card.cost)
-        victory_cards = [
-            card
-            for card in sorted_cards
-            if CardType.Victory in card.type or CardType.Curse in card.type
-        ]
-        non_victory_cards = [
-            card
-            for card in sorted_cards
-            if CardType.Victory not in card.type and CardType.Curse not in card.type
-        ]
-        treasure_cards = [card for card in non_victory_cards if CardType.Treasure in card.type]
-        action_cards = [
-            card for card in non_victory_cards if CardType.Treasure not in card.type
-        ]
-        if actions == 0:
-            return victory_cards + action_cards + treasure_cards
-        else:
-            return victory_cards + non_victory_cards
-
-    # TODO: remove
-    def determine_trash_cards(
-        self, valid_cards: List[Card], player: Player, game: "Game"
-    ) -> List[Card]:
-        """
-        Determine which cards should be trashed:
-
-        Always trash Curse
-        Trash Estate if number of provinces in supply >= 5
-        Trash Copper if money in deck > 3 (keep enough to buy silver)
-        Finally, sort the cards as to prioritize trashing estate over copper
-
-
-        """
-        deck_money = player.get_deck_money()
-        trash_cards = []
-        for card in valid_cards:
-            if card.name == CardType.Curse:
-                trash_cards.append(card)
-            elif (
-                card.name == "Estate"
-                and game.supply.pile_length(pile_name="Province") >= 5
-            ):
-                trash_cards.append(card)
-            elif card.name == "Copper" and deck_money > 3:
-                trash_cards.append(card)
-                deck_money -= 1
-
-        sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
-
-        return sorted_trash_cards
 
     def gain_resp(
         self,
@@ -308,32 +307,6 @@ class OptimizedBot(Bot):
             required=required,
         )
 
-    def trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if card.name == "Remodel":
-            return self.remodel(valid_cards=valid_cards, trash=True)
-        if card.name == "Mine":
-            return self.mine(valid_cards=valid_cards, trash=True)
-
-    def multiple_trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_trash: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
-        if card.name == "Chapel":
-            return self.chapel(game=game, valid_cards=valid_cards)
-        if card.name == "Sentry":
-            return self.sentry(game=game, valid_cards=valid_cards, trash=True)
-
     def topdeck_resp(
         self,
         card: Card,
@@ -367,38 +340,6 @@ class OptimizedBot(Bot):
         return True
 
     # CARD SPECIFIC IMPLEMENTATIONS
-    # TODO: remove
-    def sentry(
-        self,
-        game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        relevant_cards: Optional[List[Card]] = None,
-        trash: bool = False,
-        discard: bool = False,
-        binary: bool = False,
-    ) -> Union[List[Card], bool]:
-        if trash:
-            if not valid_cards:
-                return []
-            return self.determine_trash_cards(
-                valid_cards=valid_cards, player=self, game=game
-            )
-        if discard:
-            if not valid_cards:
-                return []
-            return [
-                card
-                for card in valid_cards
-                if card.name == "Copper"
-                or CardType.Victory in card.type
-                or CardType.Curse in card.type
-            ]
-        if binary:
-            return False
-
-        raise InvalidBotImplementation(
-            "Either gain, topdeck or binary must be true when playing sentry"
-        )
 
     def artisan(
         self,
@@ -458,14 +399,6 @@ class OptimizedBot(Bot):
         raise InvalidBotImplementation(
             "Either gain or trash must be true when playing mine"
         )
-
-    def chapel(self, game: "Game", valid_cards: List[Card]) -> Optional[List[Card]]:
-        trash_cards = self.determine_trash_cards(
-            valid_cards=valid_cards, player=self, game=game
-        )
-        while len(trash_cards) > 4:
-            trash_cards.pop()
-        return trash_cards
 
     def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
         # Do not topdeck victory cards

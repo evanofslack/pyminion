@@ -15,6 +15,9 @@ logger = logging.getLogger()
 class BotDecider:
     """
     Basic representation of Bot decision making.
+    These methods can be implemented with specific game logic
+    when creating new bots. In this class, these methods just return
+    a valid response as to not crash the game.
 
     """
 
@@ -39,6 +42,18 @@ class BotDecider:
         max_num_discard: int = -1,
     ) -> List["Card"]:
         return valid_cards[:min_num_discard]
+
+    def trash_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_trash: int = 0,
+        max_num_trash: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_trash]
 
 
 class Bot(Player):
@@ -164,31 +179,6 @@ class Bot(Player):
     ) -> Optional[List[Card]]:
         if required:
             return valid_cards[:num_gain]
-        else:
-            return None
-
-    def trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def multiple_trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_trash: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_trash]
         else:
             return None
 
