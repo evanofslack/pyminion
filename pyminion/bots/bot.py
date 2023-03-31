@@ -28,6 +28,18 @@ class BotDecider:
     ) -> bool:
         return True
 
+    def discard_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_discard: int = 0,
+        max_num_discard: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_discard]
+
 
 class Bot(Player):
     """
@@ -129,31 +141,6 @@ class Bot(Player):
     # These methods can be implemented with specific game logic
     # when creating new bots. In this class, these methods just return
     # a valid response as to not crash the game.
-
-    def discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_discard]
-        else:
-            return None
 
     def gain_resp(
         self,

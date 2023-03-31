@@ -90,14 +90,35 @@ class OptimizedBotDecider:
     ) -> bool:
         if card.name == "Moneylender":
             return self.moneylender(player=player)
-        if card.name == "Vassal":
+        elif card.name == "Vassal":
             return self.vassal(player=player, relevant_cards=relevant_cards)
-        if card.name == "Sentry":
+        elif card.name == "Sentry":
             return self.sentry(player=player, game=game, relevant_cards=relevant_cards, binary=True)
-        if card.name == "Library":
+        elif card.name == "Library":
             return self.library(player=player, relevant_cards=relevant_cards)
         else:
             return True
+
+    def discard_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_discard: int = 0,
+        max_num_discard: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Cellar":
+            return self.cellar(player=player, valid_cards=valid_cards)
+        elif card.name == "Poacher":
+            return self.poacher(player=player, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Militia":
+            return self.militia(player=player, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Sentry":
+            return self.sentry(player=player, game=game, valid_cards=valid_cards, discard=True)
+        else:
+            return valid_cards[:min_num_discard]
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
@@ -145,6 +166,33 @@ class OptimizedBotDecider:
             return True
         else:
             return False
+
+    def cellar(self, player: "Player", valid_cards: List[Card]) -> List[Card]:
+        return [
+            card
+            for card in valid_cards
+            if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
+        ]
+
+    def poacher(
+        self, player: "Player", valid_cards: List[Card], num_discard: Optional[int]
+    ) -> List[Card]:
+        if not num_discard:
+            return []
+        discard_order = self.sort_for_discard(
+            cards=valid_cards, actions=player.state.actions
+        )
+        return discard_order[:num_discard]
+
+    def militia(
+        self, player: "Player", valid_cards: List[Card], num_discard: Optional[int]
+    ) -> List[Card]:
+        if not num_discard:
+            return []
+        discard_order = self.sort_for_discard(
+            cards=valid_cards, actions=player.state.actions
+        )
+        return discard_order[:num_discard]
 
 
 class OptimizedBot(Bot):
@@ -226,37 +274,6 @@ class OptimizedBot(Bot):
         sorted_trash_cards = self.sort_for_discard(cards=trash_cards, actions=1)
 
         return sorted_trash_cards
-
-    def discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        return super().discard_resp(
-            card=card, valid_cards=valid_cards, game=game, required=required
-        )
-
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
-        if card.name == "Cellar":
-            return self.cellar(valid_cards=valid_cards)
-        if card.name == "Poacher":
-            return self.poacher(valid_cards=valid_cards, num_discard=num_discard)
-
-        if card.name == "Militia":
-            return self.militia(valid_cards=valid_cards, num_discard=num_discard)
-
-        if card.name == "Sentry":
-            return self.sentry(game=game, valid_cards=valid_cards, discard=True)
 
     def gain_resp(
         self,
@@ -382,33 +399,6 @@ class OptimizedBot(Bot):
         raise InvalidBotImplementation(
             "Either gain, topdeck or binary must be true when playing sentry"
         )
-
-    def cellar(self, valid_cards: List[Card]) -> Optional[List[Card]]:
-        return [
-            card
-            for card in valid_cards
-            if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
-        ]
-
-    def poacher(
-        self, valid_cards: List[Card], num_discard: Optional[int]
-    ) -> List[Card]:
-        if not num_discard:
-            return []
-        discard_order = self.sort_for_discard(
-            cards=valid_cards, actions=self.state.actions
-        )
-        return discard_order[:num_discard]
-
-    def militia(
-        self, valid_cards: List[Card], num_discard: Optional[int]
-    ) -> List[Card]:
-        if not num_discard:
-            return []
-        discard_order = self.sort_for_discard(
-            cards=valid_cards, actions=self.state.actions
-        )
-        return discard_order[:num_discard]
 
     def artisan(
         self,

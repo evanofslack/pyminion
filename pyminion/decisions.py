@@ -88,7 +88,7 @@ def single_card_decision(
 
 def multiple_card_decision(
     prompt: str, valid_cards: List[Card]
-) -> Optional[List[Card]]:
+) -> List[Card]:
     """
     Get user input when given the option to select multiple cards
 
@@ -101,7 +101,7 @@ def multiple_card_decision(
     """
     card_input = input(prompt)
     if not card_input:
-        return None
+        return []
     card_strings = [x.strip() for x in card_input.split(",")]
     selected_cards = []
     for card_string in card_strings:

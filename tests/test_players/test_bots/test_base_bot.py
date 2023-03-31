@@ -9,40 +9,29 @@ def test_binary_resp(base_bot: Bot, game: Game):
     assert base_bot.decider.binary_decision(prompt="test", card=copper, player=base_bot, game=game, relevant_cards=None)
 
 
-def test_discard_resp(base_bot: Bot, game: Game):
-    card = base_bot.discard_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=True
-    )
-    assert card.name == "Copper"
-
-
-def test_discard_resp_none(base_bot: Bot, game: Game):
-    card = base_bot.discard_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=False
-    )
-    assert card is None
-
-
 def test_multiple_discard_resp(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_discard_resp(
-        card=None,
+    cards = base_bot.decider.discard_decision(
+        prompt="",
+        card=copper,
         valid_cards=[copper, estate, gold],
+        player=base_bot,
         game=game,
-        num_discard=2,
-        required=True,
+        min_num_discard=2,
+        max_num_discard=2,
     )
     assert len(cards) == 2
 
 
 def test_multiple_discard_resp_none(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_discard_resp(
-        card=None,
+    cards = base_bot.decider.discard_decision(
+        prompt="",
+        card=copper,
         valid_cards=[copper, estate, gold],
+        player=base_bot,
         game=game,
-        num_discard=2,
-        required=False,
+        max_num_discard=2,
     )
-    assert cards is None
+    assert len(cards) == 0
 
 
 def test_gain_resp(base_bot: Bot, game: Game):

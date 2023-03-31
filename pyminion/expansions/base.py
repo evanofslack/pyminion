@@ -341,24 +341,17 @@ class Cellar(Action):
         if not player.hand.cards:
             return
 
-        if isinstance(player, Human):
-            discard_cards = player.multiple_card_decision(
-                prompt="Enter the cards you would like to discard seperated by commas: ",
-                valid_cards=player.hand.cards,
-            )
+        discard_cards = player.decider.discard_decision(
+            prompt="Enter the cards you would like to discard separated by commas: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+        )
 
-        elif isinstance(player, Bot):
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=False,
-            )
-
-        if discard_cards:
-            for card in discard_cards:
-                player.discard(card)
-            player.draw(len(discard_cards))
+        for card in discard_cards:
+            player.discard(card)
+        player.draw(len(discard_cards))
 
 
 class Chapel(Action):
@@ -736,33 +729,16 @@ class Poacher(Action):
 
         discard_num = min(empty_piles, len(player.hand))
 
-        if isinstance(player, Human):
-
-            @validate_input(exceptions=InvalidMultiCardInput)
-            def get_discard_cards() -> List[Card]:
-                discard_cards = player.multiple_card_decision(
-                    prompt=f"Discard {discard_num} card(s) from your hand: ",
-                    valid_cards=player.hand.cards,
-                )
-                if not discard_cards or len(discard_cards) != discard_num:
-                    raise InvalidMultiCardInput(
-                        f"You must discard {discard_num} card(s)"
-                    )
-
-                return discard_cards
-
-            discard_cards = get_discard_cards()
-
-        elif isinstance(player, Bot):
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                num_discard=discard_num,
-                required=True,
-            )
-            if not discard_cards or len(discard_cards) != discard_num:
-                raise InvalidMultiCardInput(f"You must discard {discard_num} card(s)")
+        discard_cards = player.decider.discard_decision(
+            prompt=f"Discard {discard_num} card(s) from your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_discard=discard_num,
+            max_num_discard=discard_num,
+        )
+        assert len(discard_cards) == discard_num
 
         for discard_card in discard_cards:
             player.discard(discard_card)
@@ -1301,33 +1277,18 @@ class Militia(Action):
 
                 num_discard = len(opponent.hand) - 3
                 if num_discard <= 0:
-                    return
+                    continue
 
-                @validate_input(exceptions=InvalidMultiCardInput)
-                def get_discard_cards() -> List[Card]:
-                    cards = opponent.multiple_card_decision(
-                        prompt=f"You must discard {num_discard} cards from your hand: ",
-                        valid_cards=opponent.hand.cards,
-                    )
-                    if len(cards) != num_discard:
-                        raise InvalidMultiCardInput(
-                            f"You must discard {num_discard} cards, you selected {len(cards)}"
-                        )
-                    return cards
-
-                if isinstance(opponent, Human):
-                    discard_cards = get_discard_cards()
-
-                elif isinstance(opponent, Bot):
-                    discard_cards = opponent.multiple_discard_resp(
-                        card=self,
-                        valid_cards=opponent.hand.cards,
-                        game=game,
-                        num_discard=num_discard,
-                        required=True,
-                    )
-                    if not discard_cards:
-                        return
+                discard_cards = opponent.decider.discard_decision(
+                    prompt=f"You must discard {num_discard} card(s) from your hand: ",
+                    card=self,
+                    valid_cards=opponent.hand.cards,
+                    player=opponent,
+                    game=game,
+                    min_num_discard=num_discard,
+                    max_num_discard=num_discard,
+                )
+                assert len(discard_cards) == num_discard
 
                 for card in discard_cards:
                     opponent.discard(target_card=card)
@@ -1376,26 +1337,23 @@ class Sentry(Action):
                 )
                 return trash_cards
 
-            def get_discard_cards(
-                revealed: AbstractDeck,
-            ) -> Optional[List[Card]]:
-                if not revealed.cards:
-                    return None
-
-                discard_cards = player.multiple_card_decision(
-                    prompt="Enter the cards you would like to discard: ",
-                    valid_cards=revealed.cards,
-                )
-                return discard_cards
-
             trash_cards = get_trash_cards()
             if trash_cards:
                 for card in trash_cards:
                     revealed.remove(card)
-            discard_cards = get_discard_cards(revealed=revealed)
-            if discard_cards:
+
+            discard_cards: List[Card] = []
+            if len(revealed.cards) > 0:
+                discard_cards = player.decider.discard_decision(
+                    prompt="Enter the cards you would like to discard: ",
+                    card=self,
+                    valid_cards=revealed.cards,
+                    player=player,
+                    game=game,
+                )
                 for card in discard_cards:
                     revealed.remove(card)
+
             reorder = False
             if len(revealed.cards) == 2:
                 logger.info(
@@ -1418,15 +1376,19 @@ class Sentry(Action):
             if trash_cards:
                 for card in trash_cards:
                     revealed.remove(card)
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=revealed.cards,
-                game=game,
-                required=False,
-            )
-            if discard_cards:
+
+            discard_cards: List[Card] = []
+            if len(revealed.cards) > 0:
+                discard_cards = player.decider.discard_decision(
+                    prompt="Enter the cards you would like to discard: ",
+                    card=self,
+                    valid_cards=revealed.cards,
+                    player=player,
+                    game=game,
+                )
                 for card in discard_cards:
                     revealed.remove(card)
+
             reorder = False
             if len(revealed.cards) == 2:
                 reorder = player.decider.binary_decision(
@@ -1440,10 +1402,9 @@ class Sentry(Action):
             for card in trash_cards:
                 game.trash.add(card)
                 logger.info(f"{player} trashes {card}")
-        if discard_cards:
-            for card in discard_cards:
-                player.discard_pile.add(card)
-                logger.info(f"{player} discards {card}")
+        for card in discard_cards:
+            player.discard_pile.add(card)
+            logger.info(f"{player} discards {card}")
         if revealed.cards:
             if reorder:
                 for card in revealed.cards:

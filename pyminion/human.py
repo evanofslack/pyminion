@@ -37,6 +37,32 @@ class HumanDecider:
         """
         return binary_decision(prompt=prompt)
 
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def discard_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_discard: int = 0,
+        max_num_discard: int = -1,
+    ) -> List["Card"]:
+
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_discard:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must discard at least {min_num_discard} card(s)"
+            )
+        elif max_num_discard >= 0 and len_result > max_num_discard:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot discard more than {max_num_discard} card(s)"
+            )
+
+        return result
+
 
 class Human(Player):
     """
