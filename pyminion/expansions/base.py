@@ -415,37 +415,20 @@ class Workshop(Action):
         if generic_play:
             super().generic_play(player)
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def get_gain_card() -> Card:
-
-            gain_card = player.single_card_decision(
-                prompt="Gain a card costing up to 4 money: ",
-                valid_cards=game.supply.avaliable_cards(),
-            )
-
-            if not gain_card:
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost less than 4 money")
-
-            return gain_card
-
-        if isinstance(player, Human):
-            gain_card = get_gain_card()
-
-        elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card for card in game.supply.avaliable_cards() if card.cost <= 4
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost less than 4 money")
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 4 money: ",
+            card=self,
+            valid_cards=[
+                card for card in game.supply.avaliable_cards() if card.cost <= 4
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= 4
 
         player.gain(gain_card, game.supply)
 
@@ -614,18 +597,6 @@ class Artisan(Action):
             super().generic_play(player)
 
         @validate_input(exceptions=InvalidSingleCardInput)
-        def get_gain_card() -> Card:
-            gain_card = player.single_card_decision(
-                prompt="Gain a card costing up to 5 money: ",
-                valid_cards=game.supply.avaliable_cards(),
-            )
-            if not gain_card or isinstance(gain_card, str):
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost at most 5 money")
-            return gain_card
-
-        @validate_input(exceptions=InvalidSingleCardInput)
         def get_topdeck_card() -> Card:
             topdeck_card = player.single_card_decision(
                 prompt="Put a card from your hand onto your deck: ",
@@ -635,28 +606,24 @@ class Artisan(Action):
                 raise InvalidSingleCardInput("You must topdeck a card")
             return topdeck_card
 
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 5 money: ",
+            card=self,
+            valid_cards=[
+                card for card in game.supply.avaliable_cards() if card.cost <= 5
+            ],
+            player=player,
+            game=game,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= 5
+
+        player.gain(card=gain_card, supply=game.supply, destination=player.hand)
+
         if isinstance(player, Human):
-            gain_card = get_gain_card()
-            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
             topdeck_card = get_topdeck_card()
-
         elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card for card in game.supply.avaliable_cards() if card.cost <= 5
-                ],
-                game=game,
-                required=True,
-            )
-
-            if not gain_card:
-                raise InvalidSingleCardInput("Must gain a card with Artisan")
-            if gain_card.cost > 5:
-                raise InvalidSingleCardInput("Card must cost at most 5 money")
-
-            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
-
             topdeck_card = player.topdeck_resp(
                 card=self,
                 valid_cards=player.hand.cards,
@@ -1079,40 +1046,23 @@ class Remodel(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        if isinstance(player, Human):
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_gain_card(trash_card: Card) -> Card:
-
-                gain_card = player.single_card_decision(
-                    prompt=f"Gain a card costing up to {trash_card.cost + 2} money: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-
-                if not gain_card or isinstance(gain_card, str):
-                    raise InvalidSingleCardInput("You must gain a card")
-                if gain_card.cost > trash_card.cost + 2:
-                    raise InvalidSingleCardInput(
-                        f"Card must cost less than {trash_card.cost + 2} money"
-                    )
-                return gain_card
-
-            gain_card = get_gain_card(trash_card)
-
-        elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card
-                    for card in game.supply.avaliable_cards()
-                    if card.cost <= trash_card.cost + 2
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidBotImplementation(
-                    "Card must be gained when playing remodel"
-                )
+        max_cost = trash_card.cost + 2
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a card costing up to {max_cost} money: ",
+            card=self,
+            valid_cards=[
+                card
+                for card in game.supply.avaliable_cards()
+                if card.cost <= max_cost
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply)
@@ -1158,40 +1108,24 @@ class Mine(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        if isinstance(player, Human):
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_gain_card(trash_card: Card) -> Card:
-
-                gain_card = player.single_card_decision(
-                    prompt=f"Gain a Treasure card costing up to {trash_card.cost + 3} money to your hand: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-
-                if not gain_card or isinstance(gain_card, str):
-                    raise InvalidSingleCardInput("You must gain a card")
-                if CardType.Treasure not in trash_card.type:
-                    raise InvalidSingleCardInput("Card must be a Treasure")
-                if gain_card.cost > trash_card.cost + 3:
-                    raise InvalidSingleCardInput(
-                        f"Card must cost less than {trash_card.cost + 3} money"
-                    )
-                return gain_card
-
-            gain_card = get_gain_card(trash_card)
-
-        elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card
-                    for card in game.supply.avaliable_cards()
-                    if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidBotImplementation("Card must be gained when playing mine")
+        max_cost = trash_card.cost + 3
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a Treasure card costing up to {max_cost} money to your hand: ",
+            card=self,
+            valid_cards=[
+                card
+                for card in game.supply.avaliable_cards()
+                if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert CardType.Treasure in gain_card.type
+        assert gain_card.cost <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply, destination=player.hand)

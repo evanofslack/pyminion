@@ -5,11 +5,11 @@ from pyminion.expansions.base import copper, estate, gold, witch
 from pyminion.game import Game
 
 
-def test_binary_resp(base_bot: Bot, game: Game):
+def test_binary_decision(base_bot: Bot, game: Game):
     assert base_bot.decider.binary_decision(prompt="test", card=copper, player=base_bot, game=game, relevant_cards=None)
 
 
-def test_multiple_discard_resp(base_bot: Bot, game: Game):
+def test_multiple_discard_decision(base_bot: Bot, game: Game):
     cards = base_bot.decider.discard_decision(
         prompt="",
         card=copper,
@@ -22,7 +22,7 @@ def test_multiple_discard_resp(base_bot: Bot, game: Game):
     assert len(cards) == 2
 
 
-def test_multiple_discard_resp_none(base_bot: Bot, game: Game):
+def test_multiple_discard_decision_none(base_bot: Bot, game: Game):
     cards = base_bot.decider.discard_decision(
         prompt="",
         card=copper,
@@ -34,49 +34,32 @@ def test_multiple_discard_resp_none(base_bot: Bot, game: Game):
     assert len(cards) == 0
 
 
-def test_gain_resp(base_bot: Bot, game: Game):
-    card = base_bot.gain_resp(
-        card=None,
+def test_gain_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.gain_decision(
+        prompt="",
+        card=copper,
         valid_cards=[copper, estate, gold],
+        player=base_bot,
         game=game,
-        required=True,
+        min_num_gain=1,
     )
-    assert card.name == "Copper"
+    assert len(cards) == 1
+    assert cards[0].name == "Copper"
 
 
-def test_gain_resp_none(base_bot: Bot, game: Game):
-    card = base_bot.gain_resp(
-        card=None,
+def test_gain_decision_none(base_bot: Bot, game: Game):
+    cards = base_bot.decider.gain_decision(
+        prompt="",
+        card=copper,
         valid_cards=[copper, estate, gold],
+        player=base_bot,
         game=game,
-        required=False,
+        min_num_gain=0,
     )
-    assert card is None
+    assert len(cards) == 0
 
 
-def test_multiple_gain_resp(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_gain_resp(
-        card=None,
-        valid_cards=[copper, estate, gold],
-        game=game,
-        num_gain=2,
-        required=True,
-    )
-    assert len(cards) == 2
-
-
-def test_multiple_gain_resp_none(base_bot: Bot, game: Game):
-    cards = base_bot.multiple_gain_resp(
-        card=None,
-        valid_cards=[copper, estate, gold],
-        game=game,
-        num_gain=2,
-        required=False,
-    )
-    assert cards is None
-
-
-def test_trash_resp(base_bot: Bot, game: Game):
+def test_trash_decision(base_bot: Bot, game: Game):
     cards = base_bot.decider.trash_decision(
         prompt="",
         card=copper,
@@ -89,7 +72,7 @@ def test_trash_resp(base_bot: Bot, game: Game):
     assert cards[0].name == "Copper"
 
 
-def test_trash_resp_none(base_bot: Bot, game: Game):
+def test_trash_decision_none(base_bot: Bot, game: Game):
     cards = base_bot.decider.trash_decision(
         prompt="",
         card=copper,

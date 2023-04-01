@@ -143,6 +143,30 @@ class OptimizedBotDecider:
         else:
             return valid_cards[:min_num_trash]
 
+    def gain_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_gain: int = 0,
+        max_num_gain: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Artisan":
+            card = self.artisan(player=player, game=game, gain=True)
+            return [card]
+        elif card.name == "Workshop":
+            card = self.workshop(player=player, game=game)
+            return [card]
+        elif card.name == "Remodel":
+            card = self.remodel(player=player, valid_cards=valid_cards, gain=True)
+            return [card]
+        elif card.name == "Mine":
+            card = self.mine(player=player, valid_cards=valid_cards, gain=True)
+            return [card]
+        else:
+            return valid_cards[:min_num_gain]
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
@@ -256,6 +280,40 @@ class OptimizedBotDecider:
             trash_cards.pop()
         return trash_cards
 
+    def artisan(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        gain: bool = False,
+        topdeck: bool = False,
+    ) -> Card:
+        if topdeck:
+            for card in player.hand.cards:
+                if CardType.Action in card.type and player.state.actions == 0:
+                    return card
+            else:
+                return player.hand.cards[-1]
+        if gain:
+            if game.supply.pile_length(pile_name="Province") < 5:
+                return duchy
+            else:
+                return silver
+
+        raise InvalidBotImplementation(
+            "Either gain or topdeck must be true when playing artisan"
+        )
+
+    def workshop(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> Card:
+        if game.supply.pile_length(pile_name="Province") < 3:
+            return estate
+        else:
+            return silver
+
 
 class OptimizedBot(Bot):
     """
@@ -273,39 +331,6 @@ class OptimizedBot(Bot):
         player_id: str = "bot",
     ):
         super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
-
-    def gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
-        if card.name == "Artisan":
-            return self.artisan(game=game, gain=True)
-        if card.name == "Workshop":
-            return self.workshop(game=game)
-        if card.name == "Remodel":
-            return self.remodel(valid_cards=valid_cards, gain=True)
-        if card.name == "Mine":
-            return self.mine(valid_cards=valid_cards, gain=True)
-
-    def multiple_gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_gain: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        return super().multiple_gain_resp(
-            card=card,
-            valid_cards=valid_cards,
-            game=game,
-            num_gain=num_gain,
-            required=required,
-        )
 
     def topdeck_resp(
         self,
@@ -362,42 +387,6 @@ class OptimizedBot(Bot):
 
         raise InvalidBotImplementation(
             "Either gain or topdeck must be true when playing artisian"
-        )
-
-    def workshop(self, game: "Game") -> Card:
-        if game.supply.pile_length(pile_name="Province") < 3:
-            return estate
-        else:
-            return silver
-
-    def remodel(
-        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
-    ) -> Card:
-        if trash:
-            min_price_card = min(valid_cards, key=lambda card: card.cost)
-            return min_price_card
-
-        if gain:
-            max_price_card = max(valid_cards, key=lambda card: card.cost)
-            return max_price_card
-
-        raise InvalidBotImplementation(
-            "Either gain or trash must be true when playing remodel"
-        )
-
-    def mine(
-        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
-    ) -> Card:
-        if trash:
-            min_price_card = min(valid_cards, key=lambda card: card.cost)
-            return min_price_card
-
-        if gain:
-            max_price_card = max(valid_cards, key=lambda card: card.cost)
-            return max_price_card
-
-        raise InvalidBotImplementation(
-            "Either gain or trash must be true when playing mine"
         )
 
     def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
