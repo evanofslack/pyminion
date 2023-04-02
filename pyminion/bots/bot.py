@@ -79,6 +79,20 @@ class BotDecider:
     ) -> List["Card"]:
         return valid_cards[:min_num_topdeck]
 
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        required: bool = True,
+    ) -> Optional["Card"]:
+        if required:
+            return valid_cards[0]
+        else:
+            return None
+
 
 class Bot(Player):
     """
@@ -180,18 +194,6 @@ class Bot(Player):
     # These methods can be implemented with specific game logic
     # when creating new bots. In this class, these methods just return
     # a valid response as to not crash the game.
-
-    def double_play_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
 
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
         return True

@@ -109,16 +109,27 @@ def test_topdeck_decision_none(base_bot: Bot, game: Game):
     assert len(cards) == 0
 
 
-def test_double_play_resp(base_bot: Bot, game: Game):
-    card = base_bot.double_play_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=True
+def test_multi_play_decision(base_bot: Bot, game: Game):
+    card = base_bot.decider.multi_play_decision(
+        prompt="",
+        card=copper,
+        valid_cards=[copper, estate, gold],
+        player=base_bot,
+        game=game,
+        required=True,
     )
+    assert card is not None
     assert card.name == "Copper"
 
 
-def test_double_play_resp_none(base_bot: Bot, game: Game):
-    card = base_bot.double_play_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=False
+def test_multi_play_decision_none(base_bot: Bot, game: Game):
+    card = base_bot.decider.multi_play_decision(
+        prompt="",
+        card=copper,
+        valid_cards=[copper, estate, gold],
+        player=base_bot,
+        game=game,
+        required=False,
     )
     assert card is None
 

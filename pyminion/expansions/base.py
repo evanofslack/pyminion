@@ -964,22 +964,15 @@ class ThroneRoom(Action):
         if not action_cards:
             return
 
-        if isinstance(player, Human):
-            dp_card = player.single_card_decision(
-                prompt="You may play an action card from your hand twice: ",
-                valid_cards=action_cards,
-            )
-
-        elif isinstance(player, Bot):
-            dp_card = player.double_play_resp(
-                card=self,
-                valid_cards=action_cards,
-                game=game,
-                required=True,
-            )
-
-        if not dp_card or isinstance(dp_card, str):
-            return
+        dp_card = player.decider.multi_play_decision(
+            prompt="You may play an action card from your hand twice: ",
+            card=self,
+            valid_cards=action_cards,
+            player=player,
+            game=game,
+            required=True,
+        )
+        assert dp_card is not None
 
         for card in player.hand.cards:
             if card.name == dp_card.name:

@@ -190,6 +190,23 @@ class OptimizedBotDecider:
         else:
             return valid_cards[:min_num_topdeck]
 
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        required: bool = True,
+    ) -> Optional["Card"]:
+        if card.name == "Throne Room":
+            return self.throne_room(player=player, valid_cards=valid_cards)
+        else:
+            if required:
+                return valid_cards[0]
+            else:
+                return None
+
     # CARD SPECIFIC IMPLEMENTATIONS
 
     def moneylender(self, player: "Player") -> bool:
@@ -360,6 +377,11 @@ class OptimizedBotDecider:
         sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
         return sorted_cards[0]
 
+    def throne_room(self, player: "Player", valid_cards: List[Card]) -> Card:
+        # Double play most expensive card
+        max_price_card = max(valid_cards, key=lambda card: card.cost)
+        return max_price_card
+
 
 class OptimizedBot(Bot):
     """
@@ -378,25 +400,8 @@ class OptimizedBot(Bot):
     ):
         super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
 
-    def double_play_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if card.name == "Throne Room":
-            return self.throne_room(valid_cards=valid_cards)
-
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
         for card in self.hand.cards:
             if card.name == "Moat":
                 return False
         return True
-
-    # CARD SPECIFIC IMPLEMENTATIONS
-
-    def throne_room(self, valid_cards: List[Card]) -> Card:
-        # Double play most expensive card
-        max_price_card = max(valid_cards, key=lambda card: card.cost)
-        return max_price_card

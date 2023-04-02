@@ -139,6 +139,29 @@ class HumanDecider:
 
         return result
 
+    @validate_input(exceptions=InvalidSingleCardInput)
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        required: bool = True,
+    ) -> Optional["Card"]:
+        result = single_card_decision(prompt, valid_cards)
+
+        if isinstance(result, str):
+            raise InvalidSingleCardInput(
+                f"Invalid response, you must name a valid card"
+            )
+        elif required and result is None:
+            raise InvalidSingleCardInput(
+                f"Invalid response, you must name a valid card"
+            )
+
+        return result
+
 
 class Human(Player):
     """

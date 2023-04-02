@@ -69,5 +69,13 @@ class Decider(Protocol):
     ) -> List["Card"]:
         raise NotImplementedError("topdeck_decision is not implemented")
 
-    # TODO:
-    # double_play_decision
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        required: bool = True,
+    ) -> Optional["Card"]:
+        raise NotImplementedError("multi_play_decision is not implemented")
