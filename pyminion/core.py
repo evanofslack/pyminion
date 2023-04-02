@@ -4,6 +4,7 @@ from collections import Counter
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 if TYPE_CHECKING:
+    from pyminion.game import Game
     from pyminion.player import Player
 
 from enum import Enum
@@ -81,7 +82,7 @@ class Action(Card):
         self.draw = draw
         self.money = money
 
-    def play(self):
+    def play(self, player: "Player", game: "Game", generic_play: bool = True):
         """
         Specific play method unique to each action card
 
