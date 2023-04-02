@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pyminion.bots.bot import Bot
+from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
-class OptimizedBotDecider:
+class OptimizedBotDecider(BotDecider):
     """
     Optimized representation of Bot decision making.
 
@@ -99,7 +99,7 @@ class OptimizedBotDecider:
         elif card.name == "Moat":
             return self.moat(player=player, relevant_cards=relevant_cards)
         else:
-            return True
+            return super().binary_decision(prompt, card, player, game, relevant_cards)
 
     def discard_decision(
         self,
@@ -120,7 +120,7 @@ class OptimizedBotDecider:
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, discard=True)
         else:
-            return valid_cards[:min_num_discard]
+            return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
     def trash_decision(
         self,
@@ -143,7 +143,7 @@ class OptimizedBotDecider:
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
         else:
-            return valid_cards[:min_num_trash]
+            return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
     def gain_decision(
         self,
@@ -168,7 +168,7 @@ class OptimizedBotDecider:
             ret = self.mine(player=player, valid_cards=valid_cards, gain=True)
             return [ret]
         else:
-            return valid_cards[:min_num_gain]
+            return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
 
     def topdeck_decision(
         self,
@@ -190,7 +190,7 @@ class OptimizedBotDecider:
             ret = self.bureaucrat(player=player, valid_cards=valid_cards)
             return [ret]
         else:
-            return valid_cards[:min_num_topdeck]
+            return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
 
     def multi_play_decision(
         self,
@@ -204,10 +204,7 @@ class OptimizedBotDecider:
         if card.name == "Throne Room":
             return self.throne_room(player=player, valid_cards=valid_cards)
         else:
-            if required:
-                return valid_cards[0]
-            else:
-                return None
+            return super().multi_play_decision(prompt, card, valid_cards, player, game, required)
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
