@@ -1,4 +1,4 @@
-from pyminion.decisions import binary_decision
+from pyminion.human import binary_decision
 
 
 def test_yes_input(monkeypatch):
