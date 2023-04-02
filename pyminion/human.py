@@ -114,6 +114,31 @@ class HumanDecider:
 
         return result
 
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def topdeck_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_topdeck: int = 0,
+        max_num_topdeck: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_topdeck:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must topdeck at least {min_num_topdeck} card(s)"
+            )
+        elif max_num_topdeck >= 0 and len_result > max_num_topdeck:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot topdeck more than {max_num_topdeck} card(s)"
+            )
+
+        return result
+
 
 class Human(Player):
     """

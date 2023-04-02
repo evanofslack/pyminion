@@ -84,18 +84,29 @@ def test_trash_decision_none(base_bot: Bot, game: Game):
     assert len(cards) == 0
 
 
-def test_topdeck_resp(base_bot: Bot, game: Game):
-    card = base_bot.topdeck_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=True
+def test_topdeck_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.topdeck_decision(
+        prompt="",
+        card=copper,
+        valid_cards=[copper, estate, gold],
+        player=base_bot,
+        game=game,
+        min_num_topdeck=1,
     )
-    assert card.name == "Copper"
+    assert len(cards) == 1
+    assert cards[0].name == "Copper"
 
 
-def test_topdeck_resp_none(base_bot: Bot, game: Game):
-    card = base_bot.topdeck_resp(
-        card=None, valid_cards=[copper, estate, gold], game=game, required=False
+def test_topdeck_decision_none(base_bot: Bot, game: Game):
+    cards = base_bot.decider.topdeck_decision(
+        prompt="",
+        card=copper,
+        valid_cards=[copper, estate, gold],
+        player=base_bot,
+        game=game,
+        min_num_topdeck=0,
     )
-    assert card is None
+    assert len(cards) == 0
 
 
 def test_double_play_resp(base_bot: Bot, game: Game):

@@ -131,11 +131,11 @@ class OptimizedBotDecider:
         max_num_trash: int = -1,
     ) -> List["Card"]:
         if card.name == "Remodel":
-            card = self.remodel(player=player, valid_cards=valid_cards, trash=True)
-            return [card]
+            ret = self.remodel(player=player, valid_cards=valid_cards, trash=True)
+            return [ret]
         elif card.name == "Mine":
-            card = self.mine(player=player, valid_cards=valid_cards, trash=True)
-            return [card]
+            ret = self.mine(player=player, valid_cards=valid_cards, trash=True)
+            return [ret]
         elif card.name == "Chapel":
             return self.chapel(player=player, game=game, valid_cards=valid_cards)
         elif card.name == "Sentry":
@@ -154,19 +154,41 @@ class OptimizedBotDecider:
         max_num_gain: int = -1,
     ) -> List["Card"]:
         if card.name == "Artisan":
-            card = self.artisan(player=player, game=game, gain=True)
-            return [card]
+            ret = self.artisan(player=player, game=game, gain=True)
+            return [ret]
         elif card.name == "Workshop":
-            card = self.workshop(player=player, game=game)
-            return [card]
+            ret = self.workshop(player=player, game=game)
+            return [ret]
         elif card.name == "Remodel":
-            card = self.remodel(player=player, valid_cards=valid_cards, gain=True)
-            return [card]
+            ret = self.remodel(player=player, valid_cards=valid_cards, gain=True)
+            return [ret]
         elif card.name == "Mine":
-            card = self.mine(player=player, valid_cards=valid_cards, gain=True)
-            return [card]
+            ret = self.mine(player=player, valid_cards=valid_cards, gain=True)
+            return [ret]
         else:
             return valid_cards[:min_num_gain]
+
+    def topdeck_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_topdeck: int = 0,
+        max_num_topdeck: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Artisan":
+            ret = self.artisan(player=player, game=game, valid_cards=valid_cards, topdeck=True)
+            return [ret]
+        elif card.name == "Harbinger":
+            ret = self.harbinger(player=player, valid_cards=valid_cards)
+            return [] if ret is None else [ret]
+        elif card.name == "Bureaucrat":
+            ret = self.bureaucrat(player=player, valid_cards=valid_cards)
+            return [ret]
+        else:
+            return valid_cards[:min_num_topdeck]
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
@@ -314,6 +336,30 @@ class OptimizedBotDecider:
         else:
             return silver
 
+    def harbinger(
+        self,
+        player: "Player",
+        valid_cards: List[Card],
+    ) -> Optional[Card]:
+        # Do not topdeck victory cards
+        best_topdeck = [card for card in valid_cards if CardType.Victory not in card.type]
+        if not best_topdeck:
+            return None
+        # Topdeck highest price card if price > 2
+        max_price_card = max(best_topdeck, key=lambda card: card.cost)
+        if max_price_card.cost > 2:
+            return max_price_card
+        else:
+            return None
+
+    def bureaucrat(
+        self,
+        player: "Player",
+        valid_cards: List[Card],
+    ) -> Card:
+        sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
+        return sorted_cards[0]
+
 
 class OptimizedBot(Bot):
     """
@@ -332,22 +378,6 @@ class OptimizedBot(Bot):
     ):
         super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
 
-    def topdeck_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
-        if card.name == "Artisan":
-            return self.artisan(game=game, valid_cards=valid_cards, topdeck=True)
-        if card.name == "Harbinger":
-            return self.harbinger(valid_cards=valid_cards)
-
-        if card.name == "Bureaucrat":
-            return self.bureaucrat(valid_cards=valid_cards)
-
     def double_play_resp(
         self,
         card: Card,
@@ -365,45 +395,6 @@ class OptimizedBot(Bot):
         return True
 
     # CARD SPECIFIC IMPLEMENTATIONS
-
-    def artisan(
-        self,
-        game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        gain: bool = False,
-        topdeck: bool = False,
-    ) -> Card:
-        if topdeck:
-            for card in self.hand.cards:
-                if CardType.Action in card.type and self.state.actions == 0:
-                    return card
-            else:
-                return self.hand.cards[-1]
-        if gain:
-            if game.supply.pile_length(pile_name="Province") < 5:
-                return duchy
-            else:
-                return silver
-
-        raise InvalidBotImplementation(
-            "Either gain or topdeck must be true when playing artisian"
-        )
-
-    def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
-        # Do not topdeck victory cards
-        best_topdeck = [card for card in valid_cards if CardType.Victory not in card.type]
-        if not best_topdeck:
-            return None
-        # Topdeck highest price card if price > 2
-        max_price_card = max(best_topdeck, key=lambda card: card.cost)
-        if max_price_card.cost > 2:
-            return max_price_card
-        else:
-            return None
-
-    def bureaucrat(self, valid_cards: List[Card]) -> Card:
-        sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
-        return sorted_cards[0]
 
     def throne_room(self, valid_cards: List[Card]) -> Card:
         # Double play most expensive card

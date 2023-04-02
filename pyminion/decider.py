@@ -57,6 +57,17 @@ class Decider(Protocol):
     ) -> List["Card"]:
         raise NotImplementedError("gain_decision is not implemented")
 
+    def topdeck_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_topdeck: int = 0,
+        max_num_topdeck: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("topdeck_decision is not implemented")
+
     # TODO:
-    # topdeck_decision
     # double_play_decision

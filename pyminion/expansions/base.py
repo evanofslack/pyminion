@@ -496,23 +496,21 @@ class Harbinger(Action):
         if not player.discard_pile:
             return
 
-        if isinstance(player, Human):
-            topdeck_card = player.single_card_decision(
-                prompt="You may select a card from your discard pile to put onto your deck: ",
-                valid_cards=player.discard_pile.cards,
-            )
+        topdeck_cards = player.decider.topdeck_decision(
+            prompt="You may select a card from your discard pile to put onto your deck: ",
+            card=self,
+            valid_cards=player.discard_pile.cards,
+            player=player,
+            game=game,
+            min_num_topdeck=0,
+            max_num_topdeck=1,
+        )
 
-        elif isinstance(player, Bot):
-            topdeck_card = player.topdeck_resp(
-                card=self,
-                valid_cards=player.discard_pile.cards,
-                game=game,
-                required=False,
-            )
-
-        if not topdeck_card or isinstance(topdeck_card, str):
+        if len(topdeck_cards) == 0:
             return
 
+        assert len(topdeck_cards) == 1
+        topdeck_card = topdeck_cards[0]
         player.deck.add(player.discard_pile.remove(topdeck_card))
 
 
@@ -596,16 +594,6 @@ class Artisan(Action):
         if generic_play:
             super().generic_play(player)
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def get_topdeck_card() -> Card:
-            topdeck_card = player.single_card_decision(
-                prompt="Put a card from your hand onto your deck: ",
-                valid_cards=player.hand.cards,
-            )
-            if not topdeck_card or isinstance(topdeck_card, str):
-                raise InvalidSingleCardInput("You must topdeck a card")
-            return topdeck_card
-
         gain_cards = player.decider.gain_decision(
             prompt="Gain a card costing up to 5 money: ",
             card=self,
@@ -621,15 +609,17 @@ class Artisan(Action):
 
         player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
-        if isinstance(player, Human):
-            topdeck_card = get_topdeck_card()
-        elif isinstance(player, Bot):
-            topdeck_card = player.topdeck_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=True,
-            )
+        topdeck_cards = player.decider.topdeck_decision(
+            prompt="Put a card from your hand onto your deck: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_topdeck=1,
+            max_num_topdeck=1,
+        )
+        assert len(topdeck_cards) == 1
+        topdeck_card = topdeck_cards[0]
 
         for card in player.hand.cards:
             if card == topdeck_card:
@@ -931,29 +921,17 @@ class Bureaucrat(Action):
                     # Log opponent revealed hand
                     return
 
-                @validate_input(exceptions=InvalidSingleCardInput)
-                def get_topdeck_card(opponent: Human) -> Card:
-                    topdeck_card = opponent.single_card_decision(
-                        prompt="You must topdeck a Victory card from your hand: ",
-                        valid_cards=victory_cards,
-                    )
-                    if not topdeck_card or isinstance(topdeck_card, str):
-                        raise InvalidSingleCardInput("You must topdeck a Victory card")
-
-                    return topdeck_card
-
-                if isinstance(opponent, Human):
-                    topdeck_card = get_topdeck_card(opponent)
-
-                elif isinstance(opponent, Bot):
-                    topdeck_card = opponent.topdeck_resp(
-                        card=self,
-                        valid_cards=victory_cards,
-                        game=game,
-                        required=True,
-                    )
-                    if not topdeck_card:
-                        raise InvalidSingleCardInput("You must topdeck a Victory card")
+                topdeck_cards = opponent.decider.topdeck_decision(
+                    prompt="You must topdeck a Victory card from your hand: ",
+                    card=self,
+                    valid_cards=victory_cards,
+                    player=opponent,
+                    game=game,
+                    min_num_topdeck=1,
+                    max_num_topdeck=1,
+                )
+                assert len(topdeck_cards) == 1
+                topdeck_card = topdeck_cards[0]
 
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
 
