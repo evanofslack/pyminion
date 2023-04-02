@@ -96,6 +96,8 @@ class OptimizedBotDecider:
             return self.sentry(player=player, game=game, relevant_cards=relevant_cards, binary=True)
         elif card.name == "Library":
             return self.library(player=player, relevant_cards=relevant_cards)
+        elif card.name == "Moat":
+            return self.moat(player=player, relevant_cards=relevant_cards)
         else:
             return True
 
@@ -261,6 +263,9 @@ class OptimizedBotDecider:
             if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
         ]
 
+    def moat(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
+        return True
+
     def poacher(
         self, player: "Player", valid_cards: List[Card], num_discard: Optional[int]
     ) -> List[Card]:
@@ -399,9 +404,3 @@ class OptimizedBot(Bot):
         player_id: str = "bot",
     ):
         super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
-
-    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                return False
-        return True

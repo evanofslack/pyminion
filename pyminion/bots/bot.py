@@ -189,11 +189,3 @@ class Bot(Player):
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase()
-
-    # DEFAULT RESPONSES
-    # These methods can be implemented with specific game logic
-    # when creating new bots. In this class, these methods just return
-    # a valid response as to not crash the game.
-
-    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
-        return True

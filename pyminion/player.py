@@ -304,4 +304,14 @@ class Player:
         return treasure_money + action_money
 
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
-        raise NotImplementedError("is_attacked is not implemented")
+        for card in self.hand.cards:
+            if card.name == "Moat":
+                block = self.decider.binary_decision(
+                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
+                    card=card,
+                    player=self,
+                    game=game,
+                    relevant_cards=[attack_card],
+                )
+                return not block
+        return True

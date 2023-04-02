@@ -292,19 +292,6 @@ class Human(Player):
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
 
-    def is_attacked(self, player: Player, attack_card: Card, game: "Game") -> bool:
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                block = self.decider.binary_decision(
-                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
-                    card=card,
-                    player=self,
-                    game=game,
-                    relevant_cards=[attack_card],
-                )
-                return not block
-        return True
-
     def start_action_phase(self, game: "Game") -> None:
         while self.state.actions:
 
