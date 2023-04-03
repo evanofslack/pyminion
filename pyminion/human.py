@@ -136,6 +136,22 @@ class HumanDecider:
 
     """
 
+    @validate_input(exceptions=InvalidSingleCardInput)
+    def action_phase_decision(
+        self,
+        valid_actions: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        card = single_card_decision(
+            prompt="Choose an action card to play: ",
+            valid_cards=valid_actions,
+        )
+        if isinstance(card, str):
+            raise InvalidSingleCardInput("You must choose a valid card")
+
+        return card
+
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(
         self,
@@ -292,27 +308,6 @@ class Human(Player):
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
 
-    def start_action_phase(self, game: "Game") -> None:
-        while self.state.actions:
-
-            viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
-            if not viable_actions:
-                return
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def choose_action(game: "Game") -> None:
-                logger.info(f"Hand: {self.hand}")
-                card = single_card_decision(
-                    prompt="Choose an action card to play: ",
-                    valid_cards=viable_actions,
-                )
-                if not card or isinstance(card, str):
-                    return
-                self.play(card, game)
-                return
-
-            choose_action(game)
-
     def start_treasure_phase(self, game: "Game") -> None:
         viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         while viable_treasures:
@@ -355,11 +350,3 @@ class Human(Player):
                 self.buy(card, game.supply)
 
             choose_buy(game)
-
-    def take_turn(self, game: "Game") -> None:
-        self.start_turn()
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
-        self.start_action_phase(game)
-        self.start_treasure_phase(game)
-        self.start_buy_phase(game)
-        self.start_cleanup_phase()

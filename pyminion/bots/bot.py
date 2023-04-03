@@ -9,6 +9,7 @@ from pyminion.player import Player
 if TYPE_CHECKING:
     from pyminion.game import Game
 
+
 logger = logging.getLogger()
 
 
@@ -20,6 +21,14 @@ class BotDecider:
     a valid response as to not crash the game.
 
     """
+
+    def action_phase_decision(
+        self,
+        valid_actions: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        pass
 
     def binary_decision(
         self,
@@ -117,6 +126,7 @@ class Bot(Player):
         decider = decider if decider else BotDecider()
         super().__init__(decider=decider, player_id=player_id)
 
+    # TODO: remove
     def action_priority(self, game: "Game") -> Iterator[Card]:
         """
         Add logic for playing action cards through this method
@@ -126,23 +136,6 @@ class Bot(Player):
 
         """
         raise NotImplementedError
-
-    def start_action_phase(self, game: "Game"):
-        """
-        Attempts to play cards from the action_priority queue if possible
-
-        """
-        viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
-        while viable_actions and self.state.actions:
-            for card in self.action_priority(game=game):
-                try:
-                    self.play(target_card=card, game=game)
-                except CardNotFound:
-                    pass
-                if not self.state.actions:
-                    return
-            return
 
     def start_treasure_phase(self, game: "Game"):
         """
@@ -181,11 +174,3 @@ class Bot(Player):
             else:
                 logger.info(f"{self} buys nothing")
                 return
-
-    def take_turn(self, game: "Game") -> None:
-        self.start_turn()
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
-        self.start_action_phase(game)
-        self.start_treasure_phase(game)
-        self.start_buy_phase(game)
-        self.start_cleanup_phase()

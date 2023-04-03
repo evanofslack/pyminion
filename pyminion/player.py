@@ -227,6 +227,23 @@ class Player:
         self.state.money = 0
         self.state.buys = 1
 
+    def start_action_phase(self, game: "Game") -> None:
+        while self.state.actions > 0:
+            logger.info(f"{self.player_id}'s hand: {self.hand}")
+
+            viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
+            if not viable_actions:
+                return
+
+            card = self.decider.action_phase_decision(viable_actions, self, game)
+            if card is None:
+                return
+
+            try:
+                self.play(card, game)
+            except CardNotFound:
+                pass
+
     def start_cleanup_phase(self):
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
@@ -240,6 +257,14 @@ class Player:
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
+
+    def take_turn(self, game: "Game") -> None:
+        self.start_turn()
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
+        self.start_action_phase(game)
+        self.start_treasure_phase(game)
+        self.start_buy_phase(game)
+        self.start_cleanup_phase()
 
     def get_all_cards(self) -> List[Card]:
         """

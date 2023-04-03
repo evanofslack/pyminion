@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card
+from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
 from pyminion.player import Player
@@ -398,6 +399,8 @@ class OptimizedBot(Bot):
 
     def __init__(
         self,
+        decider: Optional[Decider] = None,
         player_id: str = "bot",
     ):
-        super().__init__(decider=OptimizedBotDecider(), player_id=player_id)
+        decider = decider if decider else OptimizedBotDecider()
+        super().__init__(decider=decider, player_id=player_id)

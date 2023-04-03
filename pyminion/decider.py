@@ -11,6 +11,14 @@ class Decider(Protocol):
 
     """
 
+    def action_phase_decision(
+        self,
+        valid_actions: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        raise NotImplementedError("action_phase_decision is not implemented")
+
     def binary_decision(
         self,
         prompt: str,
