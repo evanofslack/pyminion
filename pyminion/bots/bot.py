@@ -30,6 +30,14 @@ class BotDecider:
     ) -> Optional["Card"]:
         pass
 
+    def treasure_phase_decision(
+        self,
+        valid_treasures: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> List["Card"]:
+        return valid_treasures
+
     def binary_decision(
         self,
         prompt: str,
@@ -137,6 +145,7 @@ class Bot(Player):
         """
         raise NotImplementedError
 
+    # TODO: remove
     def start_treasure_phase(self, game: "Game"):
         """
         At start of action phase, bot simply plays all of their treasures
@@ -145,6 +154,7 @@ class Bot(Player):
         viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         self.autoplay_treasures(viable_treasures=viable_treasures, game=game)
 
+    # TODO: remove
     def buy_priority(self, game: "Game") -> Iterator[Card]:
         """
         Add logic for buy priority through this method

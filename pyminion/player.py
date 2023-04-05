@@ -244,6 +244,22 @@ class Player:
             except CardNotFound:
                 pass
 
+    def start_treasure_phase(self, game: "Game") -> None:
+        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
+        while len(viable_treasures) > 0:
+            logger.info(f"Hand: {self.hand}")
+
+            cards = self.decider.treasure_phase_decision(viable_treasures, self, game)
+            if len(cards) == 0:
+                break
+
+            for card in cards:
+                self.exact_play(card, game)
+            cards_str = ", ".join([str(c) for c in cards])
+            logger.info(f"{self.player_id} played {cards_str}")
+
+            viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
+
     def start_cleanup_phase(self):
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.

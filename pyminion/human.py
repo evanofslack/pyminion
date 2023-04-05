@@ -92,7 +92,9 @@ def single_card_decision(
 
 
 def multiple_card_decision(
-    prompt: str, valid_cards: List[Card]
+    prompt: str,
+    valid_cards: List[Card],
+    allow_all: bool = False,
 ) -> List[Card]:
     """
     Get user input when given the option to select multiple cards
@@ -101,12 +103,19 @@ def multiple_card_decision(
     when prompting a user to trash cards from their hand, valid cards would
     be the user's hand.
 
+    allow_all is a flag that, when True, allows the user to input "all" to
+    return all valid cards.
+
     Raise exception if user provided selection is not in valid_cards.
 
     """
     card_input = input(prompt)
     if not card_input:
         return []
+
+    if allow_all and card_input == "all":
+        return valid_cards
+
     card_strings = [x.strip() for x in card_input.split(",")]
     selected_cards = []
     for card_string in card_strings:
@@ -151,6 +160,20 @@ class HumanDecider:
             raise InvalidSingleCardInput("You must choose a valid card")
 
         return card
+
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def treasure_phase_decision(
+        self,
+        valid_treasures: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> List["Card"]:
+        cards = multiple_card_decision(
+            prompt="Choose treasures to play: ",
+            valid_cards=valid_treasures,
+            allow_all=True,
+        )
+        return cards
 
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(
@@ -307,31 +330,6 @@ class Human(Player):
         player_id: str = "human",
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
-
-    def start_treasure_phase(self, game: "Game") -> None:
-        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
-        while viable_treasures:
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def choose_treasure(game: "Game") -> None:
-                logger.info(f"Hand: {self.hand}")
-                response = single_card_decision(
-                    prompt="Choose an treasure card to play or 'all' to autoplay treasures: ",
-                    valid_cards=viable_treasures,
-                    valid_mixin="all",
-                )
-                if response == "all":
-                    self.autoplay_treasures(
-                        viable_treasures=viable_treasures, game=game
-                    )
-                    return
-                if not response or isinstance(response, str):
-                    return
-                self.exact_play(response, game)
-                logger.info(f"{self.player_id} played {response}")
-                viable_treasures.remove(response)
-
-            choose_treasure(game)
 
     def start_buy_phase(self, game: "Game") -> None:
         while self.state.buys:
