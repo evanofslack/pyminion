@@ -239,10 +239,7 @@ class Player:
             if card is None:
                 return
 
-            try:
-                self.play(card, game)
-            except CardNotFound:
-                pass
+            self.play(card, game)
 
     def start_treasure_phase(self, game: "Game") -> None:
         viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
@@ -260,7 +257,25 @@ class Player:
 
             viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
 
-    def start_cleanup_phase(self):
+    def start_buy_phase(self, game: "Game") -> None:
+        while self.state.buys > 0:
+            logger.info(f"\nSupply:{game.supply}")
+            logger.info(f"Money: {self.state.money}")
+            logger.info(f"Buys: {self.state.buys}")
+
+            card = self.decider.buy_phase_decision(
+                valid_cards=game.supply.avaliable_cards(),
+                player=self,
+                game=game,
+            )
+
+            if card is None:
+                logger.info(f"{self} buys nothing")
+                break
+
+            self.buy(card, supply=game.supply)
+
+    def start_cleanup_phase(self) -> None:
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
 

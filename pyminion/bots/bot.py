@@ -22,13 +22,27 @@ class BotDecider:
 
     """
 
+    def action_priority(self, player: "Player", game: "Game") -> Iterator[Card]:
+        """
+        Add logic for playing action cards through this method
+
+        This function should be a generator where each call
+        yields a desired card to play if conditions are met
+
+        """
+        raise NotImplementedError("action_priority is not implemented")
+
     def action_phase_decision(
         self,
         valid_actions: List["Card"],
         player: "Player",
         game: "Game",
     ) -> Optional["Card"]:
-        pass
+        for card in self.action_priority(player, game):
+            if card in player.hand.cards:
+                return card
+
+        return None
 
     def treasure_phase_decision(
         self,
@@ -37,6 +51,28 @@ class BotDecider:
         game: "Game",
     ) -> List["Card"]:
         return valid_treasures
+
+    def buy_priority(self, player: "Player", game: "Game") -> Iterator[Card]:
+        """
+        Add logic for buy priority through this method
+
+        This function should be a generator where each call
+        yields a desired card to buy if conditions are met
+
+        """
+        raise NotImplementedError("buy_priority is not implemented")
+
+    def buy_phase_decision(
+        self,
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        for card in self.buy_priority(player, game):
+            if game.supply.pile_length(card.name) > 0:
+                return card
+
+        return None
 
     def binary_decision(
         self,
@@ -133,54 +169,3 @@ class Bot(Player):
     ):
         decider = decider if decider else BotDecider()
         super().__init__(decider=decider, player_id=player_id)
-
-    # TODO: remove
-    def action_priority(self, game: "Game") -> Iterator[Card]:
-        """
-        Add logic for playing action cards through this method
-
-        This function should be a generator where each call
-        yields a desired card to play if conditions are met
-
-        """
-        raise NotImplementedError
-
-    # TODO: remove
-    def start_treasure_phase(self, game: "Game"):
-        """
-        At start of action phase, bot simply plays all of their treasures
-
-        """
-        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
-        self.autoplay_treasures(viable_treasures=viable_treasures, game=game)
-
-    # TODO: remove
-    def buy_priority(self, game: "Game") -> Iterator[Card]:
-        """
-        Add logic for buy priority through this method
-
-        This function should be a generator where each call
-        yields a desired card to buy if conditions are met
-
-        """
-        raise NotImplementedError
-
-    def start_buy_phase(self, game: "Game"):
-        """
-        Attempts to buy cards from the buy_priority queue if possible
-
-        """
-        logger.info(f"{self.player_id} has {self.state.money} money")
-
-        while self.state.buys:
-            for card in self.buy_priority(game=game):
-                try:
-                    self.buy(card, supply=game.supply)
-                    break
-
-                except EmptyPile:
-                    pass
-
-            else:
-                logger.info(f"{self} buys nothing")
-                return

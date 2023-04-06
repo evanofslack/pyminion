@@ -1,6 +1,8 @@
 import pytest
+from typing import List
 
 from pyminion.bots.bot import Bot
+from pyminion.core import Card
 from pyminion.expansions.base import copper, estate, gold, witch
 from pyminion.game import Game
 
@@ -138,11 +140,19 @@ def test_is_attacked(base_bot: Bot, game: Game):
     assert base_bot.is_attacked(player=base_bot, attack_card=witch, game=game)
 
 
-def test_action_priority(base_bot: Bot, game: Game):
+def test_action_decision(base_bot: Bot, game: Game):
     with pytest.raises(NotImplementedError):
-        base_bot.action_priority(game)
+        base_bot.decider.action_phase_decision([], base_bot, game)
 
 
-def test_buy_priority(base_bot: Bot, game: Game):
+def test_treasure_decision(base_bot: Bot, game: Game):
+    treasures: List[Card] = [copper, gold]
+    cards = base_bot.decider.treasure_phase_decision(treasures, base_bot, game)
+    assert len(cards) == 2
+    assert treasures[0] == copper
+    assert treasures[1] == gold
+
+
+def test_buy_decision(base_bot: Bot, game: Game):
     with pytest.raises(NotImplementedError):
-        base_bot.buy_priority(game)
+        base_bot.decider.buy_phase_decision([], base_bot, game)

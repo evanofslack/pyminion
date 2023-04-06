@@ -175,6 +175,22 @@ class HumanDecider:
         )
         return cards
 
+    @validate_input(exceptions=InvalidSingleCardInput)
+    def buy_phase_decision(
+        self,
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        card = single_card_decision(
+            prompt="Choose a card to buy: ",
+            valid_cards=valid_cards,
+        )
+        if isinstance(card, str):
+            raise InvalidSingleCardInput("You must choose a valid card")
+
+        return card
+
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(
         self,
@@ -330,21 +346,3 @@ class Human(Player):
         player_id: str = "human",
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
-
-    def start_buy_phase(self, game: "Game") -> None:
-        while self.state.buys:
-            logger.info(f"\nSupply:{game.supply}")
-            logger.info(f"Money: {self.state.money}")
-            logger.info(f"Buys: {self.state.buys}")
-
-            @validate_input(exceptions=(InvalidSingleCardInput, InsufficientMoney))
-            def choose_buy(game: "Game") -> None:
-                card = single_card_decision(
-                    prompt="Choose a card to buy: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-                if not card or isinstance(card, str):
-                    return
-                self.buy(card, game.supply)
-
-            choose_buy(game)

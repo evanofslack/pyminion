@@ -27,6 +27,14 @@ class Decider(Protocol):
     ) -> List["Card"]:
         raise NotImplementedError("treasure_phase_decision is not implemented")
 
+    def buy_phase_decision(
+        self,
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        raise NotImplementedError("buy_phase_decision is not implemented")
+
     def binary_decision(
         self,
         prompt: str,
