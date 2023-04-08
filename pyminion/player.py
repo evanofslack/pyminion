@@ -263,8 +263,13 @@ class Player:
             logger.info(f"Money: {self.state.money}")
             logger.info(f"Buys: {self.state.buys}")
 
+            valid_cards = [
+                c
+                for c in game.supply.avaliable_cards()
+                if c.cost <= self.state.money
+            ]
             card = self.decider.buy_phase_decision(
-                valid_cards=game.supply.avaliable_cards(),
+                valid_cards=valid_cards,
                 player=self,
                 game=game,
             )
