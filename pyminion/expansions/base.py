@@ -598,6 +598,8 @@ class Artisan(Action):
             ],
             player=player,
             game=game,
+            min_num_gain=1,
+            max_num_gain=1,
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
@@ -1069,7 +1071,7 @@ class Mine(Action):
             valid_cards=treasures,
             player=player,
             game=game,
-            min_num_trash=1,
+            min_num_trash=0,
             max_num_trash=1,
         )
         assert len(trash_cards) == 1
