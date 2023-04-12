@@ -202,21 +202,6 @@ class Player:
 
                 break
 
-    def autoplay_treasures(
-        self, viable_treasures: Optional[List[Card]], game: "Game"
-    ) -> None:
-        """
-        Play all treasures in hand
-
-        """
-        if not viable_treasures:
-            return
-
-        i = 0
-        while i < len(viable_treasures):
-            self.exact_play(viable_treasures[i], game)
-            viable_treasures.remove(viable_treasures[i])
-
     def start_turn(self) -> None:
         """
         Increase turn counter and reset state
