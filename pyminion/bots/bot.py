@@ -1,16 +1,11 @@
-import logging
 from typing import TYPE_CHECKING, Iterator, List, Optional
 
-from pyminion.core import CardType, Card
+from pyminion.core import Card
 from pyminion.decider import Decider
-from pyminion.exceptions import CardNotFound, EmptyPile
 from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
-
-
-logger = logging.getLogger()
 
 
 class BotDecider:
@@ -19,6 +14,12 @@ class BotDecider:
     These methods can be implemented with specific game logic
     when creating new bots. In this class, these methods just return
     a valid response as to not crash the game.
+
+    Does not implement any logic for playing or buying cards, as those functions
+    (action_priority and buy_priority), are meant to be implemented when defining new bots.
+
+    Does implement default responses to any decision the bot might have to make
+    when playing a card or responding to an attack as to not crash the game.
 
     """
 
@@ -150,15 +151,6 @@ class BotDecider:
 class Bot(Player):
     """
     Abstract representation of Bot.
-
-    Defines at a high level how a bot can play and buy cards.
-    The intention is to inherit from this class to make concrete bot implementations.
-
-    Does not implement any logic for playing or buying cards, as those functions
-    (action_priority and buy_priority), are meant to be implemented when defining new bots.
-
-    Does implement default responses to any decision the bot might have to make
-    when playing a card or responding to an attack as to not crash the game.
 
     """
 

@@ -1,4 +1,3 @@
-import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from pyminion.bots.bot import Bot, BotDecider
@@ -11,12 +10,14 @@ from pyminion.player import Player
 if TYPE_CHECKING:
     from pyminion.game import Game
 
-logger = logging.getLogger()
-
 
 class OptimizedBotDecider(BotDecider):
     """
-    Optimized representation of Bot decision making.
+    Implements opinionated logic for playing and reacting to all cards in the base set.
+
+    The intention is to inherit from this class to make concrete bot implementations.
+    If inheriting from this bot, it is possible to change the way that a single card is executed
+    by overwriting the card specific method at the bottom of this file.
 
     """
 
@@ -388,12 +389,7 @@ class OptimizedBotDecider(BotDecider):
 
 class OptimizedBot(Bot):
     """
-    Implements opinionated logic for playing and reacting to all cards in the base set.
-
-    The intention is to inherit from this class to make concrete bot implementations.
-    If inheriting from this bot, it is possible to change the way that a single card is executed
-    by overwriting the card specific method at the bottom of this file.
-
+    Bot with logic for playing and reacting to all cards.
 
     """
 
