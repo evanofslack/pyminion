@@ -63,6 +63,32 @@ class Baron(Action):
             player.gain(estate, game.supply)
 
 
+class Conspirator(Action):
+    """
+    +2 Money
+
+    If you've played 3 or more Actions this turn (counting this), +1 Card and +1 Action.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Conspirator", cost=4, type=(CardType.Action,), money=2)
+
+    def play(
+        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.money += 2
+
+        if player.actions_played_this_turn >= 3:
+            player.draw(1)
+            player.state.actions += 1
+
+
 class Courtier(Action):
     """
     Reveal a card from your hand. For each type it has (Action, Attack, etc.),
@@ -674,6 +700,7 @@ class Steward(Action):
 
 
 baron = Baron()
+conspirator = Conspirator()
 courtier = Courtier()
 courtyard = Courtyard()
 duke = Duke()
@@ -688,6 +715,7 @@ steward = Steward()
 
 intrigue_set: List[Card] = [
     baron,
+    conspirator,
     courtier,
     courtyard,
     duke,

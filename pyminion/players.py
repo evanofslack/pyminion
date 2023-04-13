@@ -55,6 +55,7 @@ class Player:
         self.player_id = player_id
         self.turns: int = 0
         self.shuffles: int = 0
+        self.actions_played_this_turn: int = 0
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -67,6 +68,7 @@ class Player:
         """
         self.turns = 0
         self.shuffles = 0
+        self.actions_played_this_turn = 0
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
@@ -133,6 +135,7 @@ class Player:
         for card in self.hand.cards:
             if card.name == target_card.name:
                 if CardType.Action in card.type:
+                    self.actions_played_this_turn += 1
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
                 if CardType.Treasure in card.type:
@@ -147,6 +150,7 @@ class Player:
 
         """
         if CardType.Action in card.type:
+            self.actions_played_this_turn += 1
             card.play(player=self, game=game, generic_play=generic_play)
         elif CardType.Treasure in card.type:
             card.play(player=self, game=game)
@@ -225,6 +229,7 @@ class Player:
 
         """
         self.turns += 1
+        self.actions_played_this_turn = 0
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
