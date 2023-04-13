@@ -1,32 +1,32 @@
 # Creating Bots
 
-Pyminion provides a couple of different base classes that can be used to implement new bots. The goal is to provide a convenient starting point from which new bots can be built. 
-## `Bot`
+Pyminion provides several different base classes that can be used to implement new bots. The goal is to provide a convenient starting point from which new bots can be built.
 
- The first class that can be used is `Bot` found in `bot.py`. While this class is capable of playing any card in the base set of Dominion, cards that require logical input are not optimized. 
+## `Bot` and `BotDecider`
+
+The first set of classes that can be used are `Bot` and `BotDecider` found in `bot.py`. While these classes are capable of playing any card in the base set of Dominion, cards that require logical input are not optimized.
 
 For example, this card can technically play chapel, but it would choose not to trash any cards. Similarly, when facing a discard attack from militia, this bot would just discard the first few cards in its hand.
 
-When inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods. This is an example of a bot created from `Bot`:
+When inheriting from `BotDecider`, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods. This is an example of a bot created from `Bot` and `BotDecider`:
 
 ```python
-from pyminion.bots.bot import Bot
+from pyminion.bots.bot import Bot, BotDecider
+from pyminion.expansions.base import gold, province, silver, smithy
+from pyminion.player import Player
 from pyminion.game import Game
-from pyminion.expansions.base import silver, gold, province, smithy
 
-class BigMoneySmithy(Bot):
+class BigMoneySmithyDecider(BotDecider):
+    """
+    Big money + smithy
 
-    def __init__(
-        self,
-        player_id: str = "big_money_smithy",
-    ):
-        super().__init__(player_id=player_id)
+    """
 
-    def action_priority(self, game: Game):
+    def action_priority(self, player: Player, game: Game):
         yield smithy
 
-    def buy_priority(self, game: Game):
-        money = self.state.money
+    def buy_priority(self, player: Player, game: Game):
+        money = player.state.money
         if money >= 8:
             yield province
         if money >= 6:
@@ -35,38 +35,36 @@ class BigMoneySmithy(Bot):
             yield smithy
         if money >= 3:
             yield silver
-```
 
-## `OptimizedBot`
-
-The second class that can be used to implement new bots is `OptimizedBot` found in `optimized_bot.py`. This class has some predefined logic that dictates how the bot will play certain cards. This class is overall "smarter" than `Bot`. For example, when this bot plays chapel, it will trash estates (as long as the game isn't close to ending) and will trash copper (as long as it has at least 3 money in its deck). When responding to militia discard attacks, this bot will prioritize discarding victory cards, followed by cheap treasures and actions. 
-
-Again, when inheriting from this class, it is only necessary to overwrite the `action_priority` and  `buy_priority` methods but it is also possible to overwrite any of the card specific methods. 
-
-For example, here is a bot based on `OptimizedBot` that will buy and play Workshop:
-
-```python
-from pyminion.bots.optimized_bot import OptimizedBot
-from pyminion.core import Card
-from pyminion.expansions.base import workshop, duchy, estate, gold, province, silver
-from pyminion.game import Game
-
-
-class WorkshopBot(OptimizedBot):
-
+class BigMoneySmithy(Bot):
     def __init__(
         self,
-        player_id: str = "workshop_bot",
+        player_id: str = "big_money_smithy",
     ):
-        super().__init__(player_id=player_id)
+        super().__init__(decider=BigMoneySmithyDecider(), player_id=player_id)
+```
 
-    def action_priority(self, game: Game):
+## `OptimizedBot` and `OptimizedBotDecider`
+
+The second set of classes that can be used to implement new bots are `OptimizedBot` and `OptimizedBotDecider` found in `optimized_bot.py`. These classes have some predefined logic that dictates how the bot will play certain cards. The `OptimizedBotDecider` class is overall "smarter" than `BotDecider`. For example, when this bot plays chapel, it will trash estates (as long as the game isn't close to ending) and will trash copper (as long as it has at least 3 money in its deck). When responding to militia discard attacks, this bot will prioritize discarding victory cards, followed by cheap treasures and actions.
+
+Again, when inheriting from this class, it is only necessary to overwrite the `action_priority` and `buy_priority` methods, but it is also possible to overwrite any of the card specific methods.
+
+For example, here is a bot based on `OptimizedBotDecider` that will buy and play Workshop:
+
+```python
+from pyminion.bots.optimized_bot import OptimizedBot, OptimizedBotDecider
+from pyminion.expansions.base import workshop, gold, province, silver
+from pyminion.player import Player
+from pyminion.game import Game
+
+class WorkshopBotDecider(OptimizedBotDecider):
+    def action_priority(self, player: Player, game: Game):
         yield workshop
 
-    def buy_priority(self, game: Game):
-
-        money = self.state.money
-        num_workshop = self.get_card_count(card=workshop)
+    def buy_priority(self, player: Player, game: Game):
+        money = player.state.money
+        num_workshop = player.get_card_count(card=workshop)
 
         if num_workshop < 1 and money >= 3:
             yield workshop
@@ -74,33 +72,38 @@ class WorkshopBot(OptimizedBot):
             yield province
         if money >= 6:
             yield gold
-        if money == 4:
-            yield smithy
         if money >= 3:
             yield silver
+
+class WorkshopBot(OptimizedBot):
+    def __init__(
+        self,
+        player_id: str = "workshop_bot",
+    ):
+        super().__init__(decider=WorkshopBotDecider(), player_id=player_id)
 ```
 
-`OptimizedBot` already defines a method for how Workshop will be played:
+`OptimizedBotDecider` already defines a method for how Workshop will be played:
 
 ```python
-def workshop(self, game: "Game") -> Card:
-    if game.supply.pile_length(pile_name="Province") < 3:
-        return estate
-    else:
-        return silver
+    def workshop(self, player: "Player", game: "Game") -> Card:
+        if game.supply.pile_length(pile_name="Province") < 3:
+            return estate
+        else:
+            return silver
 ```
 
-But we can easily override this method to create a new strategy. We can implement a bot that instead uses Workshop to gain Gardens: 
+But we can easily override this method to create a new strategy. We can implement a bot that instead uses Workshop to gain Gardens:
 
 ```python
 from pyminion.expansions.base import gardens
 
-class WorkshopBot(OptimizedBot):
+class WorkshopBotDecider(OptimizedBotDecider):
 
     ... # previous code
 
-    def workshop(self, game: "Game") -> Card:
-        if gardens in game.supply.available_cards()
+    def workshop(self, player: "Player", game: "Game") -> Card:
+        if gardens in game.supply.available_cards():
             return gardens
         else:
             return silver

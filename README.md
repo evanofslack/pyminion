@@ -46,28 +46,27 @@ game.play()
 ```
 ### Creating Bots
 
-Defining new bots is relatively straightforward. Inherit from the `Bot` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
+Defining new bots is relatively straightforward. Inherit from the `BotDecider` class and implement play and buy strategies in the `action_priority` and `buy_priority` methods respectively.
 
 For example, here is a simple big money + smithy bot:
 
 ```python
-from pyminion.bots.bot import Bot
+from pyminion.bots.bot import Bot, BotDecider
+from pyminion.expansions.base import gold, province, silver, smithy
+from pyminion.player import Player
 from pyminion.game import Game
-from pyminion.expansions.base import silver, gold, province, smithy
 
-class BigMoneySmithy(Bot):
+class BigMoneySmithyDecider(BotDecider):
+    """
+    Big money + smithy
 
-    def __init__(
-        self,
-        player_id: str = "big_money_smithy",
-    ):
-        super().__init__(player_id=player_id)
+    """
 
-    def action_priority(self, game: Game):
+    def action_priority(self, player: Player, game: Game):
         yield smithy
 
-    def buy_priority(self, game: Game):
-        money = self.state.money
+    def buy_priority(self, player: Player, game: Game):
+        money = player.state.money
         if money >= 8:
             yield province
         if money >= 6:
@@ -76,6 +75,13 @@ class BigMoneySmithy(Bot):
             yield smithy
         if money >= 3:
             yield silver
+
+class BigMoneySmithy(Bot):
+    def __init__(
+        self,
+        player_id: str = "big_money_smithy",
+    ):
+        super().__init__(decider=BigMoneySmithyDecider(), player_id=player_id)
 ```
 
 To see other bot implementations with more advanced decision trees, see [/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
@@ -107,6 +113,7 @@ big_money won 110, lost 676, tied 214
 big_money_smithy won 676, lost 110, tied 214
 ```
 Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.
+
 ## Support
 
 Please [open an issue](https://github.com/evanofslack/pyminion/issues/new) for support.
