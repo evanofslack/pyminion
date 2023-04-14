@@ -1,6 +1,6 @@
 from pyminion.expansions.base import artisan, silver
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_artisan_valid_gain_same_topdeck(human: Human, game: Game, monkeypatch):

@@ -1,6 +1,6 @@
 from pyminion.expansions.base import Silver, harbinger, silver
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_harbinger_valid_topdeck(human: Human, game: Game, monkeypatch):

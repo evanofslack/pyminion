@@ -1,29 +1,20 @@
-import logging
-
-from pyminion.bots.bot import Bot
+from pyminion.bots.bot import Bot, BotDecider
 from pyminion.expansions.base import gold, province, silver, smithy
+from pyminion.player import Player
 from pyminion.game import Game
 
-logger = logging.getLogger()
 
-
-class BigMoneySmithy(Bot):
+class BigMoneySmithyDecider(BotDecider):
     """
     Big money + smithy
 
     """
 
-    def __init__(
-        self,
-        player_id: str = "big_money_smithy",
-    ):
-        super().__init__(player_id=player_id)
-
-    def action_priority(self, game: Game):
+    def action_priority(self, player: Player, game: Game):
         yield smithy
 
-    def buy_priority(self, game: Game):
-        money = self.state.money
+    def buy_priority(self, player: Player, game: Game):
+        money = player.state.money
         if money >= 8:
             yield province
         if money >= 6:
@@ -32,3 +23,11 @@ class BigMoneySmithy(Bot):
             yield smithy
         if money >= 3:
             yield silver
+
+
+class BigMoneySmithy(Bot):
+    def __init__(
+        self,
+        player_id: str = "big_money_smithy",
+    ):
+        super().__init__(decider=BigMoneySmithyDecider(), player_id=player_id)

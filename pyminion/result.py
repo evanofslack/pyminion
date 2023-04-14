@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from pyminion.core import DeckCounter
     from pyminion.game import Game
-    from pyminion.players import Player
+    from pyminion.player import Player
 
 
 class GameOutcome(Enum):

@@ -1,13 +1,10 @@
 import logging
 import math
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Tuple
 
-from pyminion.bots.bot import Bot
 from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
-from pyminion.decisions import validate_input
-from pyminion.exceptions import (EmptyPile, InvalidBotImplementation,
-                                 InvalidMultiCardInput, InvalidSingleCardInput)
-from pyminion.players import Human, Player
+from pyminion.exceptions import EmptyPile
+from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -164,7 +161,7 @@ class Smithy(Action):
         super().__init__(name, cost, type, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -192,7 +189,7 @@ class Village(Action):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -221,7 +218,7 @@ class Laboratory(Action):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -251,7 +248,7 @@ class Market(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -281,7 +278,7 @@ class Moneylender(Action):
 
     def play(
         self,
-        player: Union[Human, Bot],
+        player: Player,
         game: "Game",
         generic_play: bool = True,
     ) -> None:
@@ -294,13 +291,12 @@ class Moneylender(Action):
         if copper not in player.hand.cards:
             return
 
-        if isinstance(player, Human):
-            response = player.binary_decision(
-                prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
-            )
-
-        elif isinstance(player, Bot):
-            response = player.binary_resp(game=game, card=self)
+        response = player.decider.binary_decision(
+            prompt="Do you want to trash a copper from your hand for +3 money? y/n: ",
+            card=self,
+            player=player,
+            game=game,
+        )
 
         if response:
             player.trash(target_card=copper, trash=game.trash)
@@ -326,7 +322,7 @@ class Cellar(Action):
 
     def play(
         self,
-        player: Union[Human, Bot],
+        player: Player,
         game: "Game",
         generic_play: bool = True,
     ) -> None:
@@ -341,24 +337,17 @@ class Cellar(Action):
         if not player.hand.cards:
             return
 
-        if isinstance(player, Human):
-            discard_cards = player.multiple_card_decision(
-                prompt="Enter the cards you would like to discard seperated by commas: ",
-                valid_cards=player.hand.cards,
-            )
+        discard_cards = player.decider.discard_decision(
+            prompt="Enter the cards you would like to discard separated by commas: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+        )
 
-        elif isinstance(player, Bot):
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=False,
-            )
-
-        if discard_cards:
-            for card in discard_cards:
-                player.discard(card)
-            player.draw(len(discard_cards))
+        for card in discard_cards:
+            player.discard(card)
+        player.draw(len(discard_cards))
 
 
 class Chapel(Action):
@@ -376,7 +365,7 @@ class Chapel(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -386,37 +375,17 @@ class Chapel(Action):
         if not player.hand.cards:
             return
 
-        @validate_input(exceptions=InvalidMultiCardInput)
-        def get_trash_cards() -> Optional[List[Card]]:
+        trash_cards = player.decider.trash_decision(
+            prompt="Enter up to 4 cards you would like to trash from your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=0,
+            max_num_trash=4,
+        )
+        assert len(trash_cards) <= 4
 
-            trash_cards = player.multiple_card_decision(
-                prompt="Enter up to 4 cards you would like to trash from your hand: ",
-                valid_cards=player.hand.cards,
-            )
-
-            if trash_cards and len(trash_cards) > 4:
-                raise InvalidMultiCardInput(
-                    "You cannot trash more than 4 cards with chapel"
-                )
-
-            return trash_cards
-
-        if isinstance(player, Human):
-            trash_cards = get_trash_cards()
-
-        elif isinstance(player, Bot):
-            trash_cards = player.multiple_trash_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=False,
-            )
-            if trash_cards and len(trash_cards) > 4:
-                raise InvalidMultiCardInput(
-                    "Attempted to trash more than 4 cards with chapel"
-                )
-        if not trash_cards:
-            return
         for card in trash_cards:
             player.trash(card, game.trash)
 
@@ -442,37 +411,20 @@ class Workshop(Action):
         if generic_play:
             super().generic_play(player)
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def get_gain_card() -> Card:
-
-            gain_card = player.single_card_decision(
-                prompt="Gain a card costing up to 4 money: ",
-                valid_cards=game.supply.avaliable_cards(),
-            )
-
-            if not gain_card:
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost less than 4 money")
-
-            return gain_card
-
-        if isinstance(player, Human):
-            gain_card = get_gain_card()
-
-        elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card for card in game.supply.avaliable_cards() if card.cost <= 4
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost less than 4 money")
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 4 money: ",
+            card=self,
+            valid_cards=[
+                card for card in game.supply.avaliable_cards() if card.cost <= 4
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= 4
 
         player.gain(gain_card, game.supply)
 
@@ -494,7 +446,7 @@ class Festival(Action):
         super().__init__(name, cost, type, actions=actions, money=money)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -526,7 +478,7 @@ class Harbinger(Action):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -540,23 +492,21 @@ class Harbinger(Action):
         if not player.discard_pile:
             return
 
-        if isinstance(player, Human):
-            topdeck_card = player.single_card_decision(
-                prompt="You may select a card from your discard pile to put onto your deck: ",
-                valid_cards=player.discard_pile.cards,
-            )
+        topdeck_cards = player.decider.topdeck_decision(
+            prompt="You may select a card from your discard pile to put onto your deck: ",
+            card=self,
+            valid_cards=player.discard_pile.cards,
+            player=player,
+            game=game,
+            min_num_topdeck=0,
+            max_num_topdeck=1,
+        )
 
-        elif isinstance(player, Bot):
-            topdeck_card = player.topdeck_resp(
-                card=self,
-                valid_cards=player.discard_pile.cards,
-                game=game,
-                required=False,
-            )
-
-        if not topdeck_card or isinstance(topdeck_card, str):
+        if len(topdeck_cards) == 0:
             return
 
+        assert len(topdeck_cards) == 1
+        topdeck_card = topdeck_cards[0]
         player.deck.add(player.discard_pile.remove(topdeck_card))
 
 
@@ -578,7 +528,7 @@ class Vassal(Action):
         super().__init__(name, cost, type, money=money)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -599,12 +549,12 @@ class Vassal(Action):
         if CardType.Action not in discard_card.type:
             return
 
-        if isinstance(player, Human):
-            decision = player.binary_decision(
-                prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  "
-            )
-        elif isinstance(player, Bot):
-            decision = player.binary_resp(game=game, card=self)
+        decision = player.decider.binary_decision(
+            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  ",
+            card=self,
+            player=player,
+            game=game,
+        )
 
         if not decision:
             return
@@ -632,7 +582,7 @@ class Artisan(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -640,56 +590,34 @@ class Artisan(Action):
         if generic_play:
             super().generic_play(player)
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def get_gain_card() -> Card:
-            gain_card = player.single_card_decision(
-                prompt="Gain a card costing up to 5 money: ",
-                valid_cards=game.supply.avaliable_cards(),
-            )
-            if not gain_card or isinstance(gain_card, str):
-                raise InvalidSingleCardInput("You must gain a card")
-            if gain_card.cost > 4:
-                raise InvalidSingleCardInput("Card must cost at most 5 money")
-            return gain_card
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 5 money: ",
+            card=self,
+            valid_cards=[
+                card for card in game.supply.avaliable_cards() if card.cost <= 5
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= 5
 
-        @validate_input(exceptions=InvalidSingleCardInput)
-        def get_topdeck_card() -> Card:
-            topdeck_card = player.single_card_decision(
-                prompt="Put a card from your hand onto your deck: ",
-                valid_cards=player.hand.cards,
-            )
-            if not topdeck_card or isinstance(topdeck_card, str):
-                raise InvalidSingleCardInput("You must topdeck a card")
-            return topdeck_card
+        player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
-        if isinstance(player, Human):
-            gain_card = get_gain_card()
-            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
-            topdeck_card = get_topdeck_card()
-
-        elif isinstance(player, Bot):
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card for card in game.supply.avaliable_cards() if card.cost <= 5
-                ],
-                game=game,
-                required=True,
-            )
-
-            if not gain_card:
-                raise InvalidSingleCardInput("Must gain a card with Artisan")
-            if gain_card.cost > 5:
-                raise InvalidSingleCardInput("Card must cost at most 5 money")
-
-            player.gain(card=gain_card, supply=game.supply, destination=player.hand)
-
-            topdeck_card = player.topdeck_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=True,
-            )
+        topdeck_cards = player.decider.topdeck_decision(
+            prompt="Put a card from your hand onto your deck: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_topdeck=1,
+            max_num_topdeck=1,
+        )
+        assert len(topdeck_cards) == 1
+        topdeck_card = topdeck_cards[0]
 
         for card in player.hand.cards:
             if card == topdeck_card:
@@ -717,7 +645,7 @@ class Poacher(Action):
         super().__init__(name, cost, type, actions, draw, money)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -736,33 +664,16 @@ class Poacher(Action):
 
         discard_num = min(empty_piles, len(player.hand))
 
-        if isinstance(player, Human):
-
-            @validate_input(exceptions=InvalidMultiCardInput)
-            def get_discard_cards() -> List[Card]:
-                discard_cards = player.multiple_card_decision(
-                    prompt=f"Discard {discard_num} card(s) from your hand: ",
-                    valid_cards=player.hand.cards,
-                )
-                if not discard_cards or len(discard_cards) != discard_num:
-                    raise InvalidMultiCardInput(
-                        f"You must discard {discard_num} card(s)"
-                    )
-
-                return discard_cards
-
-            discard_cards = get_discard_cards()
-
-        elif isinstance(player, Bot):
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                num_discard=discard_num,
-                required=True,
-            )
-            if not discard_cards or len(discard_cards) != discard_num:
-                raise InvalidMultiCardInput(f"You must discard {discard_num} card(s)")
+        discard_cards = player.decider.discard_decision(
+            prompt=f"Discard {discard_num} card(s) from your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_discard=discard_num,
+            max_num_discard=discard_num,
+        )
+        assert len(discard_cards) == discard_num
 
         for discard_card in discard_cards:
             player.discard(discard_card)
@@ -786,7 +697,7 @@ class CouncilRoom(Action):
         super().__init__(name, cost, type, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -820,7 +731,7 @@ class Witch(Action):
         super().__init__(name, cost, type, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -832,7 +743,7 @@ class Witch(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self):
+                if opponent.is_attacked(player=player, attack_card=self, game=game):
 
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
@@ -863,7 +774,7 @@ class Moat(Action):
         super().__init__(name, cost, type, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -893,7 +804,7 @@ class Merchant(Action):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -921,7 +832,7 @@ class Bandit(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -937,7 +848,7 @@ class Bandit(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self):
+                if opponent.is_attacked(player=player, attack_card=self, game=game):
 
                     revealed_cards = AbstractDeck()
                     opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
@@ -980,7 +891,7 @@ class Bureaucrat(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -996,7 +907,7 @@ class Bureaucrat(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self
+                player=player, attack_card=self, game=game
             ):
 
                 victory_cards = []
@@ -1008,29 +919,17 @@ class Bureaucrat(Action):
                     # Log opponent revealed hand
                     return
 
-                @validate_input(exceptions=InvalidSingleCardInput)
-                def get_topdeck_card(opponent: Human) -> Card:
-                    topdeck_card = opponent.single_card_decision(
-                        prompt="You must topdeck a Victory card from your hand: ",
-                        valid_cards=victory_cards,
-                    )
-                    if not topdeck_card or isinstance(topdeck_card, str):
-                        raise InvalidSingleCardInput("You must topdeck a Victory card")
-
-                    return topdeck_card
-
-                if isinstance(opponent, Human):
-                    topdeck_card = get_topdeck_card(opponent)
-
-                elif isinstance(opponent, Bot):
-                    topdeck_card = opponent.topdeck_resp(
-                        card=self,
-                        valid_cards=victory_cards,
-                        game=game,
-                        required=True,
-                    )
-                    if not topdeck_card:
-                        raise InvalidSingleCardInput("You must topdeck a Victory card")
+                topdeck_cards = opponent.decider.topdeck_decision(
+                    prompt="You must topdeck a Victory card from your hand: ",
+                    card=self,
+                    valid_cards=victory_cards,
+                    player=opponent,
+                    game=game,
+                    min_num_topdeck=1,
+                    max_num_topdeck=1,
+                )
+                assert len(topdeck_cards) == 1
+                topdeck_card = topdeck_cards[0]
 
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
 
@@ -1050,7 +949,7 @@ class ThroneRoom(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1063,22 +962,15 @@ class ThroneRoom(Action):
         if not action_cards:
             return
 
-        if isinstance(player, Human):
-            dp_card = player.single_card_decision(
-                prompt="You may play an action card from your hand twice: ",
-                valid_cards=action_cards,
-            )
-
-        elif isinstance(player, Bot):
-            dp_card = player.double_play_resp(
-                card=self,
-                valid_cards=action_cards,
-                game=game,
-                required=True,
-            )
-
-        if not dp_card or isinstance(dp_card, str):
-            return
+        dp_card = player.decider.multi_play_decision(
+            prompt="You may play an action card from your hand twice: ",
+            card=self,
+            valid_cards=action_cards,
+            player=player,
+            game=game,
+            required=True,
+        )
+        assert dp_card is not None
 
         for card in player.hand.cards:
             if card.name == dp_card.name:
@@ -1103,7 +995,7 @@ class Remodel(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1111,64 +1003,35 @@ class Remodel(Action):
         if generic_play:
             super().generic_play(player)
 
-        if isinstance(player, Human):
+        trash_cards = player.decider.trash_decision(
+            prompt="Trash a card form your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=1,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
 
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_trash_card() -> Card:
-
-                trash_card = player.single_card_decision(
-                    prompt="Trash a card form your hand: ",
-                    valid_cards=player.hand.cards,
-                )
-
-                if not trash_card or isinstance(trash_card, str):
-                    raise InvalidSingleCardInput("You must trash a card")
-                return trash_card
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_gain_card(trash_card: Card) -> Card:
-
-                gain_card = player.single_card_decision(
-                    prompt=f"Gain a card costing up to {trash_card.cost + 2} money: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-
-                if not gain_card or isinstance(gain_card, str):
-                    raise InvalidSingleCardInput("You must gain a card")
-                if gain_card.cost > trash_card.cost + 2:
-                    raise InvalidSingleCardInput(
-                        f"Card must cost less than {trash_card.cost + 2} money"
-                    )
-                return gain_card
-
-            trash_card = get_trash_card()
-            gain_card = get_gain_card(trash_card)
-
-        elif isinstance(player, Bot):
-            trash_card = player.trash_resp(
-                card=self,
-                valid_cards=player.hand.cards,
-                game=game,
-                required=True,
-            )
-            if not trash_card:
-                raise InvalidBotImplementation(
-                    "Card must be trashed when playing remodel"
-                )
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card
-                    for card in game.supply.avaliable_cards()
-                    if card.cost <= trash_card.cost + 2
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidBotImplementation(
-                    "Card must be gained when playing remodel"
-                )
+        max_cost = trash_card.cost + 2
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a card costing up to {max_cost} money: ",
+            card=self,
+            valid_cards=[
+                card
+                for card in game.supply.avaliable_cards()
+                if card.cost <= max_cost
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply)
@@ -1189,7 +1052,7 @@ class Mine(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1202,65 +1065,36 @@ class Mine(Action):
         if not treasures:
             return
 
-        if isinstance(player, Human):
+        trash_cards = player.decider.trash_decision(
+            prompt="You may trash a Treasure from your hand: ",
+            card=self,
+            valid_cards=treasures,
+            player=player,
+            game=game,
+            min_num_trash=0,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
 
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_trash_card() -> Optional[Card]:
-
-                trash_card = player.single_card_decision(
-                    prompt="You may trash a Treasure from your hand: ",
-                    valid_cards=treasures,
-                )
-                if isinstance(trash_card, str):
-                    raise InvalidSingleCardInput(f"You can not trash {trash_card}")
-
-                return trash_card
-
-            @validate_input(exceptions=InvalidSingleCardInput)
-            def get_gain_card(trash_card: Card) -> Card:
-
-                gain_card = player.single_card_decision(
-                    prompt=f"Gain a Treasure card costing up to {trash_card.cost + 3} money to your hand: ",
-                    valid_cards=game.supply.avaliable_cards(),
-                )
-
-                if not gain_card or isinstance(gain_card, str):
-                    raise InvalidSingleCardInput("You must gain a card")
-                if CardType.Treasure not in trash_card.type:
-                    raise InvalidSingleCardInput("Card must be a Treasure")
-                if gain_card.cost > trash_card.cost + 3:
-                    raise InvalidSingleCardInput(
-                        f"Card must cost less than {trash_card.cost + 3} money"
-                    )
-                return gain_card
-
-            trash_card = get_trash_card()
-            if not trash_card:
-                return
-            gain_card = get_gain_card(trash_card)
-
-        elif isinstance(player, Bot):
-            trash_card = player.trash_resp(
-                card=self,
-                valid_cards=treasures,
-                game=game,
-                required=False,
-            )
-            if not trash_card:
-                return
-
-            gain_card = player.gain_resp(
-                card=self,
-                valid_cards=[
-                    card
-                    for card in game.supply.avaliable_cards()
-                    if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
-                ],
-                game=game,
-                required=True,
-            )
-            if not gain_card:
-                raise InvalidBotImplementation("Card must be gained when playing mine")
+        max_cost = trash_card.cost + 3
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a Treasure card costing up to {max_cost} money to your hand: ",
+            card=self,
+            valid_cards=[
+                card
+                for card in game.supply.avaliable_cards()
+                if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert CardType.Treasure in gain_card.type
+        assert gain_card.cost <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply, destination=player.hand)
@@ -1284,7 +1118,7 @@ class Militia(Action):
         super().__init__(name, cost, type, money=money)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1296,38 +1130,23 @@ class Militia(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self
+                player=player, attack_card=self, game=game
             ):
 
                 num_discard = len(opponent.hand) - 3
                 if num_discard <= 0:
-                    return
+                    continue
 
-                @validate_input(exceptions=InvalidMultiCardInput)
-                def get_discard_cards() -> List[Card]:
-                    cards = opponent.multiple_card_decision(
-                        prompt=f"You must discard {num_discard} cards from your hand: ",
-                        valid_cards=opponent.hand.cards,
-                    )
-                    if len(cards) != num_discard:
-                        raise InvalidMultiCardInput(
-                            f"You must discard {num_discard} cards, you selected {len(cards)}"
-                        )
-                    return cards
-
-                if isinstance(opponent, Human):
-                    discard_cards = get_discard_cards()
-
-                elif isinstance(opponent, Bot):
-                    discard_cards = opponent.multiple_discard_resp(
-                        card=self,
-                        valid_cards=opponent.hand.cards,
-                        game=game,
-                        num_discard=num_discard,
-                        required=True,
-                    )
-                    if not discard_cards:
-                        return
+                discard_cards = opponent.decider.discard_decision(
+                    prompt=f"You must discard {num_discard} card(s) from your hand: ",
+                    card=self,
+                    valid_cards=opponent.hand.cards,
+                    player=opponent,
+                    game=game,
+                    min_num_discard=num_discard,
+                    max_num_discard=num_discard,
+                )
+                assert len(discard_cards) == num_discard
 
                 for card in discard_cards:
                     opponent.discard(target_card=card)
@@ -1352,7 +1171,7 @@ class Sentry(Action):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1367,75 +1186,49 @@ class Sentry(Action):
         player.draw(num_cards=2, destination=revealed, silent=True)
         logger.info(f"{player} looks at {revealed}")
 
-        if isinstance(player, Human):
+        trash_cards = player.decider.trash_decision(
+            prompt="Enter the cards you would like to trash: ",
+            card=self,
+            valid_cards=revealed.cards,
+            player=player,
+            game=game,
+            min_num_trash=0,
+            max_num_trash=2,
+        )
 
-            def get_trash_cards() -> Optional[List[Card]]:
-                trash_cards = player.multiple_card_decision(
-                    prompt="Enter the cards you would like to trash: ",
-                    valid_cards=revealed.cards,
-                )
-                return trash_cards
+        for card in trash_cards:
+            revealed.remove(card)
 
-            def get_discard_cards(
-                revealed: AbstractDeck,
-            ) -> Optional[List[Card]]:
-                if not revealed.cards:
-                    return None
-
-                discard_cards = player.multiple_card_decision(
-                    prompt="Enter the cards you would like to discard: ",
-                    valid_cards=revealed.cards,
-                )
-                return discard_cards
-
-            trash_cards = get_trash_cards()
-            if trash_cards:
-                for card in trash_cards:
-                    revealed.remove(card)
-            discard_cards = get_discard_cards(revealed=revealed)
-            if discard_cards:
-                for card in discard_cards:
-                    revealed.remove(card)
-            reorder = False
-            if len(revealed.cards) == 2:
-                logger.info(
-                    f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
-                )
-                reorder = player.binary_decision(
-                    prompt="Would you like to switch the order of the cards?"
-                )
-
-        elif isinstance(player, Bot):
-            trash_cards = player.multiple_trash_resp(
+        discard_cards: List[Card] = []
+        if len(revealed.cards) > 0:
+            discard_cards = player.decider.discard_decision(
+                prompt="Enter the cards you would like to discard: ",
                 card=self,
                 valid_cards=revealed.cards,
+                player=player,
                 game=game,
-                required=False,
             )
-            if trash_cards:
-                for card in trash_cards:
-                    revealed.remove(card)
-            discard_cards = player.multiple_discard_resp(
-                card=self,
-                valid_cards=revealed.cards,
-                game=game,
-                required=False,
-            )
-            if discard_cards:
-                for card in discard_cards:
-                    revealed.remove(card)
-            reorder = False
-            if len(revealed.cards) == 2:
-                reorder = player.binary_resp(game=game, card=self)
-
-        if trash_cards:
-            for card in trash_cards:
-                game.trash.add(card)
-                logger.info(f"{player} trashes {card}")
-        if discard_cards:
             for card in discard_cards:
-                player.discard_pile.add(card)
-                logger.info(f"{player} discards {card}")
+                revealed.remove(card)
+
+        reorder = False
+        if len(revealed.cards) == 2:
+            logger.info(
+                f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
+            )
+            reorder = player.decider.binary_decision(
+                prompt="Would you like to switch the order of the cards?",
+                card=self,
+                player=player,
+                game=game,
+            )
+
+        for card in trash_cards:
+            game.trash.add(card)
+            logger.info(f"{player} trashes {card}")
+        for card in discard_cards:
+            player.discard_pile.add(card)
+            logger.info(f"{player} discards {card}")
         if revealed.cards:
             if reorder:
                 for card in revealed.cards:
@@ -1461,7 +1254,7 @@ class Library(Action):
         super().__init__(name, cost, type)
 
     def play(
-        self, player: Union[Human, Bot], game: "Game", generic_play: bool = True
+        self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
         logger.info(f"{player} plays {self}")
@@ -1479,22 +1272,15 @@ class Library(Action):
             drawn_card = set_aside.cards[-1]
 
             if CardType.Action in drawn_card.type:
-                if isinstance(player, Human):
-                    if player.binary_decision(
-                        prompt=f"You drew {drawn_card}, would you like to skip it? y/n: "
-                    ):
-                        pass
-                    else:
-                        player.hand.add(set_aside.remove(drawn_card))
-
-                    pass
-                if isinstance(player, Bot):
-                    if player.binary_resp(
-                        game=game, card=self, relevant_cards=[drawn_card]
-                    ):
-                        pass
-                    else:
-                        player.hand.add(set_aside.remove(drawn_card))
+                should_skip = player.decider.binary_decision(
+                    prompt=f"You drew {drawn_card}, would you like to skip it? y/n: ",
+                    card=self,
+                    player=player,
+                    game=game,
+                    relevant_cards=[drawn_card],
+                )
+                if not should_skip:
+                    player.hand.add(set_aside.remove(drawn_card))
 
             else:
                 player.hand.add(set_aside.remove(drawn_card))

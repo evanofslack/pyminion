@@ -3,7 +3,7 @@ import logging
 from typing import Dict, List
 
 from pyminion.game import Game
-from pyminion.players import Player
+from pyminion.player import Player
 from pyminion.result import GameResult, PlayerSimulatorResult, SimulatorResult
 
 logger = logging.getLogger()

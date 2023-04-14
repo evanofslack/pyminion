@@ -7,7 +7,7 @@ Either by yourself, with another human, or against a bot.
 from pyminion.bots.examples import BigMoney
 from pyminion.expansions.base import artisan, bandit, base_set, witch
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 human = Human(player_id="Human")
 bm = BigMoney(player_id="Big Money")
