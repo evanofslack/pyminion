@@ -1,22 +1,19 @@
-import logging
 from typing import TYPE_CHECKING, Iterator, List, Optional
 
-from pyminion.core import CardType, Card
-from pyminion.exceptions import CardNotFound, EmptyPile
-from pyminion.players import Player
+from pyminion.core import Card
+from pyminion.decider import Decider
+from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
 
-logger = logging.getLogger()
 
-
-class Bot(Player):
+class BotDecider:
     """
-    Abstract representation of Bot.
-
-    Defines at a high level how a bot can play and buy cards.
-    The intention is to inherit from this class to make concrete bot implementations.
+    Basic representation of Bot decision making.
+    These methods can be implemented with specific game logic
+    when creating new bots. In this class, these methods just return
+    a valid response as to not crash the game.
 
     Does not implement any logic for playing or buying cards, as those functions
     (action_priority and buy_priority), are meant to be implemented when defining new bots.
@@ -26,13 +23,7 @@ class Bot(Player):
 
     """
 
-    def __init__(
-        self,
-        player_id: str = "bot",
-    ):
-        super().__init__(player_id=player_id)
-
-    def action_priority(self, game: "Game") -> Iterator[Card]:
+    def action_priority(self, player: "Player", game: "Game") -> Iterator[Card]:
         """
         Add logic for playing action cards through this method
 
@@ -40,34 +31,29 @@ class Bot(Player):
         yields a desired card to play if conditions are met
 
         """
-        raise NotImplementedError
+        raise NotImplementedError("action_priority is not implemented")
 
-    def start_action_phase(self, game: "Game"):
-        """
-        Attempts to play cards from the action_priority queue if possible
+    def action_phase_decision(
+        self,
+        valid_actions: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        for card in self.action_priority(player, game):
+            if card in player.hand.cards:
+                return card
 
-        """
-        viable_actions = [card for card in self.hand.cards if CardType.Action in card.type]
-        logger.info(f"{self.player_id}'s hand: {self.hand}")
-        while viable_actions and self.state.actions:
-            for card in self.action_priority(game=game):
-                try:
-                    self.play(target_card=card, game=game)
-                except CardNotFound:
-                    pass
-                if not self.state.actions:
-                    return
-            return
+        return None
 
-    def start_treasure_phase(self, game: "Game"):
-        """
-        At start of action phase, bot simply plays all of their treasures
+    def treasure_phase_decision(
+        self,
+        valid_treasures: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> List["Card"]:
+        return valid_treasures
 
-        """
-        viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
-        self.autoplay_treasures(viable_treasures=viable_treasures, game=game)
-
-    def buy_priority(self, game: "Game") -> Iterator[Card]:
+    def buy_priority(self, player: "Player", game: "Game") -> Iterator[Card]:
         """
         Add logic for buy priority through this method
 
@@ -75,144 +61,103 @@ class Bot(Player):
         yields a desired card to buy if conditions are met
 
         """
-        raise NotImplementedError
+        raise NotImplementedError("buy_priority is not implemented")
 
-    def start_buy_phase(self, game: "Game"):
-        """
-        Attempts to buy cards from the buy_priority queue if possible
+    def buy_phase_decision(
+        self,
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        for card in self.buy_priority(player, game):
+            if game.supply.pile_length(card.name) > 0:
+                return card
 
-        """
-        logger.info(f"{self.player_id} has {self.state.money} money")
+        return None
 
-        while self.state.buys:
-            for card in self.buy_priority(game=game):
-                try:
-                    self.buy(card, supply=game.supply)
-                    break
-
-                except EmptyPile:
-                    pass
-
-            else:
-                logger.info(f"{self} buys nothing")
-                return
-
-    def take_turn(self, game: "Game") -> None:
-        self.start_turn()
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
-        self.start_action_phase(game)
-        self.start_treasure_phase(game)
-        self.start_buy_phase(game)
-        self.start_cleanup_phase()
-
-    # DEFAULT RESPONSES
-    # These methods can be implemented with specific game logic
-    # when creating new bots. In this class, these methods just return
-    # a valid response as to not crash the game.
-
-    def binary_resp(
-        self, game: "Game", card: Card, relevant_cards: Optional[List[Card]] = None
+    def binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        player: "Player",
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
     ) -> bool:
         return True
 
-    def discard_resp(
+    def discard_decision(
         self,
-        card: Card,
-        valid_cards: List[Card],
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_discard: int = 0,
+        max_num_discard: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_discard]
+
+    def trash_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_trash: int = 0,
+        max_num_trash: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_trash]
+
+    def gain_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_gain: int = 0,
+        max_num_gain: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_gain]
+
+    def topdeck_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_topdeck: int = 0,
+        max_num_topdeck: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_topdeck]
+
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
         game: "Game",
         required: bool = True,
-    ) -> Optional[Card]:
+    ) -> Optional["Card"]:
         if required:
             return valid_cards[0]
         else:
             return None
 
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_discard]
-        else:
-            return None
 
-    def gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
+class Bot(Player):
+    """
+    Abstract representation of Bot.
 
-    def multiple_gain_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_gain: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_gain]
-        else:
-            return None
+    """
 
-    def trash_resp(
+    def __init__(
         self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def multiple_trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_trash: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        if required:
-            return valid_cards[:num_trash]
-        else:
-            return None
-
-    def topdeck_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def double_play_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
-        return True
+        decider: Optional[Decider] = None,
+        player_id: str = "bot",
+    ):
+        decider = decider if decider else BotDecider()
+        super().__init__(decider=decider, player_id=player_id)

@@ -5,7 +5,7 @@ from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (base_set, duchy, estate, gold, province,
                                       smithy)
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_game_fixture(game: Game):

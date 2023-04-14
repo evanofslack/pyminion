@@ -1,19 +1,17 @@
-import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pyminion.bots.bot import Bot
+from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card
+from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
-from pyminion.players import Player
+from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
 
-logger = logging.getLogger()
 
-
-class OptimizedBot(Bot):
+class OptimizedBotDecider(BotDecider):
     """
     Implements opinionated logic for playing and reacting to all cards in the base set.
 
@@ -21,14 +19,7 @@ class OptimizedBot(Bot):
     If inheriting from this bot, it is possible to change the way that a single card is executed
     by overwriting the card specific method at the bottom of this file.
 
-
     """
-
-    def __init__(
-        self,
-        player_id: str = "bot",
-    ):
-        super().__init__(player_id=player_id)
 
     @staticmethod
     def sort_for_discard(cards: List[Card], actions: int) -> List[Card]:
@@ -91,157 +82,143 @@ class OptimizedBot(Bot):
 
         return sorted_trash_cards
 
-    def binary_resp(
-        self, card: Card, game: "Game", relevant_cards: Optional[List[Card]] = None
+    def binary_decision(
+        self,
+        prompt: str,
+        card: Card,
+        player: "Player",
+        game: "Game",
+        relevant_cards: Optional[List[Card]] = None,
     ) -> bool:
         if card.name == "Moneylender":
-            return self.moneylender()
-        if card.name == "Vassal":
-            return self.vassal(relevant_cards=relevant_cards)
-        if card.name == "Sentry":
-            return self.sentry(game=game, relevant_cards=relevant_cards, binary=True)
-        if card.name == "Library":
-            return self.library(relevant_cards=relevant_cards)
+            return self.moneylender(player=player)
+        elif card.name == "Vassal":
+            return self.vassal(player=player, relevant_cards=relevant_cards)
+        elif card.name == "Sentry":
+            return self.sentry(player=player, game=game, relevant_cards=relevant_cards, binary=True)
+        elif card.name == "Library":
+            return self.library(player=player, relevant_cards=relevant_cards)
+        elif card.name == "Moat":
+            return self.moat(player=player, relevant_cards=relevant_cards)
         else:
-            return True
+            return super().binary_decision(prompt, card, player, game, relevant_cards)
 
-    def discard_resp(
+    def discard_decision(
         self,
-        card: Card,
-        valid_cards: List[Card],
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
         game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        return super().discard_resp(
-            card=card, valid_cards=valid_cards, game=game, required=required
-        )
-
-    def multiple_discard_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_discard: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
+        min_num_discard: int = 0,
+        max_num_discard: int = -1,
+    ) -> List["Card"]:
         if card.name == "Cellar":
-            return self.cellar(valid_cards=valid_cards)
-        if card.name == "Poacher":
-            return self.poacher(valid_cards=valid_cards, num_discard=num_discard)
+            return self.cellar(player=player, valid_cards=valid_cards)
+        elif card.name == "Poacher":
+            return self.poacher(player=player, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Militia":
+            return self.militia(player=player, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Sentry":
+            return self.sentry(player=player, game=game, valid_cards=valid_cards, discard=True)
+        else:
+            return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
-        if card.name == "Militia":
-            return self.militia(valid_cards=valid_cards, num_discard=num_discard)
-
-        if card.name == "Sentry":
-            return self.sentry(game=game, valid_cards=valid_cards, discard=True)
-
-    def gain_resp(
+    def trash_decision(
         self,
-        card: Card,
-        valid_cards: List[Card],
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
         game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
-        if card.name == "Artisan":
-            return self.artisan(game=game, gain=True)
-        if card.name == "Workshop":
-            return self.workshop(game=game)
+        min_num_trash: int = 0,
+        max_num_trash: int = -1,
+    ) -> List["Card"]:
         if card.name == "Remodel":
-            return self.remodel(valid_cards=valid_cards, gain=True)
-        if card.name == "Mine":
-            return self.mine(valid_cards=valid_cards, gain=True)
+            ret = self.remodel(player=player, valid_cards=valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Mine":
+            ret = self.mine(player=player, valid_cards=valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Chapel":
+            return self.chapel(player=player, game=game, valid_cards=valid_cards)
+        elif card.name == "Sentry":
+            return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
+        else:
+            return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
-    def multiple_gain_resp(
+    def gain_decision(
         self,
-        card: Card,
-        valid_cards: List[Card],
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
         game: "Game",
-        num_gain: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-        return super().multiple_gain_resp(
-            card=card,
-            valid_cards=valid_cards,
-            game=game,
-            num_gain=num_gain,
-            required=required,
-        )
-
-    def trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if card.name == "Remodel":
-            return self.remodel(valid_cards=valid_cards, trash=True)
-        if card.name == "Mine":
-            return self.mine(valid_cards=valid_cards, trash=True)
-
-    def multiple_trash_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        num_trash: Optional[int] = None,
-        required: bool = True,
-    ) -> Optional[List[Card]]:
-
-        if card.name == "Chapel":
-            return self.chapel(game=game, valid_cards=valid_cards)
-        if card.name == "Sentry":
-            return self.sentry(game=game, valid_cards=valid_cards, trash=True)
-
-    def topdeck_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-
+        min_num_gain: int = 0,
+        max_num_gain: int = -1,
+    ) -> List["Card"]:
         if card.name == "Artisan":
-            return self.artisan(game=game, valid_cards=valid_cards, topdeck=True)
-        if card.name == "Harbinger":
-            return self.harbinger(valid_cards=valid_cards)
+            ret = self.artisan(player=player, game=game, gain=True)
+            return [ret]
+        elif card.name == "Workshop":
+            ret = self.workshop(player=player, game=game)
+            return [ret]
+        elif card.name == "Remodel":
+            ret = self.remodel(player=player, valid_cards=valid_cards, gain=True)
+            return [ret]
+        elif card.name == "Mine":
+            ret = self.mine(player=player, valid_cards=valid_cards, gain=True)
+            return [ret]
+        else:
+            return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
 
-        if card.name == "Bureaucrat":
-            return self.bureaucrat(valid_cards=valid_cards)
-
-    def double_play_resp(
+    def topdeck_decision(
         self,
-        card: Card,
-        valid_cards: List[Card],
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_topdeck: int = 0,
+        max_num_topdeck: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Artisan":
+            ret = self.artisan(player=player, game=game, valid_cards=valid_cards, topdeck=True)
+            return [ret]
+        elif card.name == "Harbinger":
+            ret = self.harbinger(player=player, valid_cards=valid_cards)
+            return [] if ret is None else [ret]
+        elif card.name == "Bureaucrat":
+            ret = self.bureaucrat(player=player, valid_cards=valid_cards)
+            return [ret]
+        else:
+            return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
+
+    def multi_play_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
         game: "Game",
         required: bool = True,
-    ) -> Optional[Card]:
+    ) -> Optional["Card"]:
         if card.name == "Throne Room":
-            return self.throne_room(valid_cards=valid_cards)
-
-    def is_attacked(self, player: Player, attack_card: Card) -> bool:
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                return False
-        return True
+            return self.throne_room(player=player, valid_cards=valid_cards)
+        else:
+            return super().multi_play_decision(prompt, card, valid_cards, player, game, required)
 
     # CARD SPECIFIC IMPLEMENTATIONS
-    def moneylender(self) -> bool:
+
+    def moneylender(self, player: "Player") -> bool:
         return True
 
-    def vassal(self, relevant_cards: Optional[List[Card]]) -> bool:
+    def vassal(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
         return True
-
-    def library(self, relevant_cards: Optional[List[Card]]) -> bool:
-        if self.state.actions == 0:
-            return True
-        else:
-            return False
 
     def sentry(
         self,
+        player: "Player",
         game: "Game",
         valid_cards: Optional[List[Card]] = None,
         relevant_cards: Optional[List[Card]] = None,
@@ -253,7 +230,7 @@ class OptimizedBot(Bot):
             if not valid_cards:
                 return []
             return self.determine_trash_cards(
-                valid_cards=valid_cards, player=self, game=game
+                valid_cards=valid_cards, player=player, game=game
             )
         if discard:
             if not valid_cards:
@@ -272,64 +249,44 @@ class OptimizedBot(Bot):
             "Either gain, topdeck or binary must be true when playing sentry"
         )
 
-    def cellar(self, valid_cards: List[Card]) -> Optional[List[Card]]:
+    def library(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
+        if player.state.actions == 0:
+            return True
+        else:
+            return False
+
+    def cellar(self, player: "Player", valid_cards: List[Card]) -> List[Card]:
         return [
             card
             for card in valid_cards
             if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
         ]
 
+    def moat(self, player: "Player", relevant_cards: Optional[List[Card]]) -> bool:
+        return True
+
     def poacher(
-        self, valid_cards: List[Card], num_discard: Optional[int]
+        self, player: "Player", valid_cards: List[Card], num_discard: Optional[int]
     ) -> List[Card]:
         if not num_discard:
             return []
         discard_order = self.sort_for_discard(
-            cards=valid_cards, actions=self.state.actions
+            cards=valid_cards, actions=player.state.actions
         )
         return discard_order[:num_discard]
 
     def militia(
-        self, valid_cards: List[Card], num_discard: Optional[int]
+        self, player: "Player", valid_cards: List[Card], num_discard: Optional[int]
     ) -> List[Card]:
         if not num_discard:
             return []
         discard_order = self.sort_for_discard(
-            cards=valid_cards, actions=self.state.actions
+            cards=valid_cards, actions=player.state.actions
         )
         return discard_order[:num_discard]
 
-    def artisan(
-        self,
-        game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        gain: bool = False,
-        topdeck: bool = False,
-    ) -> Card:
-        if topdeck:
-            for card in self.hand.cards:
-                if CardType.Action in card.type and self.state.actions == 0:
-                    return card
-            else:
-                return self.hand.cards[-1]
-        if gain:
-            if game.supply.pile_length(pile_name="Province") < 5:
-                return duchy
-            else:
-                return silver
-
-        raise InvalidBotImplementation(
-            "Either gain or topdeck must be true when playing artisian"
-        )
-
-    def workshop(self, game: "Game") -> Card:
-        if game.supply.pile_length(pile_name="Province") < 3:
-            return estate
-        else:
-            return silver
-
     def remodel(
-        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
+        self, player: "Player", valid_cards: List[Card], trash: bool = False, gain: bool = False
     ) -> Card:
         if trash:
             min_price_card = min(valid_cards, key=lambda card: card.cost)
@@ -344,7 +301,7 @@ class OptimizedBot(Bot):
         )
 
     def mine(
-        self, valid_cards: List[Card], trash: bool = False, gain: bool = False
+        self, player: "Player", valid_cards: List[Card], trash: bool = False, gain: bool = False
     ) -> Card:
         if trash:
             min_price_card = min(valid_cards, key=lambda card: card.cost)
@@ -358,15 +315,53 @@ class OptimizedBot(Bot):
             "Either gain or trash must be true when playing mine"
         )
 
-    def chapel(self, game: "Game", valid_cards: List[Card]) -> Optional[List[Card]]:
+    def chapel(self, player: "Player", game: "Game", valid_cards: List[Card]) -> List[Card]:
         trash_cards = self.determine_trash_cards(
-            valid_cards=valid_cards, player=self, game=game
+            valid_cards=valid_cards, player=player, game=game
         )
         while len(trash_cards) > 4:
             trash_cards.pop()
         return trash_cards
 
-    def harbinger(self, valid_cards: List[Card]) -> Optional[Card]:
+    def artisan(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        gain: bool = False,
+        topdeck: bool = False,
+    ) -> Card:
+        if topdeck:
+            for card in player.hand.cards:
+                if CardType.Action in card.type and player.state.actions == 0:
+                    return card
+            else:
+                return player.hand.cards[-1]
+        if gain:
+            if game.supply.pile_length(pile_name="Province") < 5:
+                return duchy
+            else:
+                return silver
+
+        raise InvalidBotImplementation(
+            "Either gain or topdeck must be true when playing artisan"
+        )
+
+    def workshop(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> Card:
+        if game.supply.pile_length(pile_name="Province") < 3:
+            return estate
+        else:
+            return silver
+
+    def harbinger(
+        self,
+        player: "Player",
+        valid_cards: List[Card],
+    ) -> Optional[Card]:
         # Do not topdeck victory cards
         best_topdeck = [card for card in valid_cards if CardType.Victory not in card.type]
         if not best_topdeck:
@@ -378,11 +373,30 @@ class OptimizedBot(Bot):
         else:
             return None
 
-    def bureaucrat(self, valid_cards: List[Card]) -> Card:
+    def bureaucrat(
+        self,
+        player: "Player",
+        valid_cards: List[Card],
+    ) -> Card:
         sorted_cards = sorted(valid_cards, key=lambda card: card.cost)
         return sorted_cards[0]
 
-    def throne_room(self, valid_cards: List[Card]) -> Card:
+    def throne_room(self, player: "Player", valid_cards: List[Card]) -> Card:
         # Double play most expensive card
         max_price_card = max(valid_cards, key=lambda card: card.cost)
         return max_price_card
+
+
+class OptimizedBot(Bot):
+    """
+    Bot with logic for playing and reacting to all cards.
+
+    """
+
+    def __init__(
+        self,
+        decider: Optional[Decider] = None,
+        player_id: str = "bot",
+    ):
+        decider = decider if decider else OptimizedBotDecider()
+        super().__init__(decider=decider, player_id=player_id)

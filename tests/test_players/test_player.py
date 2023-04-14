@@ -21,15 +21,15 @@ from pyminion.expansions.base import (
     vassal,
 )
 from pyminion.game import Game
-from pyminion.players import Player
+from pyminion.player import Player
 
 
-def test_create_player(deck):
+def test_create_player(decider, deck):
     discard_pile = DiscardPile()
     hand = Hand()
     playmat = Playmat()
 
-    player = Player(deck=deck, discard_pile=discard_pile, hand=hand, playmat=playmat)
+    player = Player(decider=decider, deck=deck, discard_pile=discard_pile, hand=hand, playmat=playmat)
     assert len(player.deck) == 10
     assert len(player.discard_pile) == 0
     assert len(player.hand) == 0

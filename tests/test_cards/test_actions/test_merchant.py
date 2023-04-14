@@ -1,7 +1,7 @@
 from pyminion.expansions.base import merchant, silver
 from pyminion.game import Game
 from pyminion.expansions.base import Merchant
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_merchant_no_silver(human: Human, game: Game):

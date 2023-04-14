@@ -1,6 +1,6 @@
 from pyminion.expansions.base import library, smithy
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_library_draw_7(human: Human, game: Game):

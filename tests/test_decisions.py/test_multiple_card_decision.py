@@ -1,5 +1,5 @@
 import pytest
-from pyminion.decisions import multiple_card_decision
+from pyminion.human import multiple_card_decision
 from pyminion.exceptions import InvalidMultiCardInput
 from pyminion.expansions.base import copper, estate
 

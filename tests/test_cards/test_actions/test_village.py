@@ -1,7 +1,7 @@
 from pyminion.expansions.base import village
 from pyminion.game import Game
 from pyminion.expansions.base import Village
-from pyminion.players import Player
+from pyminion.player import Player
 
 
 def test_village(player: Player, game: Game):
