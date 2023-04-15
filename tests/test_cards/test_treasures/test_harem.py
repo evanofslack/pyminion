@@ -1,6 +1,6 @@
 from pyminion.expansions.intrigue import Harem, harem
 from pyminion.game import Game
-from pyminion.players import Player
+from pyminion.player import Player
 
 
 def test_money(player: Player, game: Game):

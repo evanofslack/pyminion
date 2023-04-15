@@ -1,7 +1,7 @@
 from pyminion.expansions.base import copper
 from pyminion.expansions.intrigue import Steward, steward
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_steward_cards(human: Human, game: Game, monkeypatch):

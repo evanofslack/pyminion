@@ -1,7 +1,7 @@
 from pyminion.expansions.base import Silver, Copper, silver, copper
 from pyminion.expansions.intrigue import Masquerade, masquerade
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_masquerade_no_trash(multiplayer_game: Game, monkeypatch):

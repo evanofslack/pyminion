@@ -1,7 +1,7 @@
 from pyminion.expansions.base import copper, estate, smithy
 from pyminion.expansions.intrigue import shanty_town
 from pyminion.game import Game
-from pyminion.players import Player
+from pyminion.player import Player
 
 
 def test_shanty_town_empty_hand(player: Player, game: Game):

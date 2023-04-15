@@ -1,6 +1,7 @@
 from pyminion.expansions.intrigue import nobles
 from pyminion.game import Game
-from pyminion.players import Human, Player
+from pyminion.human import Human
+from pyminion.player import Player
 
 
 def test_nobles_cards(human: Human, game: Game, monkeypatch):

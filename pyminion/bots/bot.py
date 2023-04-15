@@ -85,6 +85,17 @@ class BotDecider:
     ) -> bool:
         return True
 
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        return list(range(num_choices))
+
     def discard_decision(
         self,
         prompt: str,
@@ -133,6 +144,30 @@ class BotDecider:
     ) -> List["Card"]:
         return valid_cards[:min_num_topdeck]
 
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_reveal]
+
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_pass]
+
     def multi_play_decision(
         self,
         prompt: str,
@@ -161,33 +196,3 @@ class Bot(Player):
     ):
         decider = decider if decider else BotDecider()
         super().__init__(decider=decider, player_id=player_id)
-
-    def reveal_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-        required: bool = True,
-    ) -> Optional[Card]:
-        if required:
-            return valid_cards[0]
-        else:
-            return None
-
-    def pass_resp(
-        self,
-        card: Card,
-        valid_cards: List[Card],
-        game: "Game",
-    ) -> Card:
-        return valid_cards[0]
-
-    def multiple_option_decision(
-        self,
-        card: Card,
-        options: List[str],
-        game: "Game",
-        num_choices: int = 1,
-        unique: bool = True,
-    ) -> List[int]:
-        return list(range(num_choices))

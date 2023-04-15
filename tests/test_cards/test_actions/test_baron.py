@@ -1,7 +1,7 @@
 from pyminion.expansions.base import Copper, Estate, copper, estate
 from pyminion.expansions.intrigue import Baron, baron
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_baron_discard_estate(human: Human, game: Game, monkeypatch):

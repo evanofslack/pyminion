@@ -1,6 +1,7 @@
 from pyminion.expansions.base import throne_room
 from pyminion.expansions.intrigue import conspirator, shanty_town
-from pyminion.players import Human, Player
+from pyminion.human import Human
+from pyminion.player import Player
 from pyminion.game import Game
 
 

@@ -1,6 +1,6 @@
 from pyminion.expansions.intrigue import Pawn, pawn
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_pawn_card_action(human: Human, game: Game, monkeypatch):

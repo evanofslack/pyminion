@@ -254,6 +254,23 @@ class HumanDecider:
         """
         return binary_decision(prompt=prompt)
 
+    @validate_input(exceptions=InvalidMultiOptionInput)
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        """
+        Wrap multiple_option_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return multiple_option_decision(options, num_choices, unique)
+
     @validate_input(exceptions=InvalidMultiCardInput)
     def discard_decision(
         self,
@@ -356,6 +373,56 @@ class HumanDecider:
 
         return result
 
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_reveal:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must reveal at least {min_num_reveal} card(s)"
+            )
+        elif max_num_reveal >= 0 and len_result > max_num_reveal:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot reveal more than {max_num_reveal} card(s)"
+            )
+
+        return result
+
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_pass:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must pass at least {min_num_pass} card(s)"
+            )
+        elif max_num_pass >= 0 and len_result > max_num_pass:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot pass more than {max_num_pass} card(s)"
+            )
+
+        return result
+
     @validate_input(exceptions=InvalidSingleCardInput)
     def multi_play_decision(
         self,
@@ -393,17 +460,3 @@ class Human(Player):
         player_id: str = "human",
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)
-
-    @staticmethod
-    @validate_input(exceptions=InvalidMultiOptionInput)
-    def multiple_option_decision(
-        options: List[str],
-        num_choices: int = 1,
-        unique: bool = True,
-    ) -> List[int]:
-        """
-        Wrap multiple_option_decision with @validate_input decorator to
-        repeat prompt if input is invalid.
-
-        """
-        return multiple_option_decision(options, num_choices, unique)

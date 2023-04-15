@@ -1,7 +1,7 @@
 from pyminion.expansions.base import Smithy, smithy
 from pyminion.expansions.intrigue import lurker
 from pyminion.game import Game
-from pyminion.players import Human
+from pyminion.human import Human
 
 
 def test_lurker_trash(human: Human, game: Game, monkeypatch):
