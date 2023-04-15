@@ -2,7 +2,7 @@ from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, List
 
-from pyminion.core import Action, Card, CardType, Treasure, Victory
+from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.player import Player
 from pyminion.expansions.base import duchy, estate, gold
 
@@ -600,6 +600,64 @@ class Steward(Action):
         return trash_cards
 
 
+class Swindler(Action):
+    """
+    +2 Money
+
+    Each other player trashes the top card of their deck and gains a card with
+    the same cost that you choose.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Swindler", cost=3, type=(CardType.Action, CardType.Attack))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.money += 2
+
+        for opponent in game.players:
+            if opponent is not player:
+                if opponent.is_attacked(player=player, attack_card=self, game=game):
+                    revealed_cards = AbstractDeck()
+                    opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
+                    trashed_card = revealed_cards.cards[0]
+                    game.trash.add(trashed_card)
+                    trashed_cost = trashed_card.cost
+
+                    logger.info(f"{opponent} trashes {trashed_card}")
+
+                    valid_cards = [
+                        c
+                        for c in game.supply.avaliable_cards()
+                        if c.cost == trashed_cost
+                    ]
+                    if len(valid_cards) == 0:
+                        continue
+
+                    gain_cards = player.decider.gain_decision(
+                        prompt=f"Pick a cost {trashed_cost} card for {opponent} to gain: ",
+                        card=self,
+                        valid_cards=valid_cards,
+                        player=player,
+                        game=game,
+                        min_num_gain=1,
+                        max_num_gain=1,
+                    )
+                    assert len(gain_cards) == 1
+                    gain_card = gain_cards[0]
+                    opponent.discard_pile.add(gain_card)
+
+                    logger.info(f"{opponent} gains {gain_card}")
+
+
 baron = Baron()
 conspirator = Conspirator()
 courtier = Courtier()
@@ -612,6 +670,7 @@ nobles = Nobles()
 pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
+swindler = Swindler()
 
 
 intrigue_set: List[Card] = [
@@ -627,4 +686,5 @@ intrigue_set: List[Card] = [
     pawn,
     shanty_town,
     steward,
+    swindler,
 ]
