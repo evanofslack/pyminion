@@ -22,3 +22,17 @@ def test_mine_gain_valid(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 0
     assert game.trash.cards[0].name == "Copper"
     assert human.hand.cards[-1].name == "Silver"
+
+
+def test_mine_no_gain(human: Human, game: Game, monkeypatch):
+    human.hand.add(copper)
+    human.hand.add(mine)
+    assert len(game.trash) == 0
+
+    monkeypatch.setattr("builtins.input", lambda _: "")
+
+    human.play(mine, game)
+    assert len(human.playmat) == 1
+    assert human.state.actions == 0
+    assert len(game.trash) == 0
+    assert human.hand.cards[-1].name == "Copper"
