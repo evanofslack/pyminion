@@ -168,6 +168,18 @@ class BotDecider:
     ) -> List["Card"]:
         return valid_cards[:min_num_pass]
 
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_name]
+
     def multi_play_decision(
         self,
         prompt: str,

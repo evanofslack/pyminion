@@ -128,6 +128,18 @@ class Decider(Protocol):
     ) -> List["Card"]:
         raise NotImplementedError("pass_decision is not implemented")
 
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("name_card_decision is not implemented")
+
     def multi_play_decision(
         self,
         prompt: str,

@@ -658,6 +658,60 @@ class Swindler(Action):
                     logger.info(f"{opponent} gains {gain_card}")
 
 
+class WishingWell(Action):
+    """
+    +1 card, +1 action
+
+    Name a card, then reveal the top card of your deck. If you named it,
+    put it into your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Wishing Well", cost=3, type=(CardType.Action,))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(1)
+        player.state.actions += 1
+
+        named_cards = player.decider.name_card_decision(
+            prompt="Name a card: ",
+            card=self,
+            valid_cards=game.all_game_cards,
+            player=player,
+            game=game,
+            min_num_name=1,
+            max_num_name=1,
+        )
+        assert len(named_cards) == 1
+        name = named_cards[0].name
+
+        logger.info(f"{player} names {name}")
+
+        revealed = AbstractDeck()
+        player.draw(1, revealed, silent=True)
+        revealed_card = revealed.cards[0]
+        revealed_name = revealed_card.name
+
+        msg = f"{player} reveals {revealed_name} and "
+        if revealed_name == name:
+            player.hand.add(revealed_card)
+            msg += "puts it into their hand"
+        else:
+            player.deck.add(revealed_card)
+            msg += "topdecks it"
+
+        logger.info(msg)
+
+
 baron = Baron()
 conspirator = Conspirator()
 courtier = Courtier()
@@ -671,6 +725,7 @@ pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
+wishing_well = WishingWell()
 
 
 intrigue_set: List[Card] = [
@@ -687,4 +742,5 @@ intrigue_set: List[Card] = [
     shanty_town,
     steward,
     swindler,
+    wishing_well,
 ]

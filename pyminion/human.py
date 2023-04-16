@@ -423,6 +423,31 @@ class HumanDecider:
 
         return result
 
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_name:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must name at least {min_num_name} card(s)"
+            )
+        elif max_num_name >= 0 and len_result > max_num_name:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot name more than {max_num_name} card(s)"
+            )
+
+        return result
+
     @validate_input(exceptions=InvalidSingleCardInput)
     def multi_play_decision(
         self,

@@ -47,6 +47,7 @@ class Game:
         self.players = players
         self.expansions = expansions
         self.kingdom_cards = kingdom_cards
+        self.all_game_cards: List[Card] = []
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
@@ -170,7 +171,9 @@ class Game:
 
         basic_piles = self._create_basic_piles()
         kingdom_piles = self._create_kingdom_piles()
-        return Supply(basic_piles + kingdom_piles)
+        all_piles = basic_piles + kingdom_piles
+        self.all_game_cards = [pile.cards[0] for pile in all_piles]
+        return Supply(all_piles)
 
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
