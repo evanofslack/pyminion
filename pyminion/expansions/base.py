@@ -1074,6 +1074,10 @@ class Mine(Action):
             min_num_trash=0,
             max_num_trash=1,
         )
+
+        if len(trash_cards) == 0:
+            return
+
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
