@@ -9,7 +9,7 @@ def test_swindler(multiplayer_game: Game, monkeypatch):
     p2 = players[1]
 
     p1.hand.add(swindler)
-    p2.deck.cards.insert(0, copper)
+    p2.deck.add(copper)
 
     monkeypatch.setattr("builtins.input", lambda _: "curse")
 
@@ -31,7 +31,7 @@ def test_swindler_moat(multiplayer_game: Game, monkeypatch):
 
     p1.hand.add(swindler)
     p2.hand.add(moat)
-    p2.deck.cards.insert(0, moat)
+    p2.deck.add(moat)
 
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
@@ -42,5 +42,5 @@ def test_swindler_moat(multiplayer_game: Game, monkeypatch):
     assert p1.state.actions == 0
     assert p1.state.money == 2
 
-    assert p2.deck.cards[0].name == "Moat"
+    assert p2.deck.cards[-1].name == "Moat"
     assert len(p2.discard_pile) == 0
