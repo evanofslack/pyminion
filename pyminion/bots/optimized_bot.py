@@ -67,7 +67,7 @@ class OptimizedBotDecider(BotDecider):
         deck_money = player.get_deck_money()
         trash_cards = []
         for card in valid_cards:
-            if card.name == CardType.Curse:
+            if CardType.Curse in card.type:
                 trash_cards.append(card)
             elif (
                 card.name == "Estate"
