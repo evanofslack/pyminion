@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.player import Player
-from pyminion.expansions.base import duchy, estate, gold
+from pyminion.exceptions import EmptyPile
+from pyminion.expansions.base import duchy, estate, gold, silver
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -658,6 +659,55 @@ class Swindler(Action):
                     logger.info(f"{opponent} gains {gain_card}")
 
 
+class TradingPost(Action):
+    """
+    Trash 2 cards from your hand. If you did, gain a Silver to your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Trading Post", cost=5, type=(CardType.Action,))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        len_hand = len(player.hand)
+        if len_hand == 0:
+            pass
+        elif len_hand == 1:
+            player.trash(player.hand.cards[0], game.trash)
+        else:
+            if len_hand == 2:
+                trash_cards = player.hand.cards[:]
+            else:
+                trash_cards = player.decider.trash_decision(
+                    prompt="Trash 2 cards from your hand: ",
+                    card=self,
+                    valid_cards=player.hand.cards,
+                    player=player,
+                    game=game,
+                    min_num_trash=2,
+                    max_num_trash=2,
+                )
+                assert len(trash_cards) == 2
+
+            for card in trash_cards:
+                player.trash(card, game.trash)
+
+            # attempt to gain a silver to player's hand.
+            # if silver pile is empty, proceed
+            try:
+                player.gain(silver, game.supply, player.hand)
+            except EmptyPile:
+                pass
+
+
 class WishingWell(Action):
     """
     +1 card, +1 action
@@ -725,6 +775,7 @@ pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
+trading_post = TradingPost()
 wishing_well = WishingWell()
 
 
@@ -742,5 +793,6 @@ intrigue_set: List[Card] = [
     shanty_town,
     steward,
     swindler,
+    trading_post,
     wishing_well,
 ]
