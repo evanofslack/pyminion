@@ -916,8 +916,8 @@ class Bureaucrat(Action):
                         victory_cards.append(card)
 
                 if not victory_cards:
-                    # Log opponent revealed hand
-                    return
+                    logger.info(f"{opponent} reveals hand: {opponent.hand}")
+                    continue
 
                 topdeck_cards = opponent.decider.topdeck_decision(
                     prompt="You must topdeck a Victory card from your hand: ",
@@ -932,6 +932,7 @@ class Bureaucrat(Action):
                 topdeck_card = topdeck_cards[0]
 
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
+                logger.info(f"{opponent} topdecks {topdeck_card}")
 
 
 class ThroneRoom(Action):
