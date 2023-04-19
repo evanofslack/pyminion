@@ -708,6 +708,68 @@ class TradingPost(Action):
                 pass
 
 
+class Upgrade(Action):
+    """
+    +1 card, +1 action
+    Trash a card from your hand. Gain a card costing exactly $1 more than it.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Upgrade", cost=5, type=(CardType.Action,))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(1)
+        player.state.actions += 1
+
+        trash_cards = player.decider.trash_decision(
+            prompt="Trash a card form your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=1,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
+
+        player.trash(trash_card, trash=game.trash)
+
+        new_cost = trash_card.cost + 1
+        valid_cards = [
+            card
+            for card in game.supply.avaliable_cards()
+            if card.cost == new_cost
+        ]
+
+        if len(valid_cards) == 0:
+            return
+
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a card costing {new_cost} money: ",
+            card=self,
+            valid_cards=valid_cards,
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost == new_cost
+
+        player.gain(gain_card, game.supply)
+
+
 class WishingWell(Action):
     """
     +1 card, +1 action
@@ -776,6 +838,7 @@ shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
 trading_post = TradingPost()
+upgrade = Upgrade()
 wishing_well = WishingWell()
 
 
@@ -794,5 +857,6 @@ intrigue_set: List[Card] = [
     steward,
     swindler,
     trading_post,
+    upgrade,
     wishing_well,
 ]
