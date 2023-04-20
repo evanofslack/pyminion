@@ -250,6 +250,16 @@ class Supply:
         cards = [pile.cards[0] for pile in self.piles if pile]
         return cards
 
+    def get_pile(self, pile_name: str) -> Pile:
+        """
+        Get a pile by name.
+
+        """
+        for pile in self.piles:
+            if pile.name == pile_name:
+                return pile
+        raise PileNotFound(f"{pile_name} pile is not valid")
+
     def num_empty_piles(self) -> int:
         """
         Returns the number of empty piles in the supply.

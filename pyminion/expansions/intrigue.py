@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.player import Player
 from pyminion.exceptions import EmptyPile
-from pyminion.expansions.base import duchy, estate, gold, silver
+from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -659,6 +659,86 @@ class Swindler(Action):
                     logger.info(f"{opponent} gains {gain_card}")
 
 
+class Torturer(Action):
+    """
+    +3 cards
+
+    Each other player either discards 2 cards or gains a Curse to their
+    hand, their choice. (They may pick an option they can't do.)
+
+    """
+
+    @unique
+    class Choice(IntEnum):
+        Discard = 0
+        GainCurse = 1
+
+    def __init__(self):
+        super().__init__(name="Torturer", cost=5, type=(CardType.Action, CardType.Attack))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(3)
+
+        for opponent in game.players:
+            if opponent is not player and opponent.is_attacked(player, self, game):
+                options = [
+                    "Discard 2 cards",
+                    "Gain a Curse to your hand",
+                ]
+                choices = opponent.decider.multiple_option_decision(
+                    card=self,
+                    options=options,
+                    player=opponent,
+                    game=game,
+                )
+                assert len(choices) == 1
+                choice = choices[0]
+
+                if choice == Torturer.Choice.Discard:
+                    self._discard(opponent, game)
+                elif choice == Torturer.Choice.GainCurse:
+                    self._gain_curse(opponent, game)
+                else:
+                    raise ValueError(f"Unknown torturer choice '{choice}'")
+
+    def _discard(self, opponent: Player, game: "Game") -> None:
+        num_discard = min(2, len(opponent.hand))
+        if num_discard == 0:
+            return
+
+        discard_cards = opponent.decider.discard_decision(
+            prompt=f"You must discard {num_discard} card(s) from your hand: ",
+            card=self,
+            valid_cards=opponent.hand.cards,
+            player=opponent,
+            game=game,
+            min_num_discard=num_discard,
+            max_num_discard=num_discard,
+        )
+        assert len(discard_cards) == num_discard
+
+        for card in discard_cards:
+            opponent.discard(target_card=card)
+
+    def _gain_curse(self, opponent: Player, game: "Game") -> None:
+        try:
+            opponent.gain(
+                card=curse,
+                supply=game.supply,
+                destination=opponent.hand,
+            )
+        except EmptyPile:
+            pass
+
+
 class TradingPost(Action):
     """
     Trash 2 cards from your hand. If you did, gain a Silver to your hand.
@@ -837,6 +917,7 @@ pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
+torturer = Torturer()
 trading_post = TradingPost()
 upgrade = Upgrade()
 wishing_well = WishingWell()
@@ -856,6 +937,7 @@ intrigue_set: List[Card] = [
     shanty_town,
     steward,
     swindler,
+    torturer,
     trading_post,
     upgrade,
     wishing_well,
