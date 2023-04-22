@@ -509,6 +509,73 @@ class Mill(Action, Victory):
         return vp
 
 
+class Minion(Action):
+    """
+    +1 action
+
+    Choose one: +$2; or discard your hand, +4 Cards, and each other player
+    with at least 5 cards in hand discards their hand and draws 4 cards.
+
+    """
+
+    @unique
+    class Choice(IntEnum):
+        Money = 0
+        DiscardDrawAttack = 1
+
+    def __init__(self):
+        super().__init__(name="Minion", cost=5, type=(CardType.Action, CardType.Attack), actions=1)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.actions += 1
+
+        # opponents react to the card before the choice is made
+        is_attacked: List[bool] = []
+        for opponent in game.players:
+            if opponent is not player:
+                ret = opponent.is_attacked(player, self, game)
+                is_attacked.append(ret)
+
+        options = [
+            "+2 Money",
+            "Discard your hand, draw 4 cards, and each other player with at least 5 cards discards their hand and draws 4 cards",
+        ]
+        choices = player.decider.multiple_option_decision(
+            card=self,
+            options=options,
+            player=player,
+            game=game,
+        )
+        assert len(choices) == 1
+        choice = choices[0]
+
+        if choice == Minion.Choice.Money:
+            player.state.money += 2
+        elif choice == Minion.Choice.DiscardDrawAttack:
+            for _ in range(len(player.hand.cards)):
+                player.discard(player.hand.cards[0])
+            player.draw(4)
+
+            i = 0
+            for opponent in game.players:
+                if opponent is not player and is_attacked[i]:
+                    if len(opponent.hand) >= 5:
+                        for _ in range(len(opponent.hand.cards)):
+                            opponent.discard(opponent.hand.cards[0])
+                        opponent.draw(4)
+                    i += 1
+        else:
+            raise ValueError(f"Unknown minion choice '{choice}'")
+
+
 class Nobles(Action, Victory):
     """
     Choose one: +3 Cards; or +2 Actions.
@@ -1019,6 +1086,7 @@ ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
 mill = Mill()
+minion = Minion()
 nobles = Nobles()
 pawn = Pawn()
 shanty_town = ShantyTown()
@@ -1041,6 +1109,7 @@ intrigue_set: List[Card] = [
     lurker,
     masquerade,
     mill,
+    minion,
     nobles,
     pawn,
     shanty_town,
