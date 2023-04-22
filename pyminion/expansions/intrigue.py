@@ -452,6 +452,63 @@ class Masquerade(Action):
             player.trash(trash_card, game.trash)
 
 
+class Mill(Action, Victory):
+    """
+    +1 card, +1 action
+
+    You may discard 2 cards, for +$2.
+
+    """
+
+    def __init__(self):
+        Action.__init__(self, "Mill", 4, (CardType.Action, CardType.Victory), actions=1, draw=1)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(1)
+        player.state.actions += 1
+
+        discard = player.decider.binary_decision(
+            prompt="Do you want to discard 2 cards for +2 money?",
+            card=self,
+            player=player,
+            game=game,
+        )
+
+        if discard:
+            hand_len = len(player.hand)
+            if hand_len <= 2:
+                discard_cards = player.hand.cards[:]
+            else:
+                discard_cards = player.decider.discard_decision(
+                    prompt="Enter the cards you would like to discard: ",
+                    card=self,
+                    valid_cards=player.hand.cards,
+                    player=player,
+                    game=game,
+                    min_num_discard=2,
+                    max_num_discard=2,
+                )
+                assert len(discard_cards) == 2
+
+            if len(discard_cards) == 2:
+                player.state.money += 2
+
+            for c in discard_cards:
+                player.discard(c)
+
+    def score(self, player: Player) -> int:
+        vp = 1
+        return vp
+
+
 class Nobles(Action, Victory):
     """
     Choose one: +3 Cards; or +2 Actions.
@@ -962,6 +1019,7 @@ harem = Harem()
 ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
+mill = Mill()
 nobles = Nobles()
 pawn = Pawn()
 shanty_town = ShantyTown()
@@ -983,6 +1041,7 @@ intrigue_set: List[Card] = [
     ironworks,
     lurker,
     masquerade,
+    mill,
     nobles,
     pawn,
     shanty_town,
