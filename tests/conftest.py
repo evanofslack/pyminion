@@ -14,6 +14,10 @@ from pyminion.expansions.base import (
     silver,
     smithy,
 )
+from pyminion.expansions.intrigue import (
+    intrigue_set,
+    mill,
+)
 from pyminion.game import Game, Card
 from pyminion.human import Human
 from pyminion.player import Player
@@ -102,8 +106,8 @@ def supply():
 def game(player):
     game = Game(
         players=[player],
-        expansions=[base_set],
-        kingdom_cards=[smithy],
+        expansions=[base_set, intrigue_set],
+        kingdom_cards=[mill, smithy],
         # start_cards=start_cards,
     )
     game.supply = game._create_supply()
