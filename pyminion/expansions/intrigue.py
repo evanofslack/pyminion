@@ -241,6 +241,55 @@ class Harem(Treasure, Victory):
         return vp
 
 
+class Ironworks(Action):
+    """
+    Gain a card costing up to $4.
+    If the gained card is an...
+
+    Action card, +1 Action
+    Treasure card, +$1
+    Victory card, +1 Card
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Ironworks", cost=4, type=(CardType.Action,))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 4 money: ",
+            card=self,
+            valid_cards=[
+                card for card in game.supply.avaliable_cards() if card.cost <= 4
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= 4
+
+        player.gain(card=gain_card, supply=game.supply)
+
+        if CardType.Action in gain_card.type:
+            player.state.actions += 1
+
+        if CardType.Treasure in gain_card.type:
+            player.state.money += 1
+
+        if CardType.Victory in gain_card.type:
+            player.draw(1)
+
+
 class Lurker(Action):
     """
     +1 Action
@@ -910,6 +959,7 @@ courtier = Courtier()
 courtyard = Courtyard()
 duke = Duke()
 harem = Harem()
+ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
 nobles = Nobles()
@@ -930,6 +980,7 @@ intrigue_set: List[Card] = [
     courtyard,
     duke,
     harem,
+    ironworks,
     lurker,
     masquerade,
     nobles,
