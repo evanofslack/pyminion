@@ -731,38 +731,37 @@ class Swindler(Action):
         player.state.money += 2
 
         for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self, game=game):
-                    revealed_cards = AbstractDeck()
-                    opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
-                    trashed_card = revealed_cards.cards[0]
-                    game.trash.add(trashed_card)
-                    trashed_cost = trashed_card.cost
+            if opponent is not player and opponent.is_attacked(player, self, game):
+                revealed_cards = AbstractDeck()
+                opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
+                trashed_card = revealed_cards.cards[0]
+                game.trash.add(trashed_card)
+                trashed_cost = trashed_card.cost
 
-                    logger.info(f"{opponent} trashes {trashed_card}")
+                logger.info(f"{opponent} trashes {trashed_card}")
 
-                    valid_cards = [
-                        c
-                        for c in game.supply.avaliable_cards()
-                        if c.cost == trashed_cost
-                    ]
-                    if len(valid_cards) == 0:
-                        continue
+                valid_cards = [
+                    c
+                    for c in game.supply.avaliable_cards()
+                    if c.cost == trashed_cost
+                ]
+                if len(valid_cards) == 0:
+                    continue
 
-                    gain_cards = player.decider.gain_decision(
-                        prompt=f"Pick a cost {trashed_cost} card for {opponent} to gain: ",
-                        card=self,
-                        valid_cards=valid_cards,
-                        player=player,
-                        game=game,
-                        min_num_gain=1,
-                        max_num_gain=1,
-                    )
-                    assert len(gain_cards) == 1
-                    gain_card = gain_cards[0]
-                    opponent.discard_pile.add(gain_card)
+                gain_cards = player.decider.gain_decision(
+                    prompt=f"Pick a cost {trashed_cost} card for {opponent} to gain: ",
+                    card=self,
+                    valid_cards=valid_cards,
+                    player=player,
+                    game=game,
+                    min_num_gain=1,
+                    max_num_gain=1,
+                )
+                assert len(gain_cards) == 1
+                gain_card = gain_cards[0]
+                opponent.discard_pile.add(gain_card)
 
-                    logger.info(f"{opponent} gains {gain_card}")
+                logger.info(f"{opponent} gains {gain_card}")
 
 
 class Torturer(Action):
