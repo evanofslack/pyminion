@@ -733,6 +733,73 @@ class Pawn(Action):
                 raise ValueError(f"Unknown pawn choice '{choice}'")
 
 
+class Replace(Action):
+    """
+    Trash a card from your hand. Gain a card costing up to $2 more than it. If
+    the gained card is an Action or Treasure, put it onto your deck; if it's a
+    Victory card, each other player gains a Curse.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Replace", cost=5, type=(CardType.Action, CardType.Attack))
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        trash_cards = player.decider.trash_decision(
+            prompt="Trash a card form your hand: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_trash=1,
+            max_num_trash=1,
+        )
+        assert len(trash_cards) == 1
+        trash_card = trash_cards[0]
+
+        max_cost = trash_card.cost + 2
+        gain_cards = player.decider.gain_decision(
+            prompt=f"Gain a card costing up to {max_cost} money: ",
+            card=self,
+            valid_cards=[
+                card
+                for card in game.supply.avaliable_cards()
+                if card.cost <= max_cost
+            ],
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.cost <= max_cost
+
+        player.trash(trash_card, trash=game.trash)
+
+        if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
+            player.gain(gain_card, game.supply, destination=player.deck)
+        else:
+            player.gain(gain_card, game.supply)
+
+        if CardType.Victory in gain_card.type:
+            for opponent in game.players:
+                if opponent is not player and opponent.is_attacked(player, self, game):
+                    # attempt to gain a curse. if curse pile is empty, proceed
+                    try:
+                        opponent.gain(curse, game.supply)
+                    except EmptyPile:
+                        pass
+
+
 class ShantyTown(Action):
     """
     +2 Actions
@@ -1144,6 +1211,7 @@ minion = Minion()
 nobles = Nobles()
 patrol = Patrol()
 pawn = Pawn()
+replace = Replace()
 shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
@@ -1168,6 +1236,7 @@ intrigue_set: List[Card] = [
     nobles,
     patrol,
     pawn,
+    replace,
     shanty_town,
     steward,
     swindler,

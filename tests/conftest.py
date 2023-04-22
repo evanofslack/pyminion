@@ -122,7 +122,8 @@ def multiplayer_game():
 
     game = Game(
         players=[human1, human2],
-        expansions=[base_set],
+        expansions=[base_set, intrigue_set],
+        kingdom_cards=[mill, smithy],
     )
     game.start()
 
