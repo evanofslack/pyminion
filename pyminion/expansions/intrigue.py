@@ -624,6 +624,60 @@ class Nobles(Action, Victory):
         return vp
 
 
+class Patrol(Action):
+    """
+    +3 cards
+
+    Reveal the top 4 cards of your deck. Put the Victory cards and Curses into
+    your hand. Put the rest back in any order.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Patrol", cost=5, type=(CardType.Action,), draw=3)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(3)
+
+        revealed = AbstractDeck()
+        player.draw(num_cards=4, destination=revealed, silent=True)
+        logger.info(f"{player} reveals {revealed}")
+
+        victory_curse_cards = [
+            card
+            for card in revealed.cards
+            if CardType.Curse in card.type or CardType.Victory in card.type
+        ]
+
+        for card in victory_curse_cards:
+            player.hand.add(revealed.remove(card))
+
+        num_topdeck = len(revealed.cards)
+        if num_topdeck <= 1:
+            topdeck_cards = revealed.cards
+        else:
+            topdeck_cards = player.decider.topdeck_decision(
+                prompt="Enter the cards in the order you would like to topdeck: ",
+                card=self,
+                valid_cards=revealed.cards,
+                player=player,
+                game=game,
+                min_num_topdeck=num_topdeck,
+                max_num_topdeck=num_topdeck,
+            )
+
+        for card in topdeck_cards:
+            player.deck.add(card)
+
+
 class Pawn(Action):
     """
     Choose two: +1 Card; +1 Action; +1 Buy; +1 Money.
@@ -1088,6 +1142,7 @@ masquerade = Masquerade()
 mill = Mill()
 minion = Minion()
 nobles = Nobles()
+patrol = Patrol()
 pawn = Pawn()
 shanty_town = ShantyTown()
 steward = Steward()
@@ -1111,6 +1166,7 @@ intrigue_set: List[Card] = [
     mill,
     minion,
     nobles,
+    patrol,
     pawn,
     shanty_town,
     steward,
