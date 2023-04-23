@@ -61,6 +61,13 @@ class InvalidBinaryInput(InvalidInput):
     """
 
 
+class InvalidNumericInput(InvalidInput):
+    """
+    Invalid numeric response
+
+    """
+
+
 class InvalidSingleCardInput(InvalidInput):
     """
     Invalid response, that input cannot be discarded

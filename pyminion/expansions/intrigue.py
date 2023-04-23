@@ -800,6 +800,60 @@ class Replace(Action):
                         pass
 
 
+class SecretPassage(Action):
+    """
+    +2 cards
+    +1 action
+
+    Take a card from your hand and put it anywhere in your deck.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Secret Passage", cost=4, type=(CardType.Action,), actions=1, draw=2)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(2)
+        player.state.actions += 1
+
+        insert_cards = player.decider.topdeck_decision(
+            prompt="Enter the card you would like to insert in your deck: ",
+            card=self,
+            valid_cards=player.hand.cards,
+            player=player,
+            game=game,
+            min_num_topdeck=1,
+            max_num_topdeck=1,
+        )
+        assert len(insert_cards) == 1
+        insert_card = insert_cards[0]
+
+        len_deck = len(player.deck)
+        if len_deck == 0:
+            index = 0
+        else:
+            index = player.decider.numeric_decision(
+                prompt=f"Enter the deck position (0 = bottom, {len_deck} = top): ",
+                card=self,
+                player=player,
+                game=game,
+                min_num=0,
+                max_num=len_deck,
+            )
+            assert 0 <= index <= len_deck
+
+        player.hand.remove(insert_card)
+        player.deck.cards.insert(index, insert_card)
+
+
 class ShantyTown(Action):
     """
     +2 Actions
@@ -1212,6 +1266,7 @@ nobles = Nobles()
 patrol = Patrol()
 pawn = Pawn()
 replace = Replace()
+secret_passage = SecretPassage()
 shanty_town = ShantyTown()
 steward = Steward()
 swindler = Swindler()
@@ -1237,6 +1292,7 @@ intrigue_set: List[Card] = [
     patrol,
     pawn,
     replace,
+    secret_passage,
     shanty_town,
     steward,
     swindler,

@@ -85,6 +85,17 @@ class BotDecider:
     ) -> bool:
         return True
 
+    def numeric_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        min_num: int,
+        max_num: int,
+    ) -> int:
+        return min_num
+
     def multiple_option_decision(
         self,
         card: "Card",

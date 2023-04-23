@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
 from pyminion.core import (CardType, Card, Deck)
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
-                                 InvalidSingleCardInput)
+                                 InvalidSingleCardInput, InvalidNumericInput)
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -57,6 +57,21 @@ def binary_decision(prompt: str) -> bool:
         return False
     else:
         raise InvalidBinaryInput("Invalid response, valid choices are 'yes' or 'no'")
+
+
+def numeric_decision(prompt: str, min_num: int, max_num: int) -> int:
+    num_str = input(prompt)
+    try:
+        num = int(num_str)
+    except ValueError:
+        raise InvalidNumericInput(f"Invalid response, '{num_str}' is not a valid number")
+
+    if num < min_num:
+        raise InvalidNumericInput(f"Invalid response, '{num_str}' is less than the minimum value of {min_num}")
+    elif num > max_num:
+        raise InvalidNumericInput(f"Invalid response, '{num_str}' is greater than the maximum value of {max_num}")
+
+    return num
 
 
 def single_card_decision(
@@ -253,6 +268,23 @@ class HumanDecider:
 
         """
         return binary_decision(prompt=prompt)
+
+    @validate_input(exceptions=InvalidNumericInput)
+    def numeric_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        min_num: int,
+        max_num: int,
+    ) -> int:
+        """
+        Wrap numeric_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return numeric_decision(prompt, min_num, max_num)
 
     @validate_input(exceptions=InvalidMultiOptionInput)
     def multiple_option_decision(
