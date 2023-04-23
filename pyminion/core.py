@@ -26,6 +26,19 @@ class CardType(Enum):
     Attack = 5
     Reaction = 6
 
+
+class CardLocation(Enum):
+    """
+    Where a card is located (e.g. hand, playmat, etc.).
+
+    """
+    Deck = 0
+    Hand = 1
+    Playmat = 2
+    DiscardPile = 3
+    Trash = 4
+
+
 class Card:
 
     """
@@ -40,6 +53,12 @@ class Card:
 
     def __repr__(self):
         return f"{self.name}"
+
+    def on_play(self, player: "Player", card: "Card", game: "Game", location: "CardLocation") -> None:
+        pass
+
+    def on_attack(self, player: "Player", attack_card: "Card", game: "Game") -> bool:
+        return True
 
 
 class Victory(Card):

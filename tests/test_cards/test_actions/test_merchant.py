@@ -32,6 +32,23 @@ def test_merchant_one_silver(human: Human, game: Game):
     assert human.state.buys == 1
 
 
+def test_hand_merchant(human: Human, game: Game):
+    # only play one merchant and make sure merchant in hand is not counted
+    human.hand.add(merchant)
+    human.hand.add(merchant)
+    human.hand.add(silver)
+    assert len(human.hand) == 3
+    human.play(target_card=merchant, game=game)
+    human.play(target_card=silver, game=game)
+
+    assert len(human.hand) == 2
+    assert len(human.playmat) == 2
+    assert type(human.playmat.cards[0]) is Merchant
+    assert human.state.actions == 1
+    assert human.state.money == 3
+    assert human.state.buys == 1
+
+
 def test_merchant_two_silvers(human: Human, game: Game):
     human.hand.add(merchant)
     human.hand.add(silver)

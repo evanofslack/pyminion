@@ -2,7 +2,7 @@ import logging
 import math
 from typing import TYPE_CHECKING, List, Tuple
 
-from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
+from pyminion.core import AbstractDeck, CardLocation, CardType, Action, Card, Treasure, Victory
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -40,14 +40,6 @@ class Silver(Treasure):
         super().__init__(name, cost, type, money)
 
     def play(self, player: Player, game: "Game"):
-
-        # check if this is the first silver played and if there are any merchants in play
-        if self not in player.playmat.cards:
-            if num_merchants := len(
-                [card for card in player.playmat.cards if card.name == "Merchant"]
-            ):
-                player.state.money += num_merchants
-
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -784,6 +776,16 @@ class Moat(Action):
 
         player.draw(2)
 
+    def on_attack(self, player: "Player", attack_card: "Card", game: "Game") -> bool:
+        block = player.decider.binary_decision(
+            prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
+            card=self,
+            player=player,
+            game=game,
+            relevant_cards=[attack_card],
+        )
+        return not block
+
 
 class Merchant(Action):
     """
@@ -814,6 +816,12 @@ class Merchant(Action):
 
         player.draw(1)
         player.state.actions += 1
+
+    def on_play(self, player: "Player", card: "Card", game: "Game", location: "CardLocation") -> None:
+        if card.name == "Silver" and location == CardLocation.Playmat:
+            num_silver = sum(1 for c in player.playmat.cards if c.name == "Silver")
+            if num_silver == 1:
+                player.state.money += 1
 
 
 class Bandit(Action):

@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
-from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
+from pyminion.core import (AbstractDeck, CardLocation, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decider import Decider
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
@@ -117,6 +117,13 @@ class Player:
                 logger.info(f"{self} discards {card}")
                 return
 
+    def on_play(self, card: Card, game: "Game") -> None:
+        for c in self.hand.cards:
+            c.on_play(self, card, game, CardLocation.Hand)
+
+        for c in self.playmat.cards:
+            c.on_play(self, card, game, CardLocation.Playmat)
+
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         """
         Find target card in player's hand and play it.
@@ -132,9 +139,11 @@ class Player:
             if card.name == target_card.name:
                 if CardType.Action in card.type:
                     card.play(player=self, game=game, generic_play=generic_play)
+                    self.on_play(card, game)
                     return
                 if CardType.Treasure in card.type:
                     card.play(player=self, game=game)
+                    self.on_play(card, game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
 
@@ -146,8 +155,10 @@ class Player:
         """
         if CardType.Action in card.type:
             card.play(player=self, game=game, generic_play=generic_play)
+            self.on_play(card, game)
         elif CardType.Treasure in card.type:
             card.play(player=self, game=game)
+            self.on_play(card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
@@ -350,14 +361,7 @@ class Player:
         return treasure_money + action_money
 
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
+        attacked = True
         for card in self.hand.cards:
-            if card.name == "Moat":
-                block = self.decider.binary_decision(
-                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
-                    card=card,
-                    player=self,
-                    game=game,
-                    relevant_cards=[attack_card],
-                )
-                return not block
-        return True
+            attacked &= card.on_attack(player, attack_card, game)
+        return attacked
