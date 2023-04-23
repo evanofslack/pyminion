@@ -59,6 +59,31 @@ class Baron(Action):
             player.gain(estate, game.supply)
 
 
+class Bridge(Action):
+    """
+    +1 buy, +$1
+
+    This turn, cards (everywhere) cost $1 less.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Bridge", cost=4, type=(CardType.Action,), money=1)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.buys += 1
+        player.state.money += 1
+
+        game.card_cost_reduction += 1
+
+
 class Conspirator(Action):
     """
     +2 Money
@@ -267,7 +292,7 @@ class Ironworks(Action):
             prompt="Gain a card costing up to 4 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.cost <= 4
+                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 4
             ],
             player=player,
             game=game,
@@ -276,7 +301,7 @@ class Ironworks(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost <= 4
+        assert gain_card.get_cost(player, game) <= 4
 
         player.gain(card=gain_card, supply=game.supply)
 
@@ -765,14 +790,14 @@ class Replace(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        max_cost = trash_card.cost + 2
+        max_cost = trash_card.get_cost(player, game) + 2
         gain_cards = player.decider.gain_decision(
             prompt=f"Gain a card costing up to {max_cost} money: ",
             card=self,
             valid_cards=[
                 card
                 for card in game.supply.avaliable_cards()
-                if card.cost <= max_cost
+                if card.get_cost(player, game) <= max_cost
             ],
             player=player,
             game=game,
@@ -781,7 +806,7 @@ class Replace(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost <= max_cost
+        assert gain_card.get_cost(player, game) <= max_cost
 
         player.trash(trash_card, trash=game.trash)
 
@@ -978,14 +1003,14 @@ class Swindler(Action):
                 opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
                 game.trash.add(trashed_card)
-                trashed_cost = trashed_card.cost
+                trashed_cost = trashed_card.get_cost(player, game)
 
                 logger.info(f"{opponent} trashes {trashed_card}")
 
                 valid_cards = [
                     c
                     for c in game.supply.avaliable_cards()
-                    if c.cost == trashed_cost
+                    if c.get_cost(player, game) == trashed_cost
                 ]
                 if len(valid_cards) == 0:
                     continue
@@ -1171,11 +1196,11 @@ class Upgrade(Action):
 
         player.trash(trash_card, trash=game.trash)
 
-        new_cost = trash_card.cost + 1
+        new_cost = trash_card.get_cost(player, game) + 1
         valid_cards = [
             card
             for card in game.supply.avaliable_cards()
-            if card.cost == new_cost
+            if card.get_cost(player, game) == new_cost
         ]
 
         if len(valid_cards) == 0:
@@ -1192,7 +1217,7 @@ class Upgrade(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost == new_cost
+        assert gain_card.get_cost(player, game) == new_cost
 
         player.gain(gain_card, game.supply)
 
@@ -1252,6 +1277,7 @@ class WishingWell(Action):
 
 
 baron = Baron()
+bridge = Bridge()
 conspirator = Conspirator()
 courtier = Courtier()
 courtyard = Courtyard()
@@ -1278,6 +1304,7 @@ wishing_well = WishingWell()
 
 intrigue_set: List[Card] = [
     baron,
+    bridge,
     conspirator,
     courtier,
     courtyard,

@@ -104,29 +104,29 @@ def test_player_play_not_in_hand(player: Player, game: Game):
         player.play(target_card=smithy, game=game)
 
 
-def test_buy_card_add_to_discard_pile(player: Player, supply: Supply):
+def test_buy_card_add_to_discard_pile(player: Player, game: Game):
     assert len(player.discard_pile) == 0
-    player.buy(copper, supply)
+    player.buy(copper, game)
     assert len(player.discard_pile) == 1
 
 
-def test_buy_card_remove_from_supply(player: Player, supply: Supply):
-    assert len(supply.piles[0]) == 8
+def test_buy_card_remove_from_supply(player: Player, multiplayer_game: Game):
+    assert len(multiplayer_game.supply.get_pile("Estate")) == 8
     player.state.money = 2
-    player.buy(estate, supply)
-    assert len(supply.piles[0]) == 7
+    player.buy(estate, multiplayer_game)
+    assert len(multiplayer_game.supply.get_pile("Estate")) == 7
 
 
-def test_buy_insufficient_buys(player: Player, supply: Supply):
-    player.buy(copper, supply)
+def test_buy_insufficient_buys(player: Player, game: Game):
+    player.buy(copper, game)
     assert player.state.buys == 0
     with pytest.raises(InsufficientBuys):
-        player.buy(copper, supply)
+        player.buy(copper, game)
 
 
-def test_buy_insufficient_money(player: Player, supply: Supply):
+def test_buy_insufficient_money(player: Player, game: Game):
     with pytest.raises(InsufficientMoney):
-        player.buy(estate, supply)
+        player.buy(estate, game)
 
 
 def test_player_trash(player: Player, trash: Trash):

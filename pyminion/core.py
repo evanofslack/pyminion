@@ -35,11 +35,15 @@ class Card:
 
     def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         self.name = name
-        self.cost = cost
+        self._cost = cost
         self.type = type
 
     def __repr__(self):
         return f"{self.name}"
+
+    def get_cost(self, player: "Player", game: "Game") -> int:
+        cost = max(0, self._cost - game.card_cost_reduction)
+        return cost
 
 
 class Victory(Card):

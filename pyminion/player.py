@@ -155,14 +155,14 @@ class Player:
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
-    def buy(self, card: Card, supply: "Supply") -> None:
+    def buy(self, card: Card, game: "Game") -> None:
         """
         Buy a card from the supply and add to player's discard pile.
         Check that player has sufficient money and buys to gain the card.
 
         """
         assert isinstance(card, Card)
-        if card.cost > self.state.money:
+        if card.get_cost(self, game) > self.state.money:
             raise InsufficientMoney(
                 f"{self.player_id}: Not enough money to buy {card.name}"
             )
@@ -171,10 +171,10 @@ class Player:
                 f"{self.player_id}: Not enough buys to buy {card.name}"
             )
         try:
-            supply.gain_card(card)
+            game.supply.gain_card(card)
         except EmptyPile as e:
             raise e
-        self.state.money -= card.cost
+        self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
         logger.info(f"{self} buys {card}")
@@ -256,7 +256,7 @@ class Player:
             valid_cards = [
                 c
                 for c in game.supply.avaliable_cards()
-                if c.cost <= self.state.money
+                if c.get_cost(self, game) <= self.state.money
             ]
             card = self.decider.buy_phase_decision(
                 valid_cards=valid_cards,
@@ -268,7 +268,7 @@ class Player:
                 logger.info(f"{self} buys nothing")
                 break
 
-            self.buy(card, supply=game.supply)
+            self.buy(card, game)
 
     def start_cleanup_phase(self) -> None:
         """

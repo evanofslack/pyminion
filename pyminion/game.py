@@ -48,6 +48,7 @@ class Game:
         self.expansions = expansions
         self.kingdom_cards = kingdom_cards
         self.all_game_cards: List[Card] = []
+        self.card_cost_reduction = 0
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
@@ -220,6 +221,10 @@ class Game:
         while True:
             for player in self.players:
                 player.take_turn(self)
+
+                # reset card cost reduction
+                self.card_cost_reduction = 0
+
                 if self.is_over():
                     result = self.summerize_game()
                     logging.info(f"\n{result}")
