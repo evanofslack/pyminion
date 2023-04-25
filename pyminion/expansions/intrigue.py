@@ -534,6 +534,41 @@ class Mill(Action, Victory):
         return vp
 
 
+class MiningVillage(Action):
+    """
+    +1 card, +2 actions
+
+    You may trash this for +$2.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Mining Village", cost=4, type=(CardType.Action,), actions=2, draw=1)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(1)
+        player.state.actions += 2
+
+        trash = player.decider.binary_decision(
+            prompt="Trash Mining Village for +2 money? ",
+            card=self,
+            player=player,
+            game=game,
+        )
+
+        if trash:
+            player.state.money += 2
+            player.trash(self, game.trash, source=player.playmat)
+
+
 class Minion(Action):
     """
     +1 action
@@ -1287,6 +1322,7 @@ ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
 mill = Mill()
+mining_village = MiningVillage()
 minion = Minion()
 nobles = Nobles()
 patrol = Patrol()
@@ -1314,6 +1350,7 @@ intrigue_set: List[Card] = [
     lurker,
     masquerade,
     mill,
+    mining_village,
     minion,
     nobles,
     patrol,

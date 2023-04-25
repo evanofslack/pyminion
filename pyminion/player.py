@@ -194,14 +194,20 @@ class Player:
         destination.add(gain_card)
         logger.info(f"{self} gains {gain_card}")
 
-    def trash(self, target_card: Card, trash: "Trash") -> None:
+    def trash(
+        self, target_card: Card, trash: "Trash", source: Optional[AbstractDeck] = None
+    ) -> None:
         """
-        Move card from player's hand to the trash.
+        Move a card from source to the trash.
+        Defaults to moving the card from the player's hand.
 
         """
-        for card in self.hand.cards:
+        if source is None:
+            source = self.hand
+
+        for card in source.cards:
             if card == target_card:
-                trash.add(self.hand.remove(card))
+                trash.add(source.remove(card))
                 logger.info(f"{self} trashes {card}")
 
                 break
