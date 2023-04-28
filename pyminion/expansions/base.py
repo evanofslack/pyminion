@@ -976,8 +976,9 @@ class ThroneRoom(Action):
         for card in player.hand.cards:
             if card.name == dp_card.name:
                 player.playmat.add(player.hand.remove(card))
+                state = None
                 for i in range(2):
-                    player.exact_play(card=card, game=game, generic_play=False)
+                    state = player.multi_play(card=card, game=game, state=state, generic_play=False)
                 return
 
 

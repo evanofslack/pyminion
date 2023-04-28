@@ -1,7 +1,7 @@
 import logging
 import random
 from collections import Counter
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -86,14 +86,14 @@ class Action(Card):
         self.draw = draw
         self.money = money
 
-    def play(self, player: "Player", game: "Game", generic_play: bool = True):
+    def play(self, player: "Player", game: "Game", generic_play: bool = True) -> None:
         """
         Specific play method unique to each action card
 
         """
         raise NotImplementedError(f"play method must be implemented for {self.name}")
 
-    def generic_play(self, player: "Player"):
+    def generic_play(self, player: "Player") -> None:
         """
         Generic play method that gets executes for all action cards
 
@@ -106,6 +106,16 @@ class Action(Card):
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.actions -= 1
+
+    def multi_play(self, player: "Player", game: "Game", state: Any, generic_play: bool = True) -> Any:
+        """
+        Called by "Throne Room variants" to play a card multiple times.
+        By default this just calls self.play() but can be overridden by derived
+        cards to implement different behavior.
+
+        """
+        self.play(player, game, generic_play)
+        return None
 
 
 class DeckCounter(Counter):

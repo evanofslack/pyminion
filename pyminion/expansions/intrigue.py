@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.player import Player
@@ -554,19 +554,36 @@ class MiningVillage(Action):
         if generic_play:
             super().generic_play(player)
 
+        self._play(player, game, None, generic_play)
+
+    def multi_play(
+        self, player: Player, game: "Game", state: Any, generic_play: bool = True
+    ) -> Any:
+        return self._play(player, game, state, generic_play)
+
+    def _play(
+        self, player: Player, game: "Game", state: Any, generic_play: bool = True
+    ) -> Any:
         player.draw(1)
         player.state.actions += 2
 
-        trash = player.decider.binary_decision(
-            prompt="Trash Mining Village for +2 money? ",
-            card=self,
-            player=player,
-            game=game,
-        )
+        trashed = False if state is None else bool(state)
 
-        if trash:
-            player.state.money += 2
-            player.trash(self, game.trash, source=player.playmat)
+        # if the card has not previously been trashed, give the player the
+        # option to trash it now
+        if not trashed:
+            trashed = player.decider.binary_decision(
+                prompt="Trash Mining Village for +2 money? ",
+                card=self,
+                player=player,
+                game=game,
+            )
+
+            if trashed:
+                player.state.money += 2
+                player.trash(self, game.trash, source=player.playmat)
+
+        return trashed
 
 
 class Minion(Action):
