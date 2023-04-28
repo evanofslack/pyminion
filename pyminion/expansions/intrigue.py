@@ -229,6 +229,33 @@ class Courtyard(Action):
         player.deck.add(topdeck_card)
 
 
+class Diplomat(Action):
+    """
+    +2 Cards
+
+    If you have 5 or fewer cards in hand (after drawing), +2 Actions.
+
+    When another player plays an Attack card, you may first reveal this from a
+    hand of 5 or more cards, to draw 2 cards then discard 3.
+
+    """
+
+    def __init__(self):
+        super().__init__("Diplomat", 4, (CardType.Action, CardType.Reaction), draw=2)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw(2)
+        if len(player.hand) <= 5:
+            player.state.actions += 2
+
+
 class Duke(Victory):
     """
     Worth 1VP per Duchy you have.
@@ -1332,6 +1359,7 @@ bridge = Bridge()
 conspirator = Conspirator()
 courtier = Courtier()
 courtyard = Courtyard()
+diplomat = Diplomat()
 duke = Duke()
 harem = Harem()
 ironworks = Ironworks()
@@ -1360,6 +1388,7 @@ intrigue_set: List[Card] = [
     conspirator,
     courtier,
     courtyard,
+    diplomat,
     duke,
     harem,
     ironworks,
