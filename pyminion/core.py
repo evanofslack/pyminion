@@ -221,49 +221,6 @@ class Supply:
     def __len__(self):
         return len(self.piles)
 
-    def gain_card(self, card: Card) -> Card:
-        """
-        Gain a card from the supply.
-
-        """
-        for pile in self.piles:
-            if card.name == pile.name:
-                try:
-                    return pile.remove(card)
-
-                except EmptyPile as e:
-                    raise e
-
-        raise PileNotFound(f"{card} not found in the supply")
-
-    def return_card(self, card: Card):
-        """
-        Return a card to the supply.
-
-        """
-        for pile in self.piles:
-            if card.name == pile.name:
-                pile.add(card)
-
-    def trash_card(self, card: Card, trash: "Trash") -> None:
-        """
-        Trash a card from the supply.
-
-        """
-        for pile in self.piles:
-            if card.name == pile.name:
-                pile.remove(card)
-                trash.add(card)
-                break
-
-    def avaliable_cards(self) -> List[Card]:
-        """
-        Returns a list containing a single card from each non-empty pile in the supply.
-
-        """
-        cards = [pile.cards[0] for pile in self.piles if pile]
-        return cards
-
     def get_pile(self, pile_name: str) -> Pile:
         """
         Get a pile by name.
@@ -273,6 +230,43 @@ class Supply:
             if pile.name == pile_name:
                 return pile
         raise PileNotFound(f"{pile_name} pile is not valid")
+
+    def gain_card(self, card: Card) -> Card:
+        """
+        Gain a card from the supply.
+
+        """
+        pile = self.get_pile(card.name)
+        try:
+            return pile.remove(card)
+
+        except EmptyPile as e:
+            raise e
+
+    def return_card(self, card: Card):
+        """
+        Return a card to the supply.
+
+        """
+        pile = self.get_pile(card.name)
+        pile.add(card)
+
+    def trash_card(self, card: Card, trash: "Trash") -> None:
+        """
+        Trash a card from the supply.
+
+        """
+        pile = self.get_pile(card.name)
+        pile.remove(card)
+        trash.add(card)
+
+    def avaliable_cards(self) -> List[Card]:
+        """
+        Returns a list containing a single card from each non-empty pile in the supply.
+
+        """
+        cards = [pile.cards[0] for pile in self.piles if pile]
+        return cards
 
     def num_empty_piles(self) -> int:
         """
@@ -290,7 +284,5 @@ class Supply:
         Get the number of cards in a specified pile in the supply.
 
         """
-        for pile in self.piles:
-            if pile.name == pile_name:
-                return len(pile)
-        raise PileNotFound(f"{pile_name} pile is not valid")
+        pile = self.get_pile(pile_name)
+        return len(pile)
