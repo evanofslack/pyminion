@@ -917,13 +917,12 @@ class SecretPassage(Action):
         if len_deck == 0:
             index = 0
         else:
-            index = player.decider.numeric_decision(
-                prompt=f"Enter the deck position (0 = bottom, {len_deck} = top): ",
+            index = player.decider.deck_position_decision(
+                prompt=f"Enter the deck position (bottom = 1, top = {len_deck+1}): ",
                 card=self,
                 player=player,
                 game=game,
-                min_num=0,
-                max_num=len_deck,
+                num_deck_cards=len_deck,
             )
             assert 0 <= index <= len_deck
 

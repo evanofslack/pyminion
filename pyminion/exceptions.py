@@ -61,13 +61,6 @@ class InvalidBinaryInput(InvalidInput):
     """
 
 
-class InvalidNumericInput(InvalidInput):
-    """
-    Invalid numeric response
-
-    """
-
-
 class InvalidSingleCardInput(InvalidInput):
     """
     Invalid response, that input cannot be discarded
@@ -85,6 +78,13 @@ class InvalidMultiCardInput(InvalidInput):
 class InvalidMultiOptionInput(InvalidInput):
     """
     Invalid response, not a valid option
+
+    """
+
+
+class InvalidDeckPositionInput(InvalidInput):
+    """
+    Invalid deck position response
 
     """
 

@@ -45,17 +45,6 @@ class Decider(Protocol):
     ) -> bool:
         raise NotImplementedError("binary_decision is not implemented")
 
-    def numeric_decision(
-        self,
-        prompt: str,
-        card: "Card",
-        player: "Player",
-        game: "Game",
-        min_num: int,
-        max_num: int,
-    ) -> int:
-        raise NotImplementedError("numeric_decision is not implemented")
-
     def multiple_option_decision(
         self,
         card: "Card",
@@ -114,6 +103,16 @@ class Decider(Protocol):
         max_num_topdeck: int = -1,
     ) -> List["Card"]:
         raise NotImplementedError("topdeck_decision is not implemented")
+
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        raise NotImplementedError("deck_position_decision is not implemented")
 
     def reveal_decision(
         self,

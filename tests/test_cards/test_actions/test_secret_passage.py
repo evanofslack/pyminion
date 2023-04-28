@@ -10,7 +10,7 @@ def test_secret_passage_top(human: Human, game: Game, monkeypatch):
 
     assert len(human.deck) == 10
 
-    responses = iter(["silver", "8"])
+    responses = iter(["silver", "9"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     human.play(secret_passage, game)
@@ -27,7 +27,7 @@ def test_secret_passage_middle(human: Human, game: Game, monkeypatch):
 
     assert len(human.deck) == 10
 
-    responses = iter(["silver", "4"])
+    responses = iter(["silver", "5"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     human.play(secret_passage, game)
@@ -44,7 +44,7 @@ def test_secret_passage_bottom(human: Human, game: Game, monkeypatch):
 
     assert len(human.deck) == 10
 
-    responses = iter(["silver", "0"])
+    responses = iter(["silver", "1"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     human.play(secret_passage, game)

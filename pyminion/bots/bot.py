@@ -85,17 +85,6 @@ class BotDecider:
     ) -> bool:
         return True
 
-    def numeric_decision(
-        self,
-        prompt: str,
-        card: "Card",
-        player: "Player",
-        game: "Game",
-        min_num: int,
-        max_num: int,
-    ) -> int:
-        return min_num
-
     def multiple_option_decision(
         self,
         card: "Card",
@@ -154,6 +143,16 @@ class BotDecider:
         max_num_topdeck: int = -1,
     ) -> List["Card"]:
         return valid_cards[:min_num_topdeck]
+
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        return num_deck_cards
 
     def reveal_decision(
         self,

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
 from pyminion.core import (CardType, Card, Deck)
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
-                                 InvalidSingleCardInput, InvalidNumericInput)
+                                 InvalidSingleCardInput, InvalidDeckPositionInput)
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -57,21 +57,6 @@ def binary_decision(prompt: str) -> bool:
         return False
     else:
         raise InvalidBinaryInput("Invalid response, valid choices are 'yes' or 'no'")
-
-
-def numeric_decision(prompt: str, min_num: int, max_num: int) -> int:
-    num_str = input(prompt)
-    try:
-        num = int(num_str)
-    except ValueError:
-        raise InvalidNumericInput(f"Invalid response, '{num_str}' is not a valid number")
-
-    if num < min_num:
-        raise InvalidNumericInput(f"Invalid response, '{num_str}' is less than the minimum value of {min_num}")
-    elif num > max_num:
-        raise InvalidNumericInput(f"Invalid response, '{num_str}' is greater than the maximum value of {max_num}")
-
-    return num
 
 
 def single_card_decision(
@@ -201,6 +186,29 @@ def multiple_option_decision(
     return choices
 
 
+def deck_position_decision(prompt: str, num_deck_cards: int) -> int:
+    pos_str = input(prompt).casefold()
+    if pos_str == "top":
+        pos = num_deck_cards
+    elif pos_str == "bottom":
+        pos = 0
+    else:
+        try:
+            num = int(pos_str)
+        except ValueError:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is not a valid position")
+
+        max_num = num_deck_cards + 1
+        if num < 1:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is less than the minimum value of 1")
+        elif num > max_num:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is greater than the maximum value of {max_num}")
+
+        pos = num - 1
+
+    return pos
+
+
 class HumanDecider:
     """
     Prompts human for decisions through the terminal.
@@ -268,23 +276,6 @@ class HumanDecider:
 
         """
         return binary_decision(prompt=prompt)
-
-    @validate_input(exceptions=InvalidNumericInput)
-    def numeric_decision(
-        self,
-        prompt: str,
-        card: "Card",
-        player: "Player",
-        game: "Game",
-        min_num: int,
-        max_num: int,
-    ) -> int:
-        """
-        Wrap numeric_decision with @validate_input decorator to
-        repeat prompt if input is invalid.
-
-        """
-        return numeric_decision(prompt, min_num, max_num)
 
     @validate_input(exceptions=InvalidMultiOptionInput)
     def multiple_option_decision(
@@ -404,6 +395,22 @@ class HumanDecider:
             )
 
         return result
+
+    @validate_input(exceptions=InvalidDeckPositionInput)
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        """
+        Wrap deck_position_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return deck_position_decision(prompt, num_deck_cards)
 
     @validate_input(exceptions=InvalidMultiCardInput)
     def reveal_decision(
