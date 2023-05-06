@@ -5,6 +5,7 @@ from pyminion.core import CardType, Card
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, silver
+from pyminion.expansions.intrigue import Baron
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -107,6 +108,20 @@ class OptimizedBotDecider(BotDecider):
             return self.moat(player=player, game=game, relevant_cards=relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
+
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        if card.name == "Baron":
+            return self.baron(options, player, game, num_choices, unique)
+        else:
+            return super().multiple_option_decision(card, options, player, game, num_choices, unique)
 
     def discard_decision(
         self,
@@ -392,6 +407,16 @@ class OptimizedBotDecider(BotDecider):
         # Double play most expensive card
         max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
         return max_price_card
+
+    def baron(
+        self,
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        return [Baron.Choice.DiscardEstate]
 
 
 class OptimizedBot(Bot):
