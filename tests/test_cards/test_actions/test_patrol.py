@@ -19,7 +19,7 @@ def test_patrol(human: Human, game: Game, monkeypatch):
 
     human.play(patrol, game)
     counter = DeckCounter(human.hand.cards)
-    assert counter.total() == 5
+    assert sum(counter.values()) == 5
     assert counter[copper] == 3
     assert counter[estate] == 1
     assert counter[curse] == 1
@@ -42,7 +42,7 @@ def test_patrol_1_topdeck(human: Human, game: Game, monkeypatch):
 
     human.play(patrol, game)
     counter = DeckCounter(human.hand.cards)
-    assert counter.total() == 6
+    assert sum(counter.values()) == 6
     assert counter[copper] == 3
     assert counter[estate] == 2
     assert counter[curse] == 1

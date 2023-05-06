@@ -37,7 +37,7 @@ def test_two_bridges(player: Player, game: Game):
     player.play(bridge, game)
     assert len(player.hand) == 0
     counter = DeckCounter(player.playmat.cards)
-    assert counter.total() == 3
+    assert sum(counter.values()) == 3
     assert counter[shanty_town] == 1
     assert counter[bridge] == 2
     assert player.state.buys == 3

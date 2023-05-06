@@ -43,7 +43,7 @@ def test_mining_village_throne_room_no_trash(human: Human, game: Game, monkeypat
     human.play(throne_room, game)
     assert len(human.hand) == 2
     counter = DeckCounter(human.playmat.cards)
-    assert counter.total() == 2
+    assert sum(counter.values()) == 2
     assert counter[throne_room] == 1
     assert counter[mining_village] == 1
     assert len(game.trash) == 0
