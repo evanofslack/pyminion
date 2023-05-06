@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Optional
 from pyminion.core import (AbstractDeck, CardLocation, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decider import Decider
+from pyminion.event_registry import EventRegistry
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidCardPlay)
 
@@ -56,6 +57,9 @@ class Player:
 
     def __repr__(self):
         return f"{self.player_id}"
+
+    def register_events(self, event_registry: "EventRegistry") -> None:
+        event_registry.register_on_play_handler(self.on_play)
 
     def reset(self):
         """
@@ -117,12 +121,13 @@ class Player:
                 logger.info(f"{self} discards {card}")
                 return
 
-    def on_play(self, card: Card, game: "Game") -> None:
-        for c in self.hand.cards:
-            c.on_play(self, card, game, CardLocation.Hand)
+    def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
+        if self == player:
+            for c in self.hand.cards:
+                c.on_play(self, card, game, CardLocation.Hand)
 
-        for c in self.playmat.cards:
-            c.on_play(self, card, game, CardLocation.Playmat)
+            for c in self.playmat.cards:
+                c.on_play(self, card, game, CardLocation.Playmat)
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         """
@@ -139,11 +144,11 @@ class Player:
             if card.name == target_card.name:
                 if CardType.Action in card.type:
                     card.play(player=self, game=game, generic_play=generic_play)
-                    self.on_play(card, game)
+                    game.event_registry.on_play(self, card, game)
                     return
                 if CardType.Treasure in card.type:
                     card.play(player=self, game=game)
-                    self.on_play(card, game)
+                    game.event_registry.on_play(self, card, game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
 
@@ -155,10 +160,10 @@ class Player:
         """
         if CardType.Action in card.type:
             card.play(player=self, game=game, generic_play=generic_play)
-            self.on_play(card, game)
+            game.event_registry.on_play(self, card, game)
         elif CardType.Treasure in card.type:
             card.play(player=self, game=game)
-            self.on_play(card, game)
+            game.event_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 

@@ -3,6 +3,7 @@ import random
 from typing import List, Optional
 
 from pyminion.core import CardType, Card, Deck, DeckCounter, Pile, Supply, Trash
+from pyminion.event_registry import EventRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
@@ -50,6 +51,10 @@ class Game:
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
+
+        self.event_registry = EventRegistry()
+        for player in self.players:
+            player.register_events(self.event_registry)
 
         if log_stdout:
             # Set up a handler that logs to stdout
