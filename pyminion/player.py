@@ -375,6 +375,7 @@ class Player:
         return treasure_money + action_money
 
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
+        attacked = True
         for card in self.hand.cards:
             if card.name == "Moat":
                 block = self.decider.binary_decision(
@@ -384,5 +385,8 @@ class Player:
                     game=game,
                     relevant_cards=[attack_card],
                 )
-                return not block
-        return True
+                attacked &= not block
+            elif card.name == "Diplomat":
+                card.on_attack(self, attack_card, game)
+
+        return attacked
