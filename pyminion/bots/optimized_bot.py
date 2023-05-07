@@ -255,6 +255,45 @@ class OptimizedBotDecider(BotDecider):
     def vassal(self, player: "Player", game: "Game", relevant_cards: Optional[List[Card]]) -> bool:
         return True
 
+    @overload
+    def sentry(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        relevant_cards: Optional[List[Card]] = None,
+        trash: Literal[True] = True,
+        discard: Literal[False] = False,
+        binary: Literal[False] = False,
+    ) -> List[Card]:
+        ...
+
+    @overload
+    def sentry(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        relevant_cards: Optional[List[Card]] = None,
+        trash: Literal[False] = False,
+        discard: Literal[True] = True,
+        binary: Literal[False] = False,
+    ) -> List[Card]:
+        ...
+
+    @overload
+    def sentry(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        relevant_cards: Optional[List[Card]] = None,
+        trash: Literal[False] = False,
+        discard: Literal[False] = False,
+        binary: Literal[True] = True,
+    ) -> bool:
+        ...
+
     def sentry(
         self,
         player: "Player",
