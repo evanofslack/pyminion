@@ -177,7 +177,7 @@ class Courtier(Action):
                 num_choices=num_choices,
                 unique=True,
             )
-            assert len(choices) == num_choices
+            assert len(set(choices)) == num_choices # ensure number of unique choices is correct
 
         for choice in choices:
             if choice == Courtier.Choice.Action:

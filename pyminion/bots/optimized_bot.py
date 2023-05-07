@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Literal, Optional, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card
+from pyminion.core import CardType, Card, DeckCounter
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
-from pyminion.expansions.base import duchy, estate, silver
-from pyminion.expansions.intrigue import Baron
+from pyminion.expansions.base import duchy, estate, gold, silver
+from pyminion.expansions.intrigue import Baron, Courtier
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -119,7 +119,10 @@ class OptimizedBotDecider(BotDecider):
         unique: bool = True,
     ) -> List[int]:
         if card.name == "Baron":
-            return self.baron(options, player, game, num_choices, unique)
+            ret = self.baron(player, game)
+            return [ret]
+        elif card.name == "Courtier":
+            return self.courtier(player, game, num_choices=num_choices, options=True)
         else:
             return super().multiple_option_decision(card, options, player, game, num_choices, unique)
 
@@ -213,6 +216,22 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
+
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Courtier":
+            ret = self.courtier(player, game, valid_cards=valid_cards, reveal=True)
+            return [ret]
+        else:
+            return super().reveal_decision(prompt, card, valid_cards, player, game, min_num_reveal, max_num_reveal)
 
     def multi_play_decision(
         self,
@@ -410,13 +429,79 @@ class OptimizedBotDecider(BotDecider):
 
     def baron(
         self,
-        options: List[str],
         player: "Player",
         game: "Game",
-        num_choices: int = 1,
-        unique: bool = True,
+    ) -> int:
+        return Baron.Choice.DiscardEstate
+
+    @overload
+    def courtier(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_choices: int = 0,
+        reveal: Literal[True] = True,
+        options: Literal[False] = False,
+    ) -> Card:
+        ...
+
+    @overload
+    def courtier(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_choices: int = 0,
+        reveal: Literal[False] = False,
+        options: Literal[True] = True,
     ) -> List[int]:
-        return [Baron.Choice.DiscardEstate]
+        ...
+
+    def courtier(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_choices: int = 0,
+        reveal: bool = False,
+        options: bool = False,
+    ) -> Union[Card, List[int]]:
+        if reveal:
+            assert valid_cards is not None
+            # find the card with the most types
+            num_types = 0
+            reveal_card = valid_cards[0]
+            for c in valid_cards:
+                if len(c.type) > num_types:
+                    num_types = len(c.type)
+                    reveal_card = c
+            return reveal_card
+        elif options:
+            assert num_choices > 0
+            counter = DeckCounter(player.get_all_cards())
+            gold_count = counter[gold]
+            has_actions = any(CardType.Action in c.type for c in player.hand.cards)
+
+            # prioritize choices
+            choices: List[int] = []
+            if has_actions:
+                choices.append(Courtier.Choice.Action)
+            if gold_count < 4:
+                choices.append(Courtier.Choice.GainGold)
+            choices.append(Courtier.Choice.Money)
+
+            # add remaining choices
+            for c in Courtier.Choice:
+                if c.value not in choices:
+                    choices.append(c.value)
+
+            choices = choices[:num_choices]
+            return choices
+        else:
+            raise InvalidBotImplementation(
+                "Either reveal or options must be true when playing courier"
+            )
 
 
 class OptimizedBot(Bot):
