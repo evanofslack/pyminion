@@ -201,7 +201,7 @@ class Courtyard(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Courtyard", cost=2, type=(CardType.Action,))
+        super().__init__(name="Courtyard", cost=2, type=(CardType.Action,), draw=3)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
@@ -1094,7 +1094,7 @@ class Swindler(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Swindler", cost=3, type=(CardType.Action, CardType.Attack))
+        super().__init__(name="Swindler", cost=3, type=(CardType.Action, CardType.Attack), money=2)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
@@ -1156,7 +1156,7 @@ class Torturer(Action):
         GainCurse = 1
 
     def __init__(self):
-        super().__init__(name="Torturer", cost=5, type=(CardType.Action, CardType.Attack))
+        super().__init__(name="Torturer", cost=5, type=(CardType.Action, CardType.Attack), draw=3)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
@@ -1278,7 +1278,7 @@ class Upgrade(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Upgrade", cost=5, type=(CardType.Action,))
+        super().__init__(name="Upgrade", cost=5, type=(CardType.Action,), actions=1, draw=1)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
@@ -1342,7 +1342,7 @@ class WishingWell(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Wishing Well", cost=3, type=(CardType.Action,))
+        super().__init__(name="Wishing Well", cost=3, type=(CardType.Action,), actions=1, draw=1)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
