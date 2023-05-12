@@ -557,6 +557,132 @@ class OptimizedBotDecider(BotDecider):
         else:
             return player.hand.cards[-1]
 
+    def diplomat(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def ironworks(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def lurker(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def masquerade(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def mill(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def mining_village(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def minion(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def nobles(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def patrol(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def pawn(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def replace(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def secret_passage(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def steward(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def swindler(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def torturer(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def trading_post(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def upgrade(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
+    def wishing_well(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> None:
+        pass # TODO
+
 
 class OptimizedBot(Bot):
     """
