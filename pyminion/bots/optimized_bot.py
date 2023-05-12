@@ -214,6 +214,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Bureaucrat":
             ret = self.bureaucrat(player=player, game=game, valid_cards=valid_cards)
             return [ret]
+        elif card.name == "Courtyard":
+            ret = self.courtyard(player, game, valid_cards)
+            return [ret]
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
 
@@ -541,6 +544,18 @@ class OptimizedBotDecider(BotDecider):
             raise InvalidBotImplementation(
                 "Either reveal or options must be true when playing courier"
             )
+
+    def courtyard(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+    ) -> Card:
+        for card in player.hand.cards:
+            if CardType.Action in card.type and player.state.actions == 0:
+                return card
+        else:
+            return player.hand.cards[-1]
 
 
 class OptimizedBot(Bot):
