@@ -854,7 +854,7 @@ class Pawn(Action):
             num_choices=2,
             unique=True,
         )
-        assert len(choices) == 2
+        assert len(set(choices)) == 2 # ensure number of unique choices is correct
 
         for choice in choices:
             if choice == Pawn.Choice.Card:
