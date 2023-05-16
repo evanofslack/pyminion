@@ -106,6 +106,14 @@ class OptimizedBotDecider(BotDecider):
             return self.library(player=player, game=game, relevant_cards=relevant_cards)
         elif card.name == "Moat":
             return self.moat(player=player, game=game, relevant_cards=relevant_cards)
+        elif card.name == "Diplomat":
+            return self.diplomat(player, game, binary=True)
+        elif card.name == "Masquerade":
+            return self.masquerade(player, game, binary=True)
+        elif card.name == "Mill":
+            return self.mill(player, game, binary=True)
+        elif card.name == "Mining Village":
+            return self.mining_village(player, game)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -123,6 +131,24 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Courtier":
             return self.courtier(player, game, num_choices=num_choices, options=True)
+        elif card.name == "Lurker":
+            ret = self.lurker(player, game, options=True)
+            return [ret]
+        elif card.name == "Minion":
+            ret = self.minion(player, game)
+            return [ret]
+        elif card.name == "Nobles":
+            ret = self.nobles(player, game)
+            return [ret]
+        elif card.name == "Pawn":
+            ret = self.pawn(player, game)
+            return [ret]
+        elif card.name == "Steward":
+            ret = self.steward(player, game, options=True)
+            return [ret]
+        elif card.name == "Torturer":
+            ret = self.torturer(player, game, options=True)
+            return [ret]
         else:
             return super().multiple_option_decision(card, options, player, game, num_choices, unique)
 
@@ -144,6 +170,12 @@ class OptimizedBotDecider(BotDecider):
             return self.militia(player=player, game=game, valid_cards=valid_cards, num_discard=min_num_discard)
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, discard=True)
+        elif card.name == "Diplomat":
+            return self.diplomat(player, game, discard=True)
+        elif card.name == "Mill":
+            return self.mill(player, game, discard=True)
+        elif card.name == "Torturer":
+            return self.torturer(player, game, discard=True)
         else:
             return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
@@ -557,11 +589,33 @@ class OptimizedBotDecider(BotDecider):
         else:
             return player.hand.cards[-1]
 
+    @overload
     def diplomat(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        binary: Literal[True] = True,
+        discard: Literal[False] = False,
+    ) -> bool:
+        ...
+
+    @overload
+    def diplomat(
+        self,
+        player: "Player",
+        game: "Game",
+        binary: Literal[False] = False,
+        discard: Literal[True] = True,
+    ) -> List[Card]:
+        ...
+
+    def diplomat(
+        self,
+        player: "Player",
+        game: "Game",
+        binary: bool = False,
+        discard: bool = False,
+    ) -> Union[bool, List[Card]]:
         pass # TODO
 
     def ironworks(
@@ -571,46 +625,144 @@ class OptimizedBotDecider(BotDecider):
     ) -> None:
         pass # TODO
 
+    @overload
     def lurker(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        options: Literal[True] = True,
+        trash: Literal[False] = False,
+        gain: Literal[False] = False,
+    ) -> int:
+        ...
+
+    @overload
+    def lurker(
+        self,
+        player: "Player",
+        game: "Game",
+        options: Literal[False] = False,
+        trash: Literal[True] = True,
+        gain: Literal[False] = False,
+    ) -> Card:
+        ...
+
+    @overload
+    def lurker(
+        self,
+        player: "Player",
+        game: "Game",
+        options: Literal[False] = False,
+        trash: Literal[False] = False,
+        gain: Literal[True] = True,
+    ) -> Card:
+        ...
+
+    def lurker(
+        self,
+        player: "Player",
+        game: "Game",
+        options: bool = False,
+        trash: bool = False,
+        gain: bool = False,
+    ) -> Union[int, Card]:
         pass # TODO
+
+    @overload
+    def masquerade(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        pass_: Literal[True] = True,
+        binary: Literal[False] = False,
+        trash: Literal[False] = False,
+    ) -> Card:
+        ...
+
+    @overload
+    def masquerade(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        pass_: Literal[False] = False,
+        binary: Literal[True] = True,
+        trash: Literal[False] = False,
+    ) -> bool:
+        ...
+
+    @overload
+    def masquerade(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        pass_: Literal[False] = False,
+        binary: Literal[False] = False,
+        trash: Literal[True] = True,
+    ) -> Card:
+        ...
 
     def masquerade(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        valid_cards: Optional[List[Card]] = None,
+        pass_: bool = False,
+        binary: bool = False,
+        trash: bool = False,
+    ) -> Union[bool, Card]:
         pass # TODO
+
+    @overload
+    def mill(
+        self,
+        player: "Player",
+        game: "Game",
+        binary: Literal[True] = True,
+        discard: Literal[False] = False,
+    ) -> bool:
+        ...
+
+    @overload
+    def mill(
+        self,
+        player: "Player",
+        game: "Game",
+        binary: Literal[False] = False,
+        discard: Literal[True] = True,
+    ) -> List[Card]:
+        ...
 
     def mill(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        binary: bool = False,
+        discard: bool = False,
+    ) -> Union[bool, List[Card]]:
         pass # TODO
 
     def mining_village(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> bool:
         pass # TODO
 
     def minion(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> int:
         pass # TODO
 
     def nobles(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> int:
         pass # TODO
 
     def patrol(
@@ -624,13 +776,15 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> int:
         pass # TODO
 
     def replace(
         self,
         player: "Player",
         game: "Game",
+        trash: bool = False,
+        gain: bool = False,
     ) -> None:
         pass # TODO
 
@@ -638,14 +792,38 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        topdeck: bool = False,
+        pos: bool = False,
     ) -> None:
         pass # TODO
+
+    @overload
+    def steward(
+        self,
+        player: "Player",
+        game: "Game",
+        options: Literal[True] = True,
+        trash: Literal[False] = False,
+    ) -> int:
+        ...
+
+    @overload
+    def steward(
+        self,
+        player: "Player",
+        game: "Game",
+        options: Literal[False] = False,
+        trash: Literal[True] = True,
+    ) -> List[Card]:
+        ...
 
     def steward(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        options: bool = False,
+        trash: bool = False,
+    ) -> Union[int, List[Card]]:
         pass # TODO
 
     def swindler(
@@ -655,11 +833,33 @@ class OptimizedBotDecider(BotDecider):
     ) -> None:
         pass # TODO
 
+    @overload
     def torturer(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+        options: Literal[True] = True,
+        discard: Literal[False] = False,
+    ) -> int:
+        ...
+
+    @overload
+    def torturer(
+        self,
+        player: "Player",
+        game: "Game",
+        options: Literal[False] = False,
+        discard: Literal[True] = True,
+    ) -> List[Card]:
+        ...
+
+    def torturer(
+        self,
+        player: "Player",
+        game: "Game",
+        options: bool = False,
+        discard: bool = False,
+    ) -> Union[int, List[Card]]:
         pass # TODO
 
     def trading_post(
@@ -673,6 +873,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        trash: bool = False,
+        gain: bool = False,
     ) -> None:
         pass # TODO
 
