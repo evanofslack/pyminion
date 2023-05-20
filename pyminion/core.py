@@ -50,7 +50,7 @@ class Victory(Card):
     def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         super().__init__(name, cost, type)
 
-    def score(self):
+    def score(self, player: "Player") -> int:
         """
         Specific score method unique to each victory card
 

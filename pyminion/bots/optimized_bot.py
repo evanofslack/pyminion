@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List, Literal, Optional, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter
+from pyminion.core import CardType, Card, DeckCounter, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
@@ -21,6 +21,25 @@ class OptimizedBotDecider(BotDecider):
     by overwriting the card specific method at the bottom of this file.
 
     """
+
+    @staticmethod
+    def get_best_victory_card(valid_cards: List[Card], player: Player) -> Union[Victory, None]:
+        """
+        Get the victory card that has the highest score.
+
+        """
+
+        best_score = 0
+        best_victory = None
+        for card in valid_cards:
+            if CardType.Victory in card.type:
+                assert isinstance(card, Victory)
+                score = card.score(player)
+                if best_victory is None or score > best_score:
+                    best_victory = card
+                    best_score = score
+
+        return best_victory
 
     @staticmethod
     def sort_for_discard(cards: List[Card], actions: int, player: Player, game: "Game") -> List[Card]:
@@ -241,7 +260,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.mine(player=player, game=game, valid_cards=valid_cards, gain=True)
             return [ret]
         elif card.name == "Ironworks":
-            ret = self.ironworks(player, game)
+            ret = self.ironworks(player, game, valid_cards)
             return [ret]
         elif card.name == "Lurker":
             ret = self.lurker(player, game, gain=True)
@@ -720,8 +739,13 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
     ) -> Card:
-        pass # TODO
+        best_victory = self.get_best_victory_card(valid_cards, player)
+        if game.supply.pile_length(pile_name="Province") < 3 and best_victory is not None:
+            return best_victory
+        else:
+            return silver
 
     @overload
     def lurker(

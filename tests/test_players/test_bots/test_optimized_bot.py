@@ -425,3 +425,10 @@ def test_diplomat_bot(multiplayer_bot_game: Game):
     for i in range(3):
         assert p1.discard_pile.cards[i].name == "Estate"
     assert p1.discard_pile.cards[3].name == "Curse" # from witch
+
+
+def test_ironworks_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(ironworks)
+    bot.play(ironworks, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Silver"
