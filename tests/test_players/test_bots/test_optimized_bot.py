@@ -24,6 +24,29 @@ from pyminion.expansions.base import (
     village,
     workshop,
 )
+from pyminion.expansions.intrigue import (
+    baron,
+    courtier,
+    courtyard,
+    diplomat,
+    ironworks,
+    lurker,
+    masquerade,
+    mill,
+    mining_village,
+    minion,
+    nobles,
+    patrol,
+    pawn,
+    replace,
+    secret_passage,
+    steward,
+    swindler,
+    torturer,
+    trading_post,
+    upgrade,
+    wishing_well,
+)
 from pyminion.core import CardType
 from pyminion.game import Game
 
@@ -352,3 +375,29 @@ def test_workshop_bot_late_game(bot: OptimizedBot, game: Game):
         game.supply.gain_card(province)
     bot.play(workshop, game)
     assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_baron_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(baron)
+    bot.hand.add(estate)
+    bot.play(baron, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_courtier_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(courtier)
+    bot.hand.add(copper)
+    bot.hand.add(torturer)
+    bot.play(courtier, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Gold"
+    assert bot.state.actions == 1
+    assert bot.state.money == 0
+
+
+def test_courtyard_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(courtyard)
+    bot.hand.add(torturer)
+    bot.play(courtyard, game)
+    assert bot.deck.cards[-1].name == "Torturer"
