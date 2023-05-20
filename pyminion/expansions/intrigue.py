@@ -407,58 +407,60 @@ class Lurker(Action):
             c for c in game.trash.cards if CardType.Action in c.type
         ]
 
-        if len(supply_action_cards) > 0 or len(trash_action_cards) > 0:
-            if len(supply_action_cards) == 0:
-                choice = Lurker.Choice.GainAction
-            elif len(trash_action_cards) == 0:
-                choice = Lurker.Choice.TrashAction
-            else:
-                options = [
-                    "Trash an Action card from the Supply",
-                    "Gain an Action card from the trash",
-                ]
-                choices = player.decider.multiple_option_decision(
-                    card=self,
-                    options=options,
-                    player=player,
-                    game=game,
-                )
-                assert len(choices) == 1
-                choice = choices[0]
+        if len(supply_action_cards) == 0 and len(trash_action_cards) == 0:
+            return
 
-            if choice == Lurker.Choice.TrashAction:
-                trash_cards = player.decider.trash_decision(
-                    prompt="Choose a card from the Supply to trash",
-                    card=self,
-                    valid_cards=supply_action_cards,
-                    player=player,
-                    game=game,
-                    min_num_trash=1,
-                    max_num_trash=1,
-                )
-                assert len(trash_cards) == 1
-                trash_card = trash_cards[0]
+        if len(supply_action_cards) == 0:
+            choice = Lurker.Choice.GainAction
+        elif len(trash_action_cards) == 0:
+            choice = Lurker.Choice.TrashAction
+        else:
+            options = [
+                "Trash an Action card from the Supply",
+                "Gain an Action card from the trash",
+            ]
+            choices = player.decider.multiple_option_decision(
+                card=self,
+                options=options,
+                player=player,
+                game=game,
+            )
+            assert len(choices) == 1
+            choice = choices[0]
 
-                game.supply.trash_card(trash_card, game.trash)
+        if choice == Lurker.Choice.TrashAction:
+            trash_cards = player.decider.trash_decision(
+                prompt="Choose a card from the Supply to trash",
+                card=self,
+                valid_cards=supply_action_cards,
+                player=player,
+                game=game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
 
-            elif choice == Lurker.Choice.GainAction:
-                gain_cards = player.decider.gain_decision(
-                    prompt="Choose a card to gain from the trash",
-                    card=self,
-                    valid_cards=trash_action_cards,
-                    player=player,
-                    game=game,
-                    min_num_gain=1,
-                    max_num_gain=1,
-                )
-                assert len(gain_cards) == 1
-                gain_card = gain_cards[0]
+            game.supply.trash_card(trash_card, game.trash)
 
-                game.trash.remove(gain_card)
-                player.discard_pile.add(gain_card)
+        elif choice == Lurker.Choice.GainAction:
+            gain_cards = player.decider.gain_decision(
+                prompt="Choose a card to gain from the trash",
+                card=self,
+                valid_cards=trash_action_cards,
+                player=player,
+                game=game,
+                min_num_gain=1,
+                max_num_gain=1,
+            )
+            assert len(gain_cards) == 1
+            gain_card = gain_cards[0]
 
-            else:
-                raise ValueError(f"Unknown lurker choice '{choice}'")
+            game.trash.remove(gain_card)
+            player.discard_pile.add(gain_card)
+
+        else:
+            raise ValueError(f"Unknown lurker choice '{choice}'")
 
 
 class Masquerade(Action):
@@ -512,6 +514,9 @@ class Masquerade(Action):
             next_player = valid_players[next_idx]
             next_player.hand.add(c)
             logger.info(f"{p} passes {c} to {next_player}")
+
+        if len(player.hand) == 0:
+            return
 
         trash = player.decider.binary_decision(
             prompt="Would you like to trash a card from your hand?",
@@ -1241,27 +1246,25 @@ class TradingPost(Action):
 
         len_hand = len(player.hand)
         if len_hand == 0:
-            pass
-        elif len_hand == 1:
-            player.trash(player.hand.cards[0], game.trash)
+            return
+        elif len_hand <= 2:
+            trash_cards = player.hand.cards[:]
         else:
-            if len_hand == 2:
-                trash_cards = player.hand.cards[:]
-            else:
-                trash_cards = player.decider.trash_decision(
-                    prompt="Trash 2 cards from your hand: ",
-                    card=self,
-                    valid_cards=player.hand.cards,
-                    player=player,
-                    game=game,
-                    min_num_trash=2,
-                    max_num_trash=2,
-                )
-                assert len(trash_cards) == 2
+            trash_cards = player.decider.trash_decision(
+                prompt="Trash 2 cards from your hand: ",
+                card=self,
+                valid_cards=player.hand.cards,
+                player=player,
+                game=game,
+                min_num_trash=2,
+                max_num_trash=2,
+            )
+            assert len(trash_cards) == 2
 
-            for card in trash_cards:
-                player.trash(card, game.trash)
+        for card in trash_cards:
+            player.trash(card, game.trash)
 
+        if len(trash_cards) == 2:
             # attempt to gain a silver to player's hand.
             # if silver pile is empty, proceed
             try:
