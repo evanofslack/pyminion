@@ -803,7 +803,7 @@ class OptimizedBotDecider(BotDecider):
             return max_price_card
         else:
             raise InvalidBotImplementation(
-                "Either binary or discard must be true when playing diplomat"
+                "Either options, trash, or gain must be true when playing lurker"
             )
 
     @overload
