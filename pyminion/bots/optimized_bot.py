@@ -199,6 +199,22 @@ class OptimizedBotDecider(BotDecider):
             return self.chapel(player=player, game=game, valid_cards=valid_cards)
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
+        elif card.name == "Lurker":
+            ret = self.lurker(player, game, trash=True)
+            return [ret]
+        elif card.name == "Masquerade":
+            ret = self.masquerade(player, game, trash=True)
+            return [ret]
+        elif card.name == "Replace":
+            ret = self.replace(player, game, trash=True)
+            return [ret]
+        elif card.name == "Steward":
+            return self.steward(player, game, trash=True)
+        elif card.name == "Trading Post":
+            return self.trading_post(player, game)
+        elif card.name == "Upgrade":
+            ret = self.upgrade(player, game, trash=True)
+            return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
@@ -223,6 +239,21 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Mine":
             ret = self.mine(player=player, game=game, valid_cards=valid_cards, gain=True)
+            return [ret]
+        elif card.name == "Ironworks":
+            ret = self.ironworks(player, game)
+            return [ret]
+        elif card.name == "Lurker":
+            ret = self.lurker(player, game, gain=True)
+            return [ret]
+        elif card.name == "Replace":
+            ret = self.replace(player, game, gain=True)
+            return [ret]
+        elif card.name == "Swindler":
+            ret = self.swindler(player, game)
+            return [ret]
+        elif card.name == "Upgrade":
+            ret = self.upgrade(player, game, gain=True)
             return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
@@ -249,8 +280,26 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Courtyard":
             ret = self.courtyard(player, game, valid_cards)
             return [ret]
+        elif card.name == "Patrol":
+            return self.patrol(player, game)
+        elif card.name == "Secret Passage":
+            ret = self.secret_passage(player, game, topdeck=True)
+            return [ret]
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
+
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        if card.name == "Secret Passage":
+            return self.secret_passage(player, game, pos=True)
+        else:
+            return super().deck_position_decision(prompt, card, player, game, num_deck_cards)
 
     def reveal_decision(
         self,
@@ -267,6 +316,38 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         else:
             return super().reveal_decision(prompt, card, valid_cards, player, game, min_num_reveal, max_num_reveal)
+
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Masquerade":
+            ret = self.masquerade(player, game, valid_cards, pass_=True)
+            return [ret]
+        else:
+            return super().pass_decision(prompt, card, valid_cards, player, game, min_num_pass, max_num_pass)
+
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Wishing Well":
+            ret = self.wishing_well(player, game)
+            return [ret]
+        else:
+            return super().name_card_decision(prompt, card, valid_cards, player, game, min_num_name, max_num_name)
 
     def multi_play_decision(
         self,
@@ -622,7 +703,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> Card:
         pass # TODO
 
     @overload
@@ -769,7 +850,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> List[Card]:
         pass # TODO
 
     def pawn(
@@ -785,8 +866,28 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         trash: bool = False,
         gain: bool = False,
-    ) -> None:
+    ) -> Card:
         pass # TODO
+
+    @overload
+    def secret_passage(
+        self,
+        player: "Player",
+        game: "Game",
+        topdeck: Literal[True] = True,
+        pos: Literal[False] = False,
+    ) -> Card:
+        ...
+
+    @overload
+    def secret_passage(
+        self,
+        player: "Player",
+        game: "Game",
+        topdeck: Literal[False] = False,
+        pos: Literal[True] = True,
+    ) -> int:
+        ...
 
     def secret_passage(
         self,
@@ -794,7 +895,7 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         topdeck: bool = False,
         pos: bool = False,
-    ) -> None:
+    ) -> Union[Card, int]:
         pass # TODO
 
     @overload
@@ -830,7 +931,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> Card:
         pass # TODO
 
     @overload
@@ -866,7 +967,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> List[Card]:
         pass # TODO
 
     def upgrade(
@@ -875,14 +976,14 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         trash: bool = False,
         gain: bool = False,
-    ) -> None:
+    ) -> Card:
         pass # TODO
 
     def wishing_well(
         self,
         player: "Player",
         game: "Game",
-    ) -> None:
+    ) -> Card:
         pass # TODO
 
 
