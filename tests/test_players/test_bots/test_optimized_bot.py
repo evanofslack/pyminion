@@ -432,3 +432,21 @@ def test_ironworks_bot(bot: OptimizedBot, game: Game):
     bot.play(ironworks, game)
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[-1].name == "Silver"
+
+
+def test_lurker_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(lurker)
+    bot.hand.add(lurker)
+    assert len(game.trash) == 0
+    assert len(bot.discard_pile) == 0
+
+    bot.play(lurker, game)
+    assert len(game.trash) == 1
+    card = game.trash.cards[0]
+    assert CardType.Action in card.type
+    assert len(bot.discard_pile) == 0
+
+    bot.play(lurker, game)
+    assert len(game.trash) == 0
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == card.name

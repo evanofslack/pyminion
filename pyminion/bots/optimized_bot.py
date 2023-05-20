@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -219,7 +219,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
         elif card.name == "Lurker":
-            ret = self.lurker(player, game, trash=True)
+            ret = self.lurker(player, game, valid_cards, trash=True)
             return [ret]
         elif card.name == "Masquerade":
             ret = self.masquerade(player, game, trash=True)
@@ -263,7 +263,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.ironworks(player, game, valid_cards)
             return [ret]
         elif card.name == "Lurker":
-            ret = self.lurker(player, game, gain=True)
+            ret = self.lurker(player, game, valid_cards, gain=True)
             return [ret]
         elif card.name == "Replace":
             ret = self.replace(player, game, gain=True)
@@ -752,6 +752,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
         options: Literal[True] = True,
         trash: Literal[False] = False,
         gain: Literal[False] = False,
@@ -763,6 +764,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
         options: Literal[False] = False,
         trash: Literal[True] = True,
         gain: Literal[False] = False,
@@ -774,6 +776,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
         options: Literal[False] = False,
         trash: Literal[False] = False,
         gain: Literal[True] = True,
@@ -784,11 +787,24 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
         options: bool = False,
         trash: bool = False,
         gain: bool = False,
     ) -> Union[int, Card]:
-        pass # TODO
+        if options:
+            if any(CardType.Action in c.type for c in game.trash.cards):
+                return Lurker.Choice.GainAction
+            else:
+                return Lurker.Choice.TrashAction
+        elif trash or gain:
+            assert valid_cards is not None
+            max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+            return max_price_card
+        else:
+            raise InvalidBotImplementation(
+                "Either binary or discard must be true when playing diplomat"
+            )
 
     @overload
     def masquerade(
