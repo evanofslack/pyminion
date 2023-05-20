@@ -5,6 +5,7 @@ from pyminion.expansions.base import (
     cellar,
     chapel,
     copper,
+    curse,
     duchy,
     estate,
     gold,
@@ -450,3 +451,22 @@ def test_lurker_bot(bot: OptimizedBot, game: Game):
     assert len(game.trash) == 0
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].name == card.name
+
+
+def test_masquerade(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(masquerade)
+    p1.hand.add(estate)
+
+    p2.hand.add(curse)
+    p2_estate_count_before = sum(1 for c in p2.hand.cards if c.name == "Estate")
+
+    p1.play(masquerade, multiplayer_bot_game)
+
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Curse"
+
+    p2_estate_count_after = sum(1 for c in p2.hand.cards if c.name == "Estate")
+    assert p2_estate_count_after == p2_estate_count_before + 1
