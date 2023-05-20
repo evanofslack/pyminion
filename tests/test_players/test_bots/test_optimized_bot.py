@@ -65,7 +65,7 @@ def test_artisan_bot_actions(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-1].name == "Village"
 
 
-def test_bureaucrat_bot(bot: OptimizedBot, multiplayer_bot_game: Game):
+def test_bureaucrat_bot(multiplayer_bot_game: Game):
     bot = multiplayer_bot_game.players[0]
     bot.hand.add(bureaucrat)
     opponent = multiplayer_bot_game.players[1]
@@ -219,7 +219,7 @@ def test_moneylender_bot(bot: OptimizedBot, game: Game):
     assert len(bot.hand) == 2
     assert len(game.trash) == 0
 
-    bot.hand.cards[0].play(bot, game)
+    bot.play(moneylender, game)
     assert len(bot.hand) == 0
     assert len(bot.playmat) == 1
     assert bot.playmat.cards[0].name == "Moneylender"
