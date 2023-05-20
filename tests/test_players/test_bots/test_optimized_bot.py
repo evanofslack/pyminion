@@ -22,6 +22,7 @@ from pyminion.expansions.base import (
     throne_room,
     vassal,
     village,
+    witch,
     workshop,
 )
 from pyminion.expansions.intrigue import (
@@ -401,3 +402,26 @@ def test_courtyard_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(torturer)
     bot.play(courtyard, game)
     assert bot.deck.cards[-1].name == "Torturer"
+
+
+def test_diplomat_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p1.hand) > 0:
+        p1.hand.remove(p1.hand.cards[0])
+    p1.hand.add(copper)
+    p1.hand.add(estate)
+    p1.hand.add(estate)
+    p1.hand.add(estate)
+    p1.hand.add(diplomat)
+    assert len(p1.hand) == 5
+
+    p2.hand.add(witch)
+    p2.play(witch, multiplayer_bot_game)
+
+    assert len(p1.hand) == 4
+    assert len(p1.discard_pile) == 4
+    for i in range(3):
+        assert p1.discard_pile.cards[i].name == "Estate"
+    assert p1.discard_pile.cards[3].name == "Curse" # from witch

@@ -171,7 +171,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, discard=True)
         elif card.name == "Diplomat":
-            return self.diplomat(player, game, discard=True)
+            return self.diplomat(player, game, valid_cards, min_num_discard, discard=True)
         elif card.name == "Mill":
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
@@ -675,6 +675,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
+        num_discard: int = 0,
         binary: Literal[True] = True,
         discard: Literal[False] = False,
     ) -> bool:
@@ -685,6 +687,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
+        num_discard: int = 0,
         binary: Literal[False] = False,
         discard: Literal[True] = True,
     ) -> List[Card]:
@@ -694,10 +698,23 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Union[List[Card], None] = None,
+        num_discard: int = 0,
         binary: bool = False,
         discard: bool = False,
     ) -> Union[bool, List[Card]]:
-        pass # TODO
+        if binary:
+            return True
+        elif discard:
+            assert valid_cards is not None
+            discard_order = self.sort_for_discard(
+                cards=valid_cards, actions=player.state.actions, player=player, game=game
+            )
+            return discard_order[:num_discard]
+        else:
+            raise InvalidBotImplementation(
+                "Either binary or discard must be true when playing diplomat"
+            )
 
     def ironworks(
         self,
