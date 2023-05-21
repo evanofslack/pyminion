@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -978,7 +978,10 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> int:
-        pass # TODO
+        action_card_count = sum(1 for c in player.hand.cards if CardType.Action in c.type)
+        if action_card_count > player.state.actions:
+            return Nobles.Choice.Actions
+        return Nobles.Choice.Cards
 
     def patrol(
         self,

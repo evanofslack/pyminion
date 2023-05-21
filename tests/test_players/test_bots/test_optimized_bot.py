@@ -509,3 +509,15 @@ def test_minion(bot: OptimizedBot, game: Game):
     bot.play(minion, game)
     assert len(bot.discard_pile) == 1
     assert bot.state.money == 2
+
+
+def test_nobles(bot: OptimizedBot, game: Game):
+    bot.hand.add(nobles)
+    bot.hand.add(nobles)
+    bot.play(nobles, game)
+    assert len(bot.hand) == 1
+    assert bot.state.actions == 2
+
+    bot.play(nobles, game)
+    assert len(bot.hand) == 3
+    assert bot.state.actions == 1
