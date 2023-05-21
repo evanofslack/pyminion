@@ -470,3 +470,14 @@ def test_masquerade(multiplayer_bot_game: Game):
 
     p2_estate_count_after = sum(1 for c in p2.hand.cards if c.name == "Estate")
     assert p2_estate_count_after == p2_estate_count_before + 1
+
+
+def test_mill(bot: OptimizedBot, game: Game):
+    bot.hand.add(mill)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.deck.add(copper) # playing mill will draw this copper
+    bot.play(mill, game)
+    assert len(bot.discard_pile) == 2
+    assert set(c.name for c in bot.discard_pile.cards) == {"Copper", "Estate"}
+    assert bot.state.money == 2

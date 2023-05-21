@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List, Literal, Optional, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter, Victory
+from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
@@ -926,7 +926,26 @@ class OptimizedBotDecider(BotDecider):
         binary: bool = False,
         discard: bool = False,
     ) -> Union[bool, List[Card]]:
-        pass # TODO
+        actions = player.state.actions
+        cards = self.sort_for_discard(player.hand.cards, actions, player, game)
+        cards = cards[:2]
+        if binary:
+            if len(cards) < 2:
+                return False
+            money = 0
+            for card in cards:
+                if CardType.Treasure in card.type:
+                    assert isinstance(card, Treasure)
+                    money += card.money
+            # discard cards if they provide less money than the
+            # +$2 mill will give for discarding
+            return money < 2
+        elif discard:
+            return cards
+        else:
+            raise InvalidBotImplementation(
+                "Either binary or discard must be true when playing mill"
+            )
 
     def mining_village(
         self,
