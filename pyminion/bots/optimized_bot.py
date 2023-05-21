@@ -332,7 +332,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.courtyard(player, game, valid_cards)
             return [ret]
         elif card.name == "Patrol":
-            return self.patrol(player, game)
+            return self.patrol(player, game, valid_cards)
         elif card.name == "Secret Passage":
             ret = self.secret_passage(player, game, topdeck=True)
             return [ret]
@@ -987,8 +987,13 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
     ) -> List[Card]:
-        pass # TODO
+        cards = sorted(
+            valid_cards,
+            key=lambda card: card.get_cost(player, game),
+        )
+        return cards
 
     def pawn(
         self,

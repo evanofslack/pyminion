@@ -521,3 +521,20 @@ def test_nobles(bot: OptimizedBot, game: Game):
     bot.play(nobles, game)
     assert len(bot.hand) == 3
     assert bot.state.actions == 1
+
+
+def test_patrol(bot: OptimizedBot, game: Game):
+    bot.deck.add(patrol)
+    bot.deck.add(silver)
+    bot.deck.add(gold)
+    bot.deck.add(copper)
+    for _ in range(3):
+        bot.deck.add(copper)
+
+    bot.hand.add(patrol)
+    bot.play(patrol, game)
+    assert len(bot.deck) >= 4
+    assert bot.deck.cards[-1].name == "Gold"
+    assert bot.deck.cards[-2].name == "Patrol"
+    assert bot.deck.cards[-3].name == "Silver"
+    assert bot.deck.cards[-4].name == "Copper"
