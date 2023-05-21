@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier, Lurker
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -959,7 +959,19 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> int:
-        pass # TODO
+        has_action_cards = False
+        hand_money = 0
+        for card in player.hand.cards:
+            if CardType.Action in card.type:
+                has_action_cards = True
+            if CardType.Treasure in card.type:
+                assert isinstance(card, Treasure)
+                hand_money += card.money
+
+        # don't discard hand if we can play more actions or if we have money in hand
+        if (has_action_cards and player.state.actions > 0) or hand_money >= 3:
+            return Minion.Choice.Money
+        return Minion.Choice.DiscardDrawAttack
 
     def nobles(
         self,

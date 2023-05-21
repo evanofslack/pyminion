@@ -496,3 +496,16 @@ def test_mining_village(bot: OptimizedBot, game: Game):
     bot.play(mining_village, game)
     assert len(game.trash) == 1
     assert game.trash.cards[0].name == "Mining Village"
+
+
+def test_minion(bot: OptimizedBot, game: Game):
+    bot.hand.add(minion)
+    bot.hand.add(minion)
+    bot.hand.add(copper)
+    bot.play(minion, game)
+    assert len(bot.discard_pile) == 0
+    assert bot.state.money == 2
+
+    bot.play(minion, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.state.money == 2
