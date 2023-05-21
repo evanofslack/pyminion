@@ -952,7 +952,7 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> bool:
-        pass # TODO
+        return game.supply.pile_length("Province") < 3
 
     def minion(
         self,

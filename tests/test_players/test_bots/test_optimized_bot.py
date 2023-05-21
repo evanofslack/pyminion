@@ -481,3 +481,18 @@ def test_mill(bot: OptimizedBot, game: Game):
     assert len(bot.discard_pile) == 2
     assert set(c.name for c in bot.discard_pile.cards) == {"Copper", "Estate"}
     assert bot.state.money == 2
+
+
+def test_mining_village(bot: OptimizedBot, game: Game):
+    bot.hand.add(mining_village)
+    bot.hand.add(mining_village)
+    bot.play(mining_village, game)
+    assert len(game.trash) == 0
+
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province)
+
+    bot.play(mining_village, game)
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Mining Village"
