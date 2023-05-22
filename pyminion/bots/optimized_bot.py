@@ -713,13 +713,14 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: List[Card],
     ) -> Card:
-        for card in player.hand.cards:
-            if CardType.Action in card.type and player.state.actions == 0:
-                return card
-        else:
-            return player.hand.cards[-1]
+        if player.state.actions == 0:
+            for card in valid_cards:
+                if CardType.Action in card.type:
+                    return card
+
+        return valid_cards[-1]
 
     @overload
     def diplomat(
