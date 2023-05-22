@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -192,8 +192,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.nobles(player, game)
             return [ret]
         elif card.name == "Pawn":
-            ret = self.pawn(player, game)
-            return [ret]
+            return self.pawn(player, game)
         elif card.name == "Steward":
             ret = self.steward(player, game, options=True)
             return [ret]
@@ -1000,8 +999,31 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> int:
-        pass # TODO
+    ) -> List[int]:
+        action_card_count = 0
+        total_money = player.state.money
+        for card in player.hand.cards:
+            if CardType.Action in card.type:
+                action_card_count += 1
+            if CardType.Treasure in card.type:
+                assert isinstance(card, Treasure)
+                total_money += card.money
+
+        choices: List[int] = []
+        if action_card_count > player.state.actions:
+            choices.append(Pawn.Choice.Action)
+
+        if total_money < 2:
+            choices.append(Pawn.Choice.Money)
+        elif total_money > 8:
+            choices.append(Pawn.Choice.Buy)
+
+        if len(choices) < 2:
+            choices.append(Pawn.Choice.Card)
+        if len(choices) < 2:
+            choices.append(Pawn.Choice.Money)
+
+        return choices
 
     def replace(
         self,

@@ -538,3 +538,31 @@ def test_patrol(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-2].name == "Patrol"
     assert bot.deck.cards[-3].name == "Silver"
     assert bot.deck.cards[-4].name == "Copper"
+
+
+def test_pawn(bot: OptimizedBot, game: Game):
+    bot.hand.add(pawn)
+    bot.hand.add(pawn)
+    bot.hand.add(copper)
+    bot.play(pawn, game)
+    assert len(bot.hand) == 2
+    assert bot.state.actions == 1
+    assert bot.state.buys == 1
+    assert bot.state.money == 1
+
+    bot.play(pawn, game)
+    assert len(bot.hand) == 2
+    assert bot.state.actions == 0
+    assert bot.state.buys == 1
+    assert bot.state.money == 2
+
+
+def test_pawn_buy(bot: OptimizedBot, game: Game):
+    bot.hand.add(pawn)
+    for _ in range(3):
+        bot.hand.add(gold)
+    bot.play(pawn, game)
+    assert len(bot.hand) == 4
+    assert bot.state.actions == 0
+    assert bot.state.buys == 2
+    assert bot.state.money == 0
