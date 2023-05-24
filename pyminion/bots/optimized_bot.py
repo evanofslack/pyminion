@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List, Literal, Optional, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory
+from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, gold, silver
@@ -933,10 +933,8 @@ class OptimizedBotDecider(BotDecider):
             if len(cards) < 2:
                 return False
             money = 0
-            for card in cards:
-                if CardType.Treasure in card.type:
-                    assert isinstance(card, Treasure)
-                    money += card.money
+            for card in get_treasure_cards(cards):
+                money += card.money
             # discard cards if they provide less money than the
             # +$2 mill will give for discarding
             return money < 2
@@ -978,7 +976,7 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> int:
-        action_card_count = sum(1 for c in player.hand.cards if CardType.Action in c.type)
+        action_card_count = sum(1 for _ in get_action_cards(player.hand.cards))
         if action_card_count > player.state.actions:
             return Nobles.Choice.Actions
         return Nobles.Choice.Cards
