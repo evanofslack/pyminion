@@ -453,7 +453,7 @@ def test_lurker_bot(bot: OptimizedBot, game: Game):
     assert bot.discard_pile.cards[0].name == card.name
 
 
-def test_masquerade(multiplayer_bot_game: Game):
+def test_masquerade_bot(multiplayer_bot_game: Game):
     p1 = multiplayer_bot_game.players[0]
     p2 = multiplayer_bot_game.players[1]
 
@@ -472,7 +472,7 @@ def test_masquerade(multiplayer_bot_game: Game):
     assert p2_estate_count_after == p2_estate_count_before + 1
 
 
-def test_mill(bot: OptimizedBot, game: Game):
+def test_mill_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(mill)
     bot.hand.add(estate)
     bot.hand.add(copper)
@@ -483,7 +483,7 @@ def test_mill(bot: OptimizedBot, game: Game):
     assert bot.state.money == 2
 
 
-def test_mining_village(bot: OptimizedBot, game: Game):
+def test_mining_village_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(mining_village)
     bot.hand.add(mining_village)
     bot.play(mining_village, game)
@@ -498,7 +498,7 @@ def test_mining_village(bot: OptimizedBot, game: Game):
     assert game.trash.cards[0].name == "Mining Village"
 
 
-def test_minion(bot: OptimizedBot, game: Game):
+def test_minion_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(minion)
     bot.hand.add(minion)
     bot.hand.add(copper)
@@ -511,7 +511,7 @@ def test_minion(bot: OptimizedBot, game: Game):
     assert bot.state.money == 2
 
 
-def test_nobles(bot: OptimizedBot, game: Game):
+def test_nobles_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(nobles)
     bot.hand.add(nobles)
     bot.play(nobles, game)
@@ -523,7 +523,7 @@ def test_nobles(bot: OptimizedBot, game: Game):
     assert bot.state.actions == 1
 
 
-def test_patrol(bot: OptimizedBot, game: Game):
+def test_patrol_bot(bot: OptimizedBot, game: Game):
     bot.deck.add(patrol)
     bot.deck.add(silver)
     bot.deck.add(gold)
@@ -540,7 +540,7 @@ def test_patrol(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-4].name == "Copper"
 
 
-def test_pawn(bot: OptimizedBot, game: Game):
+def test_pawn_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(pawn)
     bot.hand.add(pawn)
     bot.hand.add(copper)
@@ -557,7 +557,7 @@ def test_pawn(bot: OptimizedBot, game: Game):
     assert bot.state.money == 2
 
 
-def test_pawn_buy(bot: OptimizedBot, game: Game):
+def test_pawn_bot_buy(bot: OptimizedBot, game: Game):
     bot.hand.add(pawn)
     for _ in range(3):
         bot.hand.add(gold)
