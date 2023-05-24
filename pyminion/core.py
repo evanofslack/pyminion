@@ -1,7 +1,7 @@
 import logging
 import random
 from collections import Counter
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -286,3 +286,24 @@ class Supply:
         """
         pile = self.get_pile(pile_name)
         return len(pile)
+
+
+def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
+    for card in cards:
+        if CardType.Action in card.type:
+            assert isinstance(card, Action)
+            yield card
+
+
+def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
+    for card in cards:
+        if CardType.Treasure in card.type:
+            assert isinstance(card, Treasure)
+            yield card
+
+
+def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
+    for card in cards:
+        if CardType.Victory in card.type:
+            assert isinstance(card, Victory)
+            yield card
