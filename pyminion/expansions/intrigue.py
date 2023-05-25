@@ -410,25 +410,23 @@ class Lurker(Action):
         if len(supply_action_cards) == 0 and len(trash_action_cards) == 0:
             return
 
-        if len(supply_action_cards) == 0:
-            choice = Lurker.Choice.GainAction
-        elif len(trash_action_cards) == 0:
-            choice = Lurker.Choice.TrashAction
-        else:
-            options = [
-                "Trash an Action card from the Supply",
-                "Gain an Action card from the trash",
-            ]
-            choices = player.decider.multiple_option_decision(
-                card=self,
-                options=options,
-                player=player,
-                game=game,
-            )
-            assert len(choices) == 1
-            choice = choices[0]
+        options = [
+            "Trash an Action card from the Supply",
+            "Gain an Action card from the trash",
+        ]
+        choices = player.decider.multiple_option_decision(
+            card=self,
+            options=options,
+            player=player,
+            game=game,
+        )
+        assert len(choices) == 1
+        choice = choices[0]
 
         if choice == Lurker.Choice.TrashAction:
+            if len(supply_action_cards) == 0:
+                return
+
             trash_cards = player.decider.trash_decision(
                 prompt="Choose a card from the Supply to trash",
                 card=self,
@@ -444,6 +442,9 @@ class Lurker(Action):
             game.supply.trash_card(trash_card, game.trash)
 
         elif choice == Lurker.Choice.GainAction:
+            if len(trash_action_cards) == 0:
+                return
+
             gain_cards = player.decider.gain_decision(
                 prompt="Choose a card to gain from the trash",
                 card=self,
