@@ -301,7 +301,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Patrol":
             return self.patrol(player, game, valid_cards)
         elif card.name == "Secret Passage":
-            ret = self.secret_passage(player, game, topdeck=True)
+            ret = self.secret_passage(player, game, valid_cards=valid_cards, topdeck=True)
             return [ret]
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
@@ -315,7 +315,7 @@ class OptimizedBotDecider(BotDecider):
         num_deck_cards: int,
     ) -> int:
         if card.name == "Secret Passage":
-            return self.secret_passage(player, game, pos=True)
+            return self.secret_passage(player, game, num_deck_cards=num_deck_cards, pos=True)
         else:
             return super().deck_position_decision(prompt, card, player, game, num_deck_cards)
 
@@ -1043,6 +1043,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_deck_cards: int = -1,
         topdeck: Literal[True] = True,
         pos: Literal[False] = False,
     ) -> Card:
@@ -1053,6 +1055,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_deck_cards: int = -1,
         topdeck: Literal[False] = False,
         pos: Literal[True] = True,
     ) -> int:
@@ -1062,10 +1066,22 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_deck_cards: int = -1,
         topdeck: bool = False,
         pos: bool = False,
     ) -> Union[Card, int]:
-        pass # TODO
+        if topdeck:
+            assert valid_cards is not None
+            return valid_cards[-1]
+
+        if pos:
+            assert num_deck_cards >= 0
+            return num_deck_cards # put the card on top of the deck
+
+        raise InvalidBotImplementation(
+            "Either topdeck or pos must be true when playing secret passage"
+        )
 
     @overload
     def steward(

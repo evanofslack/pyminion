@@ -611,3 +611,14 @@ def test_replace_bot_trash_curse(bot: OptimizedBot, game: Game):
     assert game.trash.cards[0].name == "Curse"
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].name == "Estate"
+
+
+def test_secret_passage_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(secret_passage)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.play(secret_passage, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(bot.deck) >= 1
+    assert bot.deck.cards[-1].name == "Silver"
