@@ -566,3 +566,48 @@ def test_pawn_bot_buy(bot: OptimizedBot, game: Game):
     assert bot.state.actions == 0
     assert bot.state.buys == 2
     assert bot.state.money == 0
+
+
+def test_replace_bot(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(copper)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Copper"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Estate"
+
+
+def test_replace_bot_trash_gold(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(gold)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Gold"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Province"
+
+
+def test_replace_bot_trash_curse(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(curse)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Curse"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Estate"

@@ -4,7 +4,7 @@ from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
-from pyminion.expansions.base import duchy, estate, gold, silver
+from pyminion.expansions.base import duchy, estate, curse, gold, silver
 from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn
 from pyminion.player import Player
 
@@ -256,7 +256,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.masquerade(player, game, valid_cards, trash=True)
             return [ret]
         elif card.name == "Replace":
-            ret = self.replace(player, game, trash=True)
+            ret = self.replace(player, game, valid_cards, trash=True)
             return [ret]
         elif card.name == "Steward":
             return self.steward(player, game, trash=True)
@@ -297,7 +297,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.lurker(player, game, valid_cards, gain=True)
             return [ret]
         elif card.name == "Replace":
-            ret = self.replace(player, game, gain=True)
+            ret = self.replace(player, game, valid_cards, gain=True)
             return [ret]
         elif card.name == "Swindler":
             ret = self.swindler(player, game)
@@ -1027,10 +1027,48 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
         trash: bool = False,
         gain: bool = False,
     ) -> Card:
-        pass # TODO
+        num_provinces = game.supply.pile_length("Province")
+        if trash:
+            has_gold = False
+            has_curse = False
+            for card in valid_cards:
+                if CardType.Curse in card.type:
+                    has_curse = True
+                elif card.name == "Gold":
+                    has_gold = True
+
+            if has_gold and num_provinces < 5:
+                return gold
+
+            if has_curse:
+                return curse
+
+            min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
+            return min_price_card
+
+        if gain:
+            victory_cards = list(get_victory_cards(valid_cards))
+            victory_cards.sort(key=lambda c: c.score(player), reverse=True)
+            if len(victory_cards) > 0:
+                victory_card = victory_cards[0]
+                score = victory_card.score(player)
+                if score >= 6:
+                    return victory_card
+                elif score >= 3 and num_provinces < 5:
+                    return victory_card
+                elif num_provinces < 3:
+                    return victory_card
+
+            max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+            return max_price_card
+
+        raise InvalidBotImplementation(
+            "Either trash or gain must be true when playing replace"
+        )
 
     @overload
     def secret_passage(
