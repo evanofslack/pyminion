@@ -29,16 +29,11 @@ class OptimizedBotDecider(BotDecider):
 
         """
 
-        best_score = 0
-        best_victory = None
-        for card in valid_cards:
-            if CardType.Victory in card.type:
-                assert isinstance(card, Victory)
-                score = card.score(player)
-                if best_victory is None or score > best_score:
-                    best_victory = card
-                    best_score = score
-
+        best_victory = max(
+            get_victory_cards(valid_cards),
+            key=lambda card: card.score(player),
+            default=None,
+        )
         return best_victory
 
     @staticmethod
