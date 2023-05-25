@@ -107,38 +107,6 @@ class OptimizedBotDecider(BotDecider):
 
         return sorted_trash_cards
 
-    def determine_optional_trash_cards(
-        self, valid_cards: List[Card], player: Player, game: "Game"
-    ) -> List[Card]:
-        """
-        Determine if there are any cards that would be ideal to trash:
-
-        Always trash Curse
-        Trash Estate if number of provinces in supply >= 5
-        Trash Copper if money in deck > 3 (keep enough to buy silver)
-
-        """
-
-        trash_estate = game.supply.pile_length("Province") >= 5
-        trash_copper = player.get_deck_money() > 3
-        trash_cards: List[Card] = []
-        for card in valid_cards:
-            if CardType.Curse in card.type:
-                trash_cards.append(card)
-            elif trash_estate and card.name == "Estate":
-                trash_cards.append(card)
-            elif trash_copper and card.name == "Copper":
-                trash_cards.append(card)
-
-        sorted_trash_cards = self.sort_for_discard(
-            cards=trash_cards,
-            actions=player.state.actions,
-            player=player,
-            game=game,
-        )
-
-        return sorted_trash_cards
-
     def binary_decision(
         self,
         prompt: str,
@@ -888,7 +856,7 @@ class OptimizedBotDecider(BotDecider):
             cards = self.determine_trash_cards(valid_cards, player, game)
             return cards[0]
         elif binary:
-            cards = self.determine_optional_trash_cards(player.hand.cards, player, game)
+            cards = self.determine_trash_cards(player.hand.cards, player, game)
             return len(cards) > 0
         elif trash:
             assert valid_cards is not None
