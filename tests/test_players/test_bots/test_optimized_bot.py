@@ -655,3 +655,16 @@ def test_steward_bot_money(bot: OptimizedBot, game: Game):
     assert len(bot.hand) == 0
     assert len(game.trash) == 0
     assert bot.state.money == 2
+
+
+def test_swindler_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(swindler)
+    p2.deck.add(copper)
+    p1.play(swindler, multiplayer_bot_game)
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Copper"
+    assert len(p2.discard_pile) == 1
+    assert p2.discard_pile.cards[0].name == "Curse"

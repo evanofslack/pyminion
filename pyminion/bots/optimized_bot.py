@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Literal, Optional, Union, overload
+from typing import TYPE_CHECKING, List, Literal, Optional, Tuple, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
@@ -263,7 +263,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.replace(player, game, valid_cards, gain=True)
             return [ret]
         elif card.name == "Swindler":
-            ret = self.swindler(player, game)
+            ret = self.swindler(player, game, valid_cards)
             return [ret]
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, gain=True)
@@ -1130,8 +1130,26 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
     ) -> Card:
-        pass # TODO
+        # prioritize cards
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in valid_cards:
+            if card.name == "Curse":
+                # prioritize giving opponents curses first
+                prioritized_cards.append((1, card))
+            elif CardType.Attack in card.type:
+                # lower priority for giving opponents attack cards
+                prioritized_cards.append((3, card))
+            elif CardType.Victory in card.type:
+                # lower priority for giving opponents victory cards
+                prioritized_cards.append((4, card))
+            else:
+                # prioritize giving all other cards second
+                prioritized_cards.append((2, card))
+        prioritized_cards.sort(key=lambda x: x[0])
+
+        return prioritized_cards[0][1]
 
     @overload
     def torturer(
