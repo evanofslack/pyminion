@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_ac
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -227,7 +227,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.replace(player, game, valid_cards, trash=True)
             return [ret]
         elif card.name == "Steward":
-            return self.steward(player, game, trash=True)
+            return self.steward(player, game, valid_cards=valid_cards, trash=True)
         elif card.name == "Trading Post":
             return self.trading_post(player, game)
         elif card.name == "Upgrade":
@@ -1088,6 +1088,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
         options: Literal[True] = True,
         trash: Literal[False] = False,
     ) -> int:
@@ -1098,6 +1099,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
         options: Literal[False] = False,
         trash: Literal[True] = True,
     ) -> List[Card]:
@@ -1107,10 +1109,27 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
         options: bool = False,
         trash: bool = False,
     ) -> Union[int, List[Card]]:
-        pass # TODO
+        if options:
+            trash_cards = self.determine_trash_cards(player.hand.cards, player, game)
+            if player.state.actions > 0:
+                return Steward.Choice.Cards
+            elif len(trash_cards) >= 2:
+                return Steward.Choice.Trash
+            else:
+                return Steward.Choice.Money
+
+        if trash:
+            assert valid_cards is not None
+            trash_cards = self.determine_trash_cards(valid_cards, player, game)
+            return trash_cards[:2]
+
+        raise InvalidBotImplementation(
+            "Either options or trash must be true when playing steward"
+        )
 
     def swindler(
         self,

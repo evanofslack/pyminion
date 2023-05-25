@@ -42,6 +42,7 @@ from pyminion.expansions.intrigue import (
     pawn,
     replace,
     secret_passage,
+    shanty_town,
     steward,
     swindler,
     torturer,
@@ -622,3 +623,35 @@ def test_secret_passage_bot(bot: OptimizedBot, game: Game):
     assert bot.hand.cards[0].name == "Silver"
     assert len(bot.deck) >= 1
     assert bot.deck.cards[-1].name == "Silver"
+
+
+def test_steward_bot_cards(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.hand.add(shanty_town)
+    bot.play(shanty_town, game)
+    bot.play(steward, game)
+    assert len(bot.hand) == 2
+    assert len(game.trash) == 0
+    assert bot.state.money == 0
+
+
+def test_steward_bot_trash(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.hand.add(copper)
+    bot.hand.add(copper)
+    bot.hand.add(silver)
+    bot.play(steward, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(game.trash) == 2
+    assert game.trash.cards[0].name == "Copper"
+    assert game.trash.cards[1].name == "Copper"
+    assert bot.state.money == 0
+
+
+def test_steward_bot_money(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.play(steward, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 0
+    assert bot.state.money == 2
