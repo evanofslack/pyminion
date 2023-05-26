@@ -752,3 +752,12 @@ def test_trading_post_bot(bot: OptimizedBot, game: Game):
     assert sum(trash_counter.values()) == 2
     assert trash_counter[estate] == 1
     assert trash_counter[curse] == 1
+
+
+def test_upgrade_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(upgrade)
+    bot.deck.add(estate)
+
+    bot.play(upgrade, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].get_cost(bot, game) == 3

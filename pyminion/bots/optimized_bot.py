@@ -265,7 +265,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Trading Post":
             return self.trading_post(player, game, valid_cards)
         elif card.name == "Upgrade":
-            ret = self.upgrade(player, game, trash=True)
+            ret = self.upgrade(player, game, valid_cards, trash=True)
             return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
@@ -305,7 +305,7 @@ class OptimizedBotDecider(BotDecider):
             ret = self.swindler(player, game, valid_cards)
             return [ret]
         elif card.name == "Upgrade":
-            ret = self.upgrade(player, game, gain=True)
+            ret = self.upgrade(player, game, valid_cards, gain=True)
             return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
@@ -1262,10 +1262,21 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
         trash: bool = False,
         gain: bool = False,
     ) -> Card:
-        pass # TODO
+        if trash:
+            min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
+            return min_price_card
+
+        if gain:
+            max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+            return max_price_card
+
+        raise InvalidBotImplementation(
+            "Either trash or gain must be true when playing upgrade"
+        )
 
     def wishing_well(
         self,
