@@ -4,7 +4,7 @@ from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
-from pyminion.expansions.base import duchy, estate, curse, gold, silver
+from pyminion.expansions.base import duchy, estate, curse, gold, silver, copper
 from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward, Torturer
 from pyminion.player import Player
 
@@ -1283,7 +1283,7 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> Card:
-        pass # TODO
+        return copper
 
 
 class OptimizedBot(Bot):

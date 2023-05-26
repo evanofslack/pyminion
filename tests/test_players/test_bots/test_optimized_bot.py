@@ -761,3 +761,14 @@ def test_upgrade_bot(bot: OptimizedBot, game: Game):
     bot.play(upgrade, game)
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].get_cost(bot, game) == 3
+
+
+def test_wishing_well_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(wishing_well)
+    bot.deck.add(copper)
+    bot.deck.add(copper)
+
+    bot.play(wishing_well, game)
+    assert len(bot.hand) == 2
+    assert bot.hand.cards[0].name == "Copper"
+    assert bot.hand.cards[1].name == "Copper"
