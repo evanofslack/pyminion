@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Literal, Optional, Tuple, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
@@ -65,6 +65,29 @@ class OptimizedBotDecider(BotDecider):
             return victory_cards + action_cards + treasure_cards
         else:
             return victory_cards + non_victory_cards
+
+    @staticmethod
+    def sort_for_trash(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:
+        num_provinces = game.supply.pile_length(pile_name="Province")
+        deck_money = player.get_deck_money()
+
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in cards:
+            if CardType.Curse in card.type:
+                priority = 1
+            elif card.name == "Estate" and num_provinces >= 5:
+                priority = 2
+            elif card.name == "Copper" and deck_money > 3:
+                priority = 3
+                deck_money -= 1
+            else:
+                priority = 100 + card.get_cost(player, game)
+
+            prioritized_cards.append((priority, card))
+
+        prioritized_cards.sort(key=lambda x: x[0])
+        trash_cards = [x[1] for x in prioritized_cards]
+        return trash_cards
 
     @staticmethod
     def get_optional_discard(cards: List[Card], player: Player) -> List[Card]:
@@ -240,7 +263,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Steward":
             return self.steward(player, game, valid_cards=valid_cards, trash=True)
         elif card.name == "Trading Post":
-            return self.trading_post(player, game)
+            return self.trading_post(player, game, valid_cards)
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, trash=True)
             return [ret]
@@ -1230,8 +1253,10 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: List[Card],
     ) -> List[Card]:
-        pass # TODO
+        trash_cards = self.sort_for_trash(valid_cards, player, game)
+        return trash_cards[:2]
 
     def upgrade(
         self,

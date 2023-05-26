@@ -1,5 +1,5 @@
 from pyminion.bots.optimized_bot import OptimizedBot
-from pyminion.core import DeckCounter
+from pyminion.core import CardType, DeckCounter
 from pyminion.expansions.base import (
     artisan,
     bureaucrat,
@@ -51,7 +51,6 @@ from pyminion.expansions.intrigue import (
     upgrade,
     wishing_well,
 )
-from pyminion.core import CardType
 from pyminion.game import Game
 
 
@@ -735,3 +734,21 @@ def test_torturer_bot_gain_curse(multiplayer_bot_game: Game):
     assert counter[copper] == 3
     assert counter[curse] == 1
     assert len(p2.discard_pile) == 0
+
+
+def test_trading_post_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(trading_post)
+    bot.hand.add(silver)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.hand.add(curse)
+
+    bot.play(trading_post, game)
+    hand_counter = DeckCounter(bot.hand.cards)
+    assert sum(hand_counter.values()) == 3
+    assert hand_counter[silver] == 2
+    assert hand_counter[copper] == 1
+    trash_counter = DeckCounter(game.trash.cards)
+    assert sum(trash_counter.values()) == 2
+    assert trash_counter[estate] == 1
+    assert trash_counter[curse] == 1
