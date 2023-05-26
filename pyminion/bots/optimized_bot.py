@@ -5,7 +5,7 @@ from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_ac
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver
-from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward
+from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward, Torturer
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -65,6 +65,22 @@ class OptimizedBotDecider(BotDecider):
             return victory_cards + action_cards + treasure_cards
         else:
             return victory_cards + non_victory_cards
+
+    @staticmethod
+    def get_optional_discard(cards: List[Card], player: Player) -> List[Card]:
+        discard_cards: List[Card] = []
+        actions = player.state.actions
+        for card in cards:
+            if CardType.Treasure in card.type:
+                continue
+            elif CardType.Curse in card.type:
+                discard_cards.append(card)
+            elif CardType.Victory in card.type and CardType.Action not in card.type:
+                discard_cards.append(card)
+            elif actions == 0 and CardType.Action in card.type:
+                discard_cards.append(card)
+
+        return discard_cards
 
     def determine_trash_cards(
         self, valid_cards: List[Card], player: Player, game: "Game"
@@ -188,7 +204,7 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Mill":
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
-            return self.torturer(player, game, discard=True)
+            return self.torturer(player, game, valid_cards=valid_cards, num_discard=min_num_discard, discard=True)
         else:
             return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
@@ -1156,6 +1172,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_discard: int = -1,
         options: Literal[True] = True,
         discard: Literal[False] = False,
     ) -> int:
@@ -1166,6 +1184,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_discard: int = -1,
         options: Literal[False] = False,
         discard: Literal[True] = True,
     ) -> List[Card]:
@@ -1175,10 +1195,36 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
+        valid_cards: Optional[List[Card]] = None,
+        num_discard: int = -1,
         options: bool = False,
         discard: bool = False,
     ) -> Union[int, List[Card]]:
-        pass # TODO
+        if options:
+            if game.supply.pile_length("Curse") == 0:
+                return Torturer.Choice.GainCurse
+
+            discard_cards = self.get_optional_discard(player.hand.cards, player)
+            max_discard = min(2, len(player.hand))
+            if len(discard_cards) >= max_discard:
+                return Torturer.Choice.Discard
+
+            return Torturer.Choice.GainCurse
+
+        if discard:
+            assert valid_cards is not None
+            assert num_discard >= 0
+            discard_cards = self.sort_for_discard(
+                valid_cards,
+                player.state.actions,
+                player,
+                game,
+            )
+            return discard_cards[:num_discard]
+
+        raise InvalidBotImplementation(
+            "Either options or discard must be true when playing torturer"
+        )
 
     def trading_post(
         self,

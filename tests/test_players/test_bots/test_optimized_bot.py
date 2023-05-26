@@ -1,4 +1,5 @@
 from pyminion.bots.optimized_bot import OptimizedBot
+from pyminion.core import DeckCounter
 from pyminion.expansions.base import (
     artisan,
     bureaucrat,
@@ -668,3 +669,69 @@ def test_swindler_bot(multiplayer_bot_game: Game):
     assert multiplayer_bot_game.trash.cards[0].name == "Copper"
     assert len(p2.discard_pile) == 1
     assert p2.discard_pile.cards[0].name == "Curse"
+
+
+def test_torturer_bot_no_curses(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    curses_pile = multiplayer_bot_game.supply.get_pile("Curse")
+    while len(curses_pile) > 0:
+        curses_pile.remove(curses_pile.cards[0])
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 5
+    assert len(p2.discard_pile) == 0
+
+
+def test_torturer_bot_no_cards(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 0
+    assert len(p2.discard_pile) == 0
+
+
+def test_torturer_bot_discard(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+    for _ in range(3):
+        p2.hand.add(copper)
+    for _ in range(2):
+        p2.hand.add(estate)
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 3
+    for i in range(3):
+        assert p2.hand.cards[i].name == "Copper"
+    assert len(p2.discard_pile) == 2
+    for i in range(2):
+        assert p2.discard_pile.cards[i].name == "Estate"
+
+
+def test_torturer_bot_gain_curse(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+    for _ in range(3):
+        p2.hand.add(copper)
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 4
+    counter = DeckCounter(p2.hand.cards)
+    assert counter[copper] == 3
+    assert counter[curse] == 1
+    assert len(p2.discard_pile) == 0
