@@ -6,13 +6,25 @@ if TYPE_CHECKING:
     from pyminion.player import Player
 
 
+EventHandler = Callable[["Player", "Card", "Game"], None]
+
 class EventRegistry:
     def __init__(self):
-        self.on_play_handlers: List[Callable[["Player", "Card", "Game"], None]] = []
+        self.turn_on_play_handlers: List[EventHandler] = []
+        self.persistent_on_play_handlers: List[EventHandler] = []
 
-    def register_on_play_handler(self, handler: Callable[["Player", "Card", "Game"], None]) -> None:
-        self.on_play_handlers.append(handler)
+    def end_turn(self) -> None:
+        self.turn_on_play_handlers.clear()
+
+    def register_on_play_handler(self, handler: EventHandler, one_turn: bool = False) -> None:
+        if one_turn:
+            self.turn_on_play_handlers.append(handler)
+        else:
+            self.persistent_on_play_handlers.append(handler)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
-        for handler in self.on_play_handlers:
+        for handler in self.turn_on_play_handlers:
+            handler(player, card, game)
+
+        for handler in self.persistent_on_play_handlers:
             handler(player, card, game)

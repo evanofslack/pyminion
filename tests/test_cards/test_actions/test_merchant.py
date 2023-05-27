@@ -1,4 +1,5 @@
-from pyminion.expansions.base import merchant, silver
+from pyminion.expansions.base import merchant, throne_room, silver
+from pyminion.human import Human
 from pyminion.game import Game
 from pyminion.expansions.base import Merchant
 from pyminion.player import Player
@@ -96,3 +97,22 @@ def test_two_merchants_two_silvers(player: Player, game: Game):
     assert player.state.actions == 1
     assert player.state.money == 6
     assert player.state.buys == 1
+
+
+def test_merchant_throne_room(human: Human, game: Game, monkeypatch):
+    human.hand.add(throne_room)
+    human.hand.add(merchant)
+    human.hand.add(silver)
+    human.hand.add(silver)
+
+    monkeypatch.setattr("builtins.input", lambda _: "Merchant")
+
+    human.play(throne_room, game)
+    human.play(silver, game)
+    human.play(silver, game)
+
+    assert len(human.hand) == 2
+    assert len(human.playmat) == 4
+    assert human.state.actions == 2
+    assert human.state.money == 6
+    assert human.state.buys == 1

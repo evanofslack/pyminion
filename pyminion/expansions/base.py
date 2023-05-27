@@ -817,8 +817,10 @@ class Merchant(Action):
         player.draw(1)
         player.state.actions += 1
 
-    def on_play(self, player: "Player", card: "Card", game: "Game", location: "CardLocation") -> None:
-        if card.name == "Silver" and location == CardLocation.Playmat:
+        game.event_registry.register_on_play_handler(self.on_play, one_turn=True)
+
+    def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
+        if card.name == "Silver":
             num_silver = sum(1 for c in player.playmat.cards if c.name == "Silver")
             if num_silver == 1:
                 player.state.money += 1

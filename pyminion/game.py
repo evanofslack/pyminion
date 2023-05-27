@@ -53,8 +53,6 @@ class Game:
         self.trash = Trash()
 
         self.event_registry = EventRegistry()
-        for player in self.players:
-            player.register_events(self.event_registry)
 
         if log_stdout:
             # Set up a handler that logs to stdout
@@ -222,6 +220,7 @@ class Game:
         while True:
             for player in self.players:
                 player.take_turn(self)
+                self.event_registry.end_turn()
                 if self.is_over():
                     result = self.summerize_game()
                     logging.info(f"\n{result}")

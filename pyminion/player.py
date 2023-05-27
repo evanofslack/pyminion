@@ -58,9 +58,6 @@ class Player:
     def __repr__(self):
         return f"{self.player_id}"
 
-    def register_events(self, event_registry: "EventRegistry") -> None:
-        event_registry.register_on_play_handler(self.on_play)
-
     def reset(self):
         """
         Reset the state of the player to a pre-game state.
