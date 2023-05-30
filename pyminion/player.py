@@ -1,8 +1,8 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
-from pyminion.core import (AbstractDeck, CardType, Card, Deck, DiscardPile, Hand,
+from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash)
 from pyminion.decider import Decider
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
@@ -53,6 +53,7 @@ class Player:
         self.player_id = player_id
         self.turns: int = 0
         self.shuffles: int = 0
+        self.actions_played_this_turn: int = 0
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -65,6 +66,7 @@ class Player:
         """
         self.turns = 0
         self.shuffles = 0
+        self.actions_played_this_turn = 0
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
@@ -131,6 +133,7 @@ class Player:
         for card in self.hand.cards:
             if card.name == target_card.name:
                 if CardType.Action in card.type:
+                    self.actions_played_this_turn += 1
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
                 if CardType.Treasure in card.type:
@@ -145,20 +148,35 @@ class Player:
 
         """
         if CardType.Action in card.type:
+            self.actions_played_this_turn += 1
             card.play(player=self, game=game, generic_play=generic_play)
         elif CardType.Treasure in card.type:
             card.play(player=self, game=game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
-    def buy(self, card: Card, supply: "Supply") -> None:
+    def multi_play(self, card: Card, game: "Game", state: Any, generic_play: bool = True) -> Any:
+        """
+        Similar to previous exact_play method, except card's multi_play method is called.
+        This is method is necessary when playing "Throne Room variants".
+
+        """
+        if CardType.Action in card.type:
+            assert isinstance(card, Action)
+            self.actions_played_this_turn += 1
+            state = card.multi_play(player=self, game=game, state=state, generic_play=generic_play)
+        else:
+            raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
+        return state
+
+    def buy(self, card: Card, game: "Game") -> None:
         """
         Buy a card from the supply and add to player's discard pile.
         Check that player has sufficient money and buys to gain the card.
 
         """
         assert isinstance(card, Card)
-        if card.cost > self.state.money:
+        if card.get_cost(self, game) > self.state.money:
             raise InsufficientMoney(
                 f"{self.player_id}: Not enough money to buy {card.name}"
             )
@@ -167,10 +185,10 @@ class Player:
                 f"{self.player_id}: Not enough buys to buy {card.name}"
             )
         try:
-            supply.gain_card(card)
+            game.supply.gain_card(card)
         except EmptyPile as e:
             raise e
-        self.state.money -= card.cost
+        self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
         logger.info(f"{self} buys {card}")
@@ -190,14 +208,20 @@ class Player:
         destination.add(gain_card)
         logger.info(f"{self} gains {gain_card}")
 
-    def trash(self, target_card: Card, trash: "Trash") -> None:
+    def trash(
+        self, target_card: Card, trash: "Trash", source: Optional[AbstractDeck] = None
+    ) -> None:
         """
-        Move card from player's hand to the trash.
+        Move a card from source to the trash.
+        Defaults to moving the card from the player's hand.
 
         """
-        for card in self.hand.cards:
+        if source is None:
+            source = self.hand
+
+        for card in source.cards:
             if card == target_card:
-                trash.add(self.hand.remove(card))
+                trash.add(source.remove(card))
                 logger.info(f"{self} trashes {card}")
 
                 break
@@ -208,6 +232,7 @@ class Player:
 
         """
         self.turns += 1
+        self.actions_played_this_turn = 0
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
@@ -251,7 +276,7 @@ class Player:
             valid_cards = [
                 c
                 for c in game.supply.avaliable_cards()
-                if c.cost <= self.state.money
+                if c.get_cost(self, game) <= self.state.money
             ]
             card = self.decider.buy_phase_decision(
                 valid_cards=valid_cards,
@@ -263,7 +288,7 @@ class Player:
                 logger.info(f"{self} buys nothing")
                 break
 
-            self.buy(card, supply=game.supply)
+            self.buy(card, game)
 
     def start_cleanup_phase(self) -> None:
         """
@@ -350,6 +375,7 @@ class Player:
         return treasure_money + action_money
 
     def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
+        attacked = True
         for card in self.hand.cards:
             if card.name == "Moat":
                 block = self.decider.binary_decision(
@@ -359,5 +385,8 @@ class Player:
                     game=game,
                     relevant_cards=[attack_card],
                 )
-                return not block
-        return True
+                attacked &= not block
+            elif card.name == "Diplomat":
+                card.on_attack(self, attack_card, game)
+
+        return attacked

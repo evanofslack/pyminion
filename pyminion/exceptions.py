@@ -75,6 +75,20 @@ class InvalidMultiCardInput(InvalidInput):
     """
 
 
+class InvalidMultiOptionInput(InvalidInput):
+    """
+    Invalid response, not a valid option
+
+    """
+
+
+class InvalidDeckPositionInput(InvalidInput):
+    """
+    Invalid deck position response
+
+    """
+
+
 class InvalidPlayerCount(Exception):
     """
     Invalid number of players in game

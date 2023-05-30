@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
 
 from pyminion.core import (CardType, Card, Deck)
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
-                                 InvalidMultiCardInput, InvalidSingleCardInput)
+                                 InvalidMultiCardInput, InvalidMultiOptionInput,
+                                 InvalidSingleCardInput, InvalidDeckPositionInput)
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -139,6 +140,75 @@ def multiple_card_decision(
     return selected_cards
 
 
+def multiple_option_decision(
+    options: List[str],
+    num_choices: int = 1,
+    unique: bool = True,
+) -> List[int]:
+    """
+    Get user input when given multiple options
+
+    options are a list of strings describing the options that a user can choose
+    from.
+
+    Raise exception if user provided selection is not a valid option
+
+    """
+    prompt = f"Choose {num_choices} of the following"
+    if unique and num_choices > 1:
+        prompt += " (the choices must be different)"
+    prompt += ":"
+    print(prompt)
+    for i, option in enumerate(options):
+        print(f"{i + 1}: {option}")
+    choice_input = input("Choice: ")
+    choice_strings = [x.strip() for x in choice_input.split(",")]
+
+    if len(choice_strings) != num_choices:
+        raise InvalidMultiOptionInput("Invalid input, chose incorrect number of options")
+
+    choices: List[int] = []
+    for choice in choice_strings:
+        try:
+            choice_num = int(choice)
+        except ValueError:
+            raise InvalidMultiOptionInput(f"'{choice}' is not a valid number")
+
+        if choice_num <= 0 or choice_num > len(options):
+            raise InvalidMultiOptionInput(f"'{choice_num}' is not a valid option")
+
+        choice_index = choice_num - 1
+        if unique and choice_index in choices:
+            raise InvalidMultiOptionInput("Choices are not unique")
+
+        choices.append(choice_index)
+
+    return choices
+
+
+def deck_position_decision(prompt: str, num_deck_cards: int) -> int:
+    pos_str = input(prompt).casefold()
+    if pos_str == "top":
+        pos = num_deck_cards
+    elif pos_str == "bottom":
+        pos = 0
+    else:
+        try:
+            num = int(pos_str)
+        except ValueError:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is not a valid position")
+
+        max_num = num_deck_cards + 1
+        if num < 1:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is less than the minimum value of 1")
+        elif num > max_num:
+            raise InvalidDeckPositionInput(f"Invalid input, '{pos_str}' is greater than the maximum value of {max_num}")
+
+        pos = num - 1
+
+    return pos
+
+
 class HumanDecider:
     """
     Prompts human for decisions through the terminal.
@@ -206,6 +276,23 @@ class HumanDecider:
 
         """
         return binary_decision(prompt=prompt)
+
+    @validate_input(exceptions=InvalidMultiOptionInput)
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        """
+        Wrap multiple_option_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return multiple_option_decision(options, num_choices, unique)
 
     @validate_input(exceptions=InvalidMultiCardInput)
     def discard_decision(
@@ -305,6 +392,97 @@ class HumanDecider:
         elif max_num_topdeck >= 0 and len_result > max_num_topdeck:
             raise InvalidMultiCardInput(
                 f"Invalid response, you cannot topdeck more than {max_num_topdeck} card(s)"
+            )
+
+        return result
+
+    @validate_input(exceptions=InvalidDeckPositionInput)
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        """
+        Wrap deck_position_decision with @validate_input decorator to
+        repeat prompt if input is invalid.
+
+        """
+        return deck_position_decision(prompt, num_deck_cards)
+
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_reveal:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must reveal at least {min_num_reveal} card(s)"
+            )
+        elif max_num_reveal >= 0 and len_result > max_num_reveal:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot reveal more than {max_num_reveal} card(s)"
+            )
+
+        return result
+
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_pass:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must pass at least {min_num_pass} card(s)"
+            )
+        elif max_num_pass >= 0 and len_result > max_num_pass:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot pass more than {max_num_pass} card(s)"
+            )
+
+        return result
+
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_name:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must name at least {min_num_name} card(s)"
+            )
+        elif max_num_name >= 0 and len_result > max_num_name:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot name more than {max_num_name} card(s)"
             )
 
         return result

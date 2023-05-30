@@ -85,6 +85,17 @@ class BotDecider:
     ) -> bool:
         return True
 
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        return list(range(num_choices))
+
     def discard_decision(
         self,
         prompt: str,
@@ -132,6 +143,52 @@ class BotDecider:
         max_num_topdeck: int = -1,
     ) -> List["Card"]:
         return valid_cards[:min_num_topdeck]
+
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        return num_deck_cards
+
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_reveal]
+
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_pass]
+
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        return valid_cards[:min_num_name]
 
     def multi_play_decision(
         self,

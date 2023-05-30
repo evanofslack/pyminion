@@ -415,7 +415,7 @@ class Workshop(Action):
             prompt="Gain a card costing up to 4 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.cost <= 4
+                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 4
             ],
             player=player,
             game=game,
@@ -424,7 +424,7 @@ class Workshop(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost <= 4
+        assert gain_card.get_cost(player, game) <= 4
 
         player.gain(gain_card, game.supply)
 
@@ -594,7 +594,7 @@ class Artisan(Action):
             prompt="Gain a card costing up to 5 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.cost <= 5
+                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 5
             ],
             player=player,
             game=game,
@@ -603,7 +603,7 @@ class Artisan(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost <= 5
+        assert gain_card.get_cost(player, game) <= 5
 
         player.gain(card=gain_card, supply=game.supply, destination=player.hand)
 
@@ -976,8 +976,9 @@ class ThroneRoom(Action):
         for card in player.hand.cards:
             if card.name == dp_card.name:
                 player.playmat.add(player.hand.remove(card))
+                state = None
                 for i in range(2):
-                    player.exact_play(card=card, game=game, generic_play=False)
+                    state = player.multi_play(card=card, game=game, state=state, generic_play=False)
                 return
 
 
@@ -1016,14 +1017,14 @@ class Remodel(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        max_cost = trash_card.cost + 2
+        max_cost = trash_card.get_cost(player, game) + 2
         gain_cards = player.decider.gain_decision(
             prompt=f"Gain a card costing up to {max_cost} money: ",
             card=self,
             valid_cards=[
                 card
                 for card in game.supply.avaliable_cards()
-                if card.cost <= max_cost
+                if card.get_cost(player, game) <= max_cost
             ],
             player=player,
             game=game,
@@ -1032,7 +1033,7 @@ class Remodel(Action):
         )
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
-        assert gain_card.cost <= max_cost
+        assert gain_card.get_cost(player, game) <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply)
@@ -1082,14 +1083,14 @@ class Mine(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        max_cost = trash_card.cost + 3
+        max_cost = trash_card.get_cost(player, game) + 3
         gain_cards = player.decider.gain_decision(
             prompt=f"Gain a Treasure card costing up to {max_cost} money to your hand: ",
             card=self,
             valid_cards=[
                 card
                 for card in game.supply.avaliable_cards()
-                if CardType.Treasure in card.type and card.cost <= trash_card.cost + 3
+                if CardType.Treasure in card.type and card.get_cost(player, game) <= trash_card.get_cost(player, game) + 3
             ],
             player=player,
             game=game,
@@ -1099,7 +1100,7 @@ class Mine(Action):
         assert len(gain_cards) == 1
         gain_card = gain_cards[0]
         assert CardType.Treasure in gain_card.type
-        assert gain_card.cost <= max_cost
+        assert gain_card.get_cost(player, game) <= max_cost
 
         player.trash(trash_card, trash=game.trash)
         player.gain(gain_card, game.supply, destination=player.hand)
@@ -1331,7 +1332,7 @@ witch = Witch()
 workshop = Workshop()
 
 
-base_set = [
+base_set: List[Card] = [
     artisan,
     bandit,
     bureaucrat,
