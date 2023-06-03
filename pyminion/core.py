@@ -33,7 +33,7 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         self.name = name
         self._cost = cost
         self.type = type
@@ -47,7 +47,7 @@ class Card:
 
 
 class Victory(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def score(self, player: "Player") -> int:
@@ -59,7 +59,7 @@ class Victory(Card):
 
 
 class Treasure(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType], money: int):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...], money: int):
         super().__init__(name, cost, type)
         self.money = money
 
@@ -76,7 +76,7 @@ class Action(Card):
         self,
         name: str,
         cost: int,
-        type: Tuple[CardType],
+        type: Tuple[CardType, ...],
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
