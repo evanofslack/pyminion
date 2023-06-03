@@ -279,7 +279,7 @@ class Player:
 
             valid_cards = [
                 c
-                for c in game.supply.avaliable_cards()
+                for c in game.supply.available_cards()
                 if c.get_cost(self, game) <= self.state.money
             ]
             card = self.decider.buy_phase_decision(

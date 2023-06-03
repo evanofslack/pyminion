@@ -351,7 +351,7 @@ class Ironworks(Action):
             prompt="Gain a card costing up to 4 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 4
+                card for card in game.supply.available_cards() if card.get_cost(player, game) <= 4
             ],
             player=player,
             game=game,
@@ -401,7 +401,7 @@ class Lurker(Action):
         player.state.actions += 1
 
         supply_action_cards = [
-            c for c in game.supply.avaliable_cards() if CardType.Action in c.type
+            c for c in game.supply.available_cards() if CardType.Action in c.type
         ]
         trash_action_cards = [
             c for c in game.trash.cards if CardType.Action in c.type
@@ -913,7 +913,7 @@ class Replace(Action):
             card=self,
             valid_cards=[
                 card
-                for card in game.supply.avaliable_cards()
+                for card in game.supply.available_cards()
                 if card.get_cost(player, game) <= max_cost
             ],
             player=player,
@@ -1125,7 +1125,7 @@ class Swindler(Action):
 
                 valid_cards = [
                     c
-                    for c in game.supply.avaliable_cards()
+                    for c in game.supply.available_cards()
                     if c.get_cost(player, game) == trashed_cost
                 ]
                 if len(valid_cards) == 0:
@@ -1313,7 +1313,7 @@ class Upgrade(Action):
         new_cost = trash_card.get_cost(player, game) + 1
         valid_cards = [
             card
-            for card in game.supply.avaliable_cards()
+            for card in game.supply.available_cards()
             if card.get_cost(player, game) == new_cost
         ]
 

@@ -216,7 +216,7 @@ class Supply:
             self.piles = []
 
     def __repr__(self):
-        return str(self.avaliable_cards())
+        return str(self.available_cards())
 
     def __len__(self):
         return len(self.piles)
@@ -260,7 +260,7 @@ class Supply:
         pile.remove(card)
         trash.add(card)
 
-    def avaliable_cards(self) -> List[Card]:
+    def available_cards(self) -> List[Card]:
         """
         Returns a list containing a single card from each non-empty pile in the supply.
 

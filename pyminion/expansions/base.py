@@ -415,7 +415,7 @@ class Workshop(Action):
             prompt="Gain a card costing up to 4 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 4
+                card for card in game.supply.available_cards() if card.get_cost(player, game) <= 4
             ],
             player=player,
             game=game,
@@ -594,7 +594,7 @@ class Artisan(Action):
             prompt="Gain a card costing up to 5 money: ",
             card=self,
             valid_cards=[
-                card for card in game.supply.avaliable_cards() if card.get_cost(player, game) <= 5
+                card for card in game.supply.available_cards() if card.get_cost(player, game) <= 5
             ],
             player=player,
             game=game,
@@ -1023,7 +1023,7 @@ class Remodel(Action):
             card=self,
             valid_cards=[
                 card
-                for card in game.supply.avaliable_cards()
+                for card in game.supply.available_cards()
                 if card.get_cost(player, game) <= max_cost
             ],
             player=player,
@@ -1089,7 +1089,7 @@ class Mine(Action):
             card=self,
             valid_cards=[
                 card
-                for card in game.supply.avaliable_cards()
+                for card in game.supply.available_cards()
                 if CardType.Treasure in card.type and card.get_cost(player, game) <= trash_card.get_cost(player, game) + 3
             ],
             player=player,
