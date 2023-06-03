@@ -2,7 +2,7 @@ import logging
 import random
 from typing import List, Optional
 
-from pyminion.core import CardType, Card, Deck, DeckCounter, Pile, Supply, Trash
+from pyminion.core import CardType, Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
@@ -46,7 +46,7 @@ class Game:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
         self.expansions = expansions
-        self.kingdom_cards = kingdom_cards
+        self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
         self.all_game_cards: List[Card] = []
         self.card_cost_reduction = 0
         self.start_deck = start_deck
@@ -185,11 +185,15 @@ class Game:
         if self.random_order:
             random.shuffle(self.players)
         if not self.start_deck:
-            self.start_deck = [copper] * 7 + [estate] * 3
+            self.start_deck = []
+            for _ in range(7):
+                self.start_deck.append(copper)
+            for _ in range(3):
+                self.start_deck.append(estate)
 
         for player in self.players:
             player.reset()
-            player.discard_pile = Deck(self.start_deck[:])
+            player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(5)
 

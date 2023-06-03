@@ -63,7 +63,7 @@ class Treasure(Card):
         super().__init__(name, cost, type)
         self.money = money
 
-    def play(self, player: "Player"):
+    def play(self, player: "Player", game: "Game"):
         """
         Specific play method unique to each treasure card
 
