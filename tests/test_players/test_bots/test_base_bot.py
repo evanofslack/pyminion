@@ -137,7 +137,7 @@ def test_multi_play_decision_none(base_bot: Bot, game: Game):
 
 
 def test_is_attacked(base_bot: Bot, game: Game):
-    assert base_bot.is_attacked(player=base_bot, attack_card=witch, game=game)
+    assert base_bot.is_attacked(attacking_player=base_bot, attack_card=witch, game=game)
 
 
 def test_action_decision(base_bot: Bot, game: Game):

@@ -387,8 +387,8 @@ class Player:
         action_money = self.get_action_money()
         return treasure_money + action_money
 
-    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
+    def is_attacked(self, attacking_player: "Player", attack_card: Card, game: "Game") -> bool:
         attacked = True
         for card in self.hand.cards:
-            attacked &= card.on_attack(player, attack_card, game)
+            attacked &= card.on_attack(self, attacking_player, attack_card, game)
         return attacked

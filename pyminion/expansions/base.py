@@ -735,7 +735,7 @@ class Witch(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self, game=game):
+                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
@@ -776,11 +776,11 @@ class Moat(Action):
 
         player.draw(2)
 
-    def on_attack(self, player: "Player", attack_card: "Card", game: "Game") -> bool:
-        block = player.decider.binary_decision(
-            prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
+    def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
+        block = defending_player.decider.binary_decision(
+            prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
             card=self,
-            player=player,
+            player=defending_player,
             game=game,
             relevant_cards=[attack_card],
         )
@@ -858,7 +858,7 @@ class Bandit(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self, game=game):
+                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
                     revealed_cards = AbstractDeck()
                     opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
@@ -917,7 +917,7 @@ class Bureaucrat(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self, game=game
+                attacking_player=player, attack_card=self, game=game
             ):
 
                 victory_cards = []
@@ -1146,7 +1146,7 @@ class Militia(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self, game=game
+                attacking_player=player, attack_card=self, game=game
             ):
 
                 num_discard = len(opponent.hand) - 3

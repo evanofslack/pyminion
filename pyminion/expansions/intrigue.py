@@ -255,29 +255,29 @@ class Diplomat(Action):
         if len(player.hand) <= 5:
             player.state.actions += 2
 
-    def on_attack(self, player: "Player", attack_card: Card, game: "Game") -> bool:
-        if len(player.hand) < 5:
+    def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: Card, game: "Game") -> bool:
+        if len(defending_player.hand) < 5:
             return True
 
-        reveal = player.decider.binary_decision(
+        reveal = defending_player.decider.binary_decision(
             prompt=f"Reveal {self} to draw 2 cards then discard 3? y/n: ",
             card=self,
-            player=player,
+            player=defending_player,
             game=game,
             relevant_cards=[attack_card],
         )
         if not reveal:
             return True
 
-        logger.info(f"{player} reveals {self}")
+        logger.info(f"{defending_player} reveals {self}")
 
-        player.draw(2)
+        defending_player.draw(2)
 
-        discard_cards = player.decider.discard_decision(
+        discard_cards = defending_player.decider.discard_decision(
             prompt="Enter the cards you would like to discard: ",
             card=self,
-            valid_cards=player.hand.cards,
-            player=player,
+            valid_cards=defending_player.hand.cards,
+            player=defending_player,
             game=game,
             min_num_discard=3,
             max_num_discard=3,
@@ -285,7 +285,7 @@ class Diplomat(Action):
         assert len(discard_cards) == 3
 
         for card in discard_cards:
-            player.discard(card)
+            defending_player.discard(card)
 
         return True
 
