@@ -48,6 +48,8 @@ class Game:
         self.players = players
         self.expansions = expansions
         self.kingdom_cards = kingdom_cards
+        self.all_game_cards: List[Card] = []
+        self.card_cost_reduction = 0
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
@@ -173,7 +175,9 @@ class Game:
 
         basic_piles = self._create_basic_piles()
         kingdom_piles = self._create_kingdom_piles()
-        return Supply(basic_piles + kingdom_piles)
+        all_piles = basic_piles + kingdom_piles
+        self.all_game_cards = [pile.cards[0] for pile in all_piles]
+        return Supply(all_piles)
 
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
@@ -221,6 +225,10 @@ class Game:
             for player in self.players:
                 player.take_turn(self)
                 self.event_registry.end_turn()
+
+                # reset card cost reduction
+                self.card_cost_reduction = 0
+
                 if self.is_over():
                     result = self.summerize_game()
                     logging.info(f"\n{result}")

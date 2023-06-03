@@ -1,7 +1,7 @@
 import logging
 import random
 from collections import Counter
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -48,11 +48,15 @@ class Card:
 
     def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         self.name = name
-        self.cost = cost
+        self._cost = cost
         self.type = type
 
     def __repr__(self):
         return f"{self.name}"
+
+    def get_cost(self, player: "Player", game: "Game") -> int:
+        cost = max(0, self._cost - game.card_cost_reduction)
+        return cost
 
     def on_play(self, player: "Player", card: "Card", game: "Game", location: "CardLocation") -> None:
         pass
@@ -65,7 +69,7 @@ class Victory(Card):
     def __init__(self, name: str, cost: int, type: Tuple[CardType]):
         super().__init__(name, cost, type)
 
-    def score(self):
+    def score(self, player: "Player") -> int:
         """
         Specific score method unique to each victory card
 
@@ -101,14 +105,14 @@ class Action(Card):
         self.draw = draw
         self.money = money
 
-    def play(self, player: "Player", game: "Game", generic_play: bool = True):
+    def play(self, player: "Player", game: "Game", generic_play: bool = True) -> None:
         """
         Specific play method unique to each action card
 
         """
         raise NotImplementedError(f"play method must be implemented for {self.name}")
 
-    def generic_play(self, player: "Player"):
+    def generic_play(self, player: "Player") -> None:
         """
         Generic play method that gets executes for all action cards
 
@@ -121,6 +125,16 @@ class Action(Card):
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.actions -= 1
+
+    def multi_play(self, player: "Player", game: "Game", state: Any, generic_play: bool = True) -> Any:
+        """
+        Called by "Throne Room variants" to play a card multiple times.
+        By default this just calls self.play() but can be overridden by derived
+        cards to implement different behavior.
+
+        """
+        self.play(player, game, generic_play)
+        return None
 
 
 class DeckCounter(Counter):
@@ -226,29 +240,44 @@ class Supply:
     def __len__(self):
         return len(self.piles)
 
+    def get_pile(self, pile_name: str) -> Pile:
+        """
+        Get a pile by name.
+
+        """
+        for pile in self.piles:
+            if pile.name == pile_name:
+                return pile
+        raise PileNotFound(f"{pile_name} pile is not valid")
+
     def gain_card(self, card: Card) -> Card:
         """
         Gain a card from the supply.
 
         """
-        for pile in self.piles:
-            if card.name == pile.name:
-                try:
-                    return pile.remove(card)
+        pile = self.get_pile(card.name)
+        try:
+            return pile.remove(card)
 
-                except EmptyPile as e:
-                    raise e
-
-        raise PileNotFound(f"{card} not found in the supply")
+        except EmptyPile as e:
+            raise e
 
     def return_card(self, card: Card):
         """
         Return a card to the supply.
 
         """
-        for pile in self.piles:
-            if card.name == pile.name:
-                pile.add(card)
+        pile = self.get_pile(card.name)
+        pile.add(card)
+
+    def trash_card(self, card: Card, trash: "Trash") -> None:
+        """
+        Trash a card from the supply.
+
+        """
+        pile = self.get_pile(card.name)
+        pile.remove(card)
+        trash.add(card)
 
     def avaliable_cards(self) -> List[Card]:
         """
@@ -274,7 +303,26 @@ class Supply:
         Get the number of cards in a specified pile in the supply.
 
         """
-        for pile in self.piles:
-            if pile.name == pile_name:
-                return len(pile)
-        raise PileNotFound(f"{pile_name} pile is not valid")
+        pile = self.get_pile(pile_name)
+        return len(pile)
+
+
+def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
+    for card in cards:
+        if CardType.Action in card.type:
+            assert isinstance(card, Action)
+            yield card
+
+
+def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
+    for card in cards:
+        if CardType.Treasure in card.type:
+            assert isinstance(card, Treasure)
+            yield card
+
+
+def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
+    for card in cards:
+        if CardType.Victory in card.type:
+            assert isinstance(card, Victory)
+            yield card

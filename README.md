@@ -3,6 +3,8 @@
 [![tests](https://github.com/evanofslack/pyminion/actions/workflows/python-app.yml/badge.svg)](https://github.com/evanofslack/pyminion/actions/workflows/python-app.yml)
 [![codecov](https://codecov.io/gh/evanofslack/pyminion/branch/master/graph/badge.svg?token=5GW65KFEL5)](https://codecov.io/gh/evanofslack/pyminion)
 
+<img width="800" alt="pyminion-preview" src="https://github.com/evanofslack/pyminion/assets/51209817/85e6ed9f-8cbf-4781-9c0b-f29c1d0a2162">
+<br></br>
 
 Pyminion is a library for executing and analyzing games of [Dominion](https://www.riograndegames.com/games/dominion/). At its core, pyminion implements the rules and logic of Dominion and provides an API to interact with the game engine. In addition, it enables interactive games through the command line and simulation of games between bots.
 
@@ -13,7 +15,7 @@ Pyminion is a library for executing and analyzing games of [Dominion](https://ww
 -   [Support](#support)
 -   [Contributing](#contributing)
 
-## Getting Started
+## Installation
 
 Pyminion requires at least Python 3.8 and can easily be installed through pypi
 

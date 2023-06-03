@@ -1,10 +1,12 @@
 from pyminion.bots.optimized_bot import OptimizedBot
+from pyminion.core import CardType, DeckCounter
 from pyminion.expansions.base import (
     artisan,
     bureaucrat,
     cellar,
     chapel,
     copper,
+    curse,
     duchy,
     estate,
     gold,
@@ -22,9 +24,33 @@ from pyminion.expansions.base import (
     throne_room,
     vassal,
     village,
+    witch,
     workshop,
 )
-from pyminion.core import CardType
+from pyminion.expansions.intrigue import (
+    baron,
+    courtier,
+    courtyard,
+    diplomat,
+    ironworks,
+    lurker,
+    masquerade,
+    mill,
+    mining_village,
+    minion,
+    nobles,
+    patrol,
+    pawn,
+    replace,
+    secret_passage,
+    shanty_town,
+    steward,
+    swindler,
+    torturer,
+    trading_post,
+    upgrade,
+    wishing_well,
+)
 from pyminion.game import Game
 
 
@@ -41,7 +67,7 @@ def test_artisan_bot_actions(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-1].name == "Village"
 
 
-def test_bureaucrat_bot(bot: OptimizedBot, multiplayer_bot_game: Game):
+def test_bureaucrat_bot(multiplayer_bot_game: Game):
     bot = multiplayer_bot_game.players[0]
     bot.hand.add(bureaucrat)
     opponent = multiplayer_bot_game.players[1]
@@ -195,7 +221,7 @@ def test_moneylender_bot(bot: OptimizedBot, game: Game):
     assert len(bot.hand) == 2
     assert len(game.trash) == 0
 
-    bot.hand.cards[0].play(bot, game)
+    bot.play(moneylender, game)
     assert len(bot.hand) == 0
     assert len(bot.playmat) == 1
     assert bot.playmat.cards[0].name == "Moneylender"
@@ -352,3 +378,397 @@ def test_workshop_bot_late_game(bot: OptimizedBot, game: Game):
         game.supply.gain_card(province)
     bot.play(workshop, game)
     assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_baron_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(baron)
+    bot.hand.add(estate)
+    bot.play(baron, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Estate"
+
+
+def test_courtier_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(courtier)
+    bot.hand.add(copper)
+    bot.hand.add(torturer)
+    bot.play(courtier, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Gold"
+    assert bot.state.actions == 1
+    assert bot.state.money == 0
+
+
+def test_courtyard_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(courtyard)
+    bot.hand.add(torturer)
+    bot.play(courtyard, game)
+    assert bot.deck.cards[-1].name == "Torturer"
+
+
+def test_diplomat_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p1.hand) > 0:
+        p1.hand.remove(p1.hand.cards[0])
+    p1.hand.add(copper)
+    p1.hand.add(estate)
+    p1.hand.add(estate)
+    p1.hand.add(estate)
+    p1.hand.add(diplomat)
+    assert len(p1.hand) == 5
+
+    p2.hand.add(witch)
+    p2.play(witch, multiplayer_bot_game)
+
+    assert len(p1.hand) == 4
+    assert len(p1.discard_pile) == 4
+    for i in range(3):
+        assert p1.discard_pile.cards[i].name == "Estate"
+    assert p1.discard_pile.cards[3].name == "Curse" # from witch
+
+
+def test_ironworks_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(ironworks)
+    bot.play(ironworks, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[-1].name == "Silver"
+
+
+def test_lurker_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(lurker)
+    bot.hand.add(lurker)
+    assert len(game.trash) == 0
+    assert len(bot.discard_pile) == 0
+
+    bot.play(lurker, game)
+    assert len(game.trash) == 1
+    card = game.trash.cards[0]
+    assert CardType.Action in card.type
+    assert len(bot.discard_pile) == 0
+
+    bot.play(lurker, game)
+    assert len(game.trash) == 0
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == card.name
+
+
+def test_masquerade_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(masquerade)
+    p1.hand.add(estate)
+
+    p2.hand.add(curse)
+    p2_estate_count_before = sum(1 for c in p2.hand.cards if c.name == "Estate")
+
+    p1.play(masquerade, multiplayer_bot_game)
+
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Curse"
+
+    p2_estate_count_after = sum(1 for c in p2.hand.cards if c.name == "Estate")
+    assert p2_estate_count_after == p2_estate_count_before + 1
+
+
+def test_mill_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(mill)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.deck.add(copper) # playing mill will draw this copper
+    bot.play(mill, game)
+    assert len(bot.discard_pile) == 2
+    assert set(c.name for c in bot.discard_pile.cards) == {"Copper", "Estate"}
+    assert bot.state.money == 2
+
+
+def test_mining_village_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(mining_village)
+    bot.hand.add(mining_village)
+    bot.play(mining_village, game)
+    assert len(game.trash) == 0
+
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province)
+
+    bot.play(mining_village, game)
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Mining Village"
+
+
+def test_minion_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(minion)
+    bot.hand.add(minion)
+    bot.hand.add(copper)
+    bot.play(minion, game)
+    assert len(bot.discard_pile) == 0
+    assert bot.state.money == 2
+
+    bot.play(minion, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.state.money == 2
+
+
+def test_nobles_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(nobles)
+    bot.hand.add(nobles)
+    bot.play(nobles, game)
+    assert len(bot.hand) == 1
+    assert bot.state.actions == 2
+
+    bot.play(nobles, game)
+    assert len(bot.hand) == 3
+    assert bot.state.actions == 1
+
+
+def test_patrol_bot(bot: OptimizedBot, game: Game):
+    bot.deck.add(patrol)
+    bot.deck.add(silver)
+    bot.deck.add(gold)
+    bot.deck.add(copper)
+    for _ in range(3):
+        bot.deck.add(copper)
+
+    bot.hand.add(patrol)
+    bot.play(patrol, game)
+    assert len(bot.deck) >= 4
+    assert bot.deck.cards[-1].name == "Gold"
+    assert bot.deck.cards[-2].name == "Patrol"
+    assert bot.deck.cards[-3].name == "Silver"
+    assert bot.deck.cards[-4].name == "Copper"
+
+
+def test_pawn_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(pawn)
+    bot.hand.add(pawn)
+    bot.hand.add(copper)
+    bot.play(pawn, game)
+    assert len(bot.hand) == 2
+    assert bot.state.actions == 1
+    assert bot.state.buys == 1
+    assert bot.state.money == 1
+
+    bot.play(pawn, game)
+    assert len(bot.hand) == 2
+    assert bot.state.actions == 0
+    assert bot.state.buys == 1
+    assert bot.state.money == 2
+
+
+def test_pawn_bot_buy(bot: OptimizedBot, game: Game):
+    bot.hand.add(pawn)
+    for _ in range(3):
+        bot.hand.add(gold)
+    bot.play(pawn, game)
+    assert len(bot.hand) == 4
+    assert bot.state.actions == 0
+    assert bot.state.buys == 2
+    assert bot.state.money == 0
+
+
+def test_replace_bot(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(copper)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Copper"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Estate"
+
+
+def test_replace_bot_trash_gold(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(gold)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Gold"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Province"
+
+
+def test_replace_bot_trash_curse(bot: OptimizedBot, game: Game):
+    province_pile = game.supply.get_pile("Province")
+    while len(province_pile) >= 3:
+        province_pile.remove(province_pile.cards[0])
+
+    bot.hand.add(replace)
+    bot.hand.add(curse)
+    bot.play(replace, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Curse"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Estate"
+
+
+def test_secret_passage_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(secret_passage)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.play(secret_passage, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(bot.deck) >= 1
+    assert bot.deck.cards[-1].name == "Silver"
+
+
+def test_steward_bot_cards(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.hand.add(shanty_town)
+    bot.play(shanty_town, game)
+    bot.play(steward, game)
+    assert len(bot.hand) == 2
+    assert len(game.trash) == 0
+    assert bot.state.money == 0
+
+
+def test_steward_bot_trash(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.hand.add(copper)
+    bot.hand.add(copper)
+    bot.hand.add(silver)
+    bot.play(steward, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(game.trash) == 2
+    assert game.trash.cards[0].name == "Copper"
+    assert game.trash.cards[1].name == "Copper"
+    assert bot.state.money == 0
+
+
+def test_steward_bot_money(bot: OptimizedBot, game: Game):
+    bot.hand.add(steward)
+    bot.play(steward, game)
+    assert len(bot.hand) == 0
+    assert len(game.trash) == 0
+    assert bot.state.money == 2
+
+
+def test_swindler_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(swindler)
+    p2.deck.add(copper)
+    p1.play(swindler, multiplayer_bot_game)
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Copper"
+    assert len(p2.discard_pile) == 1
+    assert p2.discard_pile.cards[0].name == "Curse"
+
+
+def test_torturer_bot_no_curses(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    curses_pile = multiplayer_bot_game.supply.get_pile("Curse")
+    while len(curses_pile) > 0:
+        curses_pile.remove(curses_pile.cards[0])
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 5
+    assert len(p2.discard_pile) == 0
+
+
+def test_torturer_bot_no_cards(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 0
+    assert len(p2.discard_pile) == 0
+
+
+def test_torturer_bot_discard(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+    for _ in range(3):
+        p2.hand.add(copper)
+    for _ in range(2):
+        p2.hand.add(estate)
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 3
+    for i in range(3):
+        assert p2.hand.cards[i].name == "Copper"
+    assert len(p2.discard_pile) == 2
+    for i in range(2):
+        assert p2.discard_pile.cards[i].name == "Estate"
+
+
+def test_torturer_bot_gain_curse(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    while len(p2.hand) > 0:
+        p2.hand.remove(p2.hand.cards[0])
+    for _ in range(3):
+        p2.hand.add(copper)
+
+    p1.hand.add(torturer)
+    p1.play(torturer, multiplayer_bot_game)
+    assert len(p2.hand) == 4
+    counter = DeckCounter(p2.hand.cards)
+    assert counter[copper] == 3
+    assert counter[curse] == 1
+    assert len(p2.discard_pile) == 0
+
+
+def test_trading_post_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(trading_post)
+    bot.hand.add(silver)
+    bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.hand.add(curse)
+
+    bot.play(trading_post, game)
+    hand_counter = DeckCounter(bot.hand.cards)
+    assert sum(hand_counter.values()) == 3
+    assert hand_counter[silver] == 2
+    assert hand_counter[copper] == 1
+    trash_counter = DeckCounter(game.trash.cards)
+    assert sum(trash_counter.values()) == 2
+    assert trash_counter[estate] == 1
+    assert trash_counter[curse] == 1
+
+
+def test_upgrade_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(upgrade)
+    bot.deck.add(estate)
+
+    bot.play(upgrade, game)
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].get_cost(bot, game) == 3
+
+
+def test_wishing_well_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(wishing_well)
+    bot.deck.add(copper)
+    bot.deck.add(copper)
+
+    bot.play(wishing_well, game)
+    assert len(bot.hand) == 2
+    assert bot.hand.cards[0].name == "Copper"
+    assert bot.hand.cards[1].name == "Copper"

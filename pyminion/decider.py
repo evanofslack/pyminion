@@ -45,6 +45,17 @@ class Decider(Protocol):
     ) -> bool:
         raise NotImplementedError("binary_decision is not implemented")
 
+    def multiple_option_decision(
+        self,
+        card: "Card",
+        options: List[str],
+        player: "Player",
+        game: "Game",
+        num_choices: int = 1,
+        unique: bool = True,
+    ) -> List[int]:
+        raise NotImplementedError("multiple_option_decision is not implemented")
+
     def discard_decision(
         self,
         prompt: str,
@@ -92,6 +103,52 @@ class Decider(Protocol):
         max_num_topdeck: int = -1,
     ) -> List["Card"]:
         raise NotImplementedError("topdeck_decision is not implemented")
+
+    def deck_position_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        player: "Player",
+        game: "Game",
+        num_deck_cards: int,
+    ) -> int:
+        raise NotImplementedError("deck_position_decision is not implemented")
+
+    def reveal_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_reveal: int = 0,
+        max_num_reveal: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("reveal_decision is not implemented")
+
+    def pass_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_pass: int = 0,
+        max_num_pass: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("pass_decision is not implemented")
+
+    def name_card_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_name: int = 0,
+        max_num_name: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("name_card_decision is not implemented")
 
     def multi_play_decision(
         self,
