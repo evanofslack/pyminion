@@ -2,7 +2,7 @@ import logging
 import math
 from typing import TYPE_CHECKING, List, Tuple
 
-from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
+from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -111,7 +111,7 @@ class Province(Victory):
         return vp
 
 
-class Curse(Victory):
+class Curse(ScoreCard):
     def __init__(
         self,
         name: str = "Curse",

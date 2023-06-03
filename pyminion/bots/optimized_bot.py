@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards
+from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver, copper
@@ -47,24 +47,20 @@ class OptimizedBotDecider(BotDecider):
         """
 
         sorted_cards = sorted(cards, key=lambda card: card.get_cost(player, game))
-        victory_cards = [
-            card
-            for card in sorted_cards
-            if CardType.Victory in card.type or CardType.Curse in card.type
-        ]
-        non_victory_cards = [
+        score_cards = list(get_score_cards(sorted_cards))
+        non_score_cards = [
             card
             for card in sorted_cards
             if CardType.Victory not in card.type and CardType.Curse not in card.type
         ]
-        treasure_cards = [card for card in non_victory_cards if CardType.Treasure in card.type]
+        treasure_cards = [card for card in non_score_cards if CardType.Treasure in card.type]
         action_cards = [
-            card for card in non_victory_cards if CardType.Treasure not in card.type
+            card for card in non_score_cards if CardType.Treasure not in card.type
         ]
         if actions == 0:
-            return victory_cards + action_cards + treasure_cards
+            return score_cards + action_cards + treasure_cards
         else:
-            return victory_cards + non_victory_cards
+            return score_cards + non_score_cards
 
     @staticmethod
     def sort_for_trash(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:

@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
-                           Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards)
+                           Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
+                           get_score_cards)
 from pyminion.decider import Decider
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidCardPlay)
@@ -342,9 +343,8 @@ class Player:
 
         """
         total_vp: int = 0
-        for card in self.get_all_cards():
-            if CardType.Victory in card.type or CardType.Curse in card.type:
-                total_vp += card.score(self)
+        for card in get_score_cards(self.get_all_cards()):
+            total_vp += card.score(self)
         return total_vp
 
     def get_treasure_money(self) -> int:

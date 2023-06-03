@@ -46,16 +46,21 @@ class Card:
         return cost
 
 
-class Victory(Card):
+class ScoreCard(Card):
     def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def score(self, player: "Player") -> int:
         """
-        Specific score method unique to each victory card
+        Specific score method unique to card
 
         """
         raise NotImplementedError(f"Score method must be implemented for {self.name}")
+
+
+class Victory(ScoreCard):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
+        super().__init__(name, cost, type)
 
 
 class Treasure(Card):
@@ -289,6 +294,10 @@ class Supply:
 
 
 def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
+    """
+    Gets an iterator over the action cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Action in card.type:
             assert isinstance(card, Action)
@@ -296,6 +305,10 @@ def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
 
 
 def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
+    """
+    Gets an iterator over the treasure cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Treasure in card.type:
             assert isinstance(card, Treasure)
@@ -303,7 +316,22 @@ def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
 
 
 def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
+    """
+    Gets an iterator over the victory cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Victory in card.type:
             assert isinstance(card, Victory)
+            yield card
+
+
+def get_score_cards(cards: Iterable[Card]) -> Iterator[ScoreCard]:
+    """
+    Gets an iterator over the victory and curse cards in a Card iterable.
+
+    """
+    for card in cards:
+        if CardType.Victory in card.type or CardType.Curse in card.type:
+            assert isinstance(card, ScoreCard)
             yield card

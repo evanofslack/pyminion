@@ -2,7 +2,7 @@ from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, Any, List
 
-from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
+from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
@@ -793,12 +793,7 @@ class Patrol(Action):
         player.draw(num_cards=4, destination=revealed, silent=True)
         logger.info(f"{player} reveals {revealed}")
 
-        victory_curse_cards = [
-            card
-            for card in revealed.cards
-            if CardType.Curse in card.type or CardType.Victory in card.type
-        ]
-
+        victory_curse_cards = list(get_score_cards(revealed.cards))
         for card in victory_curse_cards:
             player.hand.add(revealed.remove(card))
 
