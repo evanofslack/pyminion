@@ -63,7 +63,7 @@ class Treasure(Card):
         super().__init__(name, cost, type)
         self.money = money
 
-    def play(self, player: "Player", game: "Game"):
+    def play(self, player: "Player", game: "Game") -> None:
         """
         Specific play method unique to each treasure card
 
@@ -149,7 +149,7 @@ class AbstractDeck:
         self.cards.remove(card)
         return card
 
-    def move_to(self, destination: "AbstractDeck"):
+    def move_to(self, destination: "AbstractDeck") -> None:
         destination.cards += self.cards
         self.cards = []
 
@@ -162,7 +162,7 @@ class Deck(AbstractDeck):
         drawn_card = self.cards.pop()
         return drawn_card
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         random.shuffle(self.cards)
 
 
@@ -243,7 +243,7 @@ class Supply:
         except EmptyPile as e:
             raise e
 
-    def return_card(self, card: Card):
+    def return_card(self, card: Card) -> None:
         """
         Return a card to the supply.
 

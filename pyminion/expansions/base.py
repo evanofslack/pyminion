@@ -23,7 +23,7 @@ class Copper(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: "Game"):
+    def play(self, player: Player, game: "Game") -> None:
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -39,7 +39,7 @@ class Silver(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: "Game"):
+    def play(self, player: Player, game: "Game") -> None:
 
         # check if this is the first silver played and if there are any merchants in play
         if self not in player.playmat.cards:
@@ -63,7 +63,7 @@ class Gold(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
-    def play(self, player: Player, game: "Game"):
+    def play(self, player: Player, game: "Game") -> None:
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money

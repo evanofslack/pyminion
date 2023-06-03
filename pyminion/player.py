@@ -58,7 +58,7 @@ class Player:
     def __repr__(self):
         return f"{self.player_id}"
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the state of the player to a pre-game state.
         Required for resetting player deck and state between games when running simulations.
