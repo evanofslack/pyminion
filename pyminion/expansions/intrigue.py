@@ -891,7 +891,7 @@ class Replace(Action):
             super().generic_play(player)
 
         trash_cards = player.decider.trash_decision(
-            prompt="Trash a card form your hand: ",
+            prompt="Trash a card from your hand: ",
             card=self,
             valid_cards=player.hand.cards,
             player=player,
@@ -1292,7 +1292,7 @@ class Upgrade(Action):
         player.state.actions += 1
 
         trash_cards = player.decider.trash_decision(
-            prompt="Trash a card form your hand: ",
+            prompt="Trash a card from your hand: ",
             card=self,
             valid_cards=player.hand.cards,
             player=player,
