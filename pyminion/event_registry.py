@@ -12,6 +12,7 @@ class EventRegistry:
     def __init__(self):
         self.turn_on_play_handlers: List[EventHandler] = []
         self.persistent_on_play_handlers: List[EventHandler] = []
+        self.on_gain_handlers: List[EventHandler] = []
 
     def end_turn(self) -> None:
         self.turn_on_play_handlers.clear()
@@ -27,4 +28,11 @@ class EventRegistry:
             handler(player, card, game)
 
         for handler in self.persistent_on_play_handlers:
+            handler(player, card, game)
+
+    def register_on_gain_handler(self, handler: EventHandler) -> None:
+        self.on_gain_handlers.append(handler)
+
+    def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
+        for handler in self.on_gain_handlers:
             handler(player, card, game)
