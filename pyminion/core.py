@@ -295,7 +295,7 @@ class Supply:
 
 def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
     """
-    Gets an iterator over the action cards in a Card iterable.
+    Returns an iterator over the action cards in a Card iterable.
 
     """
     for card in cards:
@@ -306,7 +306,7 @@ def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
 
 def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
     """
-    Gets an iterator over the treasure cards in a Card iterable.
+    Returns an iterator over the treasure cards in a Card iterable.
 
     """
     for card in cards:
@@ -317,7 +317,7 @@ def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
 
 def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
     """
-    Gets an iterator over the victory cards in a Card iterable.
+    Returns an iterator over the victory cards in a Card iterable.
 
     """
     for card in cards:
@@ -328,7 +328,7 @@ def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
 
 def get_score_cards(cards: Iterable[Card]) -> Iterator[ScoreCard]:
     """
-    Gets an iterator over the victory and curse cards in a Card iterable.
+    Returns an iterator over the victory and curse cards in a Card iterable.
 
     """
     for card in cards:
