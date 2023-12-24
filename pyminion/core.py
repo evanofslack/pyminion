@@ -33,7 +33,7 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         self.name = name
         self._cost = cost
         self.type = type
@@ -46,24 +46,29 @@ class Card:
         return cost
 
 
-class Victory(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType]):
+class ScoreCard(Card):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def score(self, player: "Player") -> int:
         """
-        Specific score method unique to each victory card
+        Specific score method unique to card
 
         """
         raise NotImplementedError(f"Score method must be implemented for {self.name}")
 
 
+class Victory(ScoreCard):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
+        super().__init__(name, cost, type)
+
+
 class Treasure(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType], money: int):
+    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...], money: int):
         super().__init__(name, cost, type)
         self.money = money
 
-    def play(self, player: "Player"):
+    def play(self, player: "Player", game: "Game") -> None:
         """
         Specific play method unique to each treasure card
 
@@ -76,7 +81,7 @@ class Action(Card):
         self,
         name: str,
         cost: int,
-        type: Tuple[CardType],
+        type: Tuple[CardType, ...],
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -149,7 +154,7 @@ class AbstractDeck:
         self.cards.remove(card)
         return card
 
-    def move_to(self, destination: "AbstractDeck"):
+    def move_to(self, destination: "AbstractDeck") -> None:
         destination.cards += self.cards
         self.cards = []
 
@@ -162,7 +167,7 @@ class Deck(AbstractDeck):
         drawn_card = self.cards.pop()
         return drawn_card
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         random.shuffle(self.cards)
 
 
@@ -216,7 +221,7 @@ class Supply:
             self.piles = []
 
     def __repr__(self):
-        return str(self.avaliable_cards())
+        return str(self.available_cards())
 
     def __len__(self):
         return len(self.piles)
@@ -243,7 +248,7 @@ class Supply:
         except EmptyPile as e:
             raise e
 
-    def return_card(self, card: Card):
+    def return_card(self, card: Card) -> None:
         """
         Return a card to the supply.
 
@@ -260,7 +265,7 @@ class Supply:
         pile.remove(card)
         trash.add(card)
 
-    def avaliable_cards(self) -> List[Card]:
+    def available_cards(self) -> List[Card]:
         """
         Returns a list containing a single card from each non-empty pile in the supply.
 
@@ -289,6 +294,10 @@ class Supply:
 
 
 def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
+    """
+    Returns an iterator over the action cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Action in card.type:
             assert isinstance(card, Action)
@@ -296,6 +305,10 @@ def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
 
 
 def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
+    """
+    Returns an iterator over the treasure cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Treasure in card.type:
             assert isinstance(card, Treasure)
@@ -303,7 +316,22 @@ def get_treasure_cards(cards: Iterable[Card]) -> Iterator[Treasure]:
 
 
 def get_victory_cards(cards: Iterable[Card]) -> Iterator[Victory]:
+    """
+    Returns an iterator over the victory cards in a Card iterable.
+
+    """
     for card in cards:
         if CardType.Victory in card.type:
             assert isinstance(card, Victory)
+            yield card
+
+
+def get_score_cards(cards: Iterable[Card]) -> Iterator[ScoreCard]:
+    """
+    Returns an iterator over the victory and curse cards in a Card iterable.
+
+    """
+    for card in cards:
+        if CardType.Victory in card.type or CardType.Curse in card.type:
+            assert isinstance(card, ScoreCard)
             yield card

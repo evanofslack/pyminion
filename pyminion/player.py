@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
-                           Playmat, Supply, Trash)
+                           Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
+                           get_score_cards)
 from pyminion.decider import Decider
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidCardPlay)
@@ -58,7 +59,7 @@ class Player:
     def __repr__(self):
         return f"{self.player_id}"
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the state of the player to a pre-game state.
         Required for resetting player deck and state between games when running simulations.
@@ -133,10 +134,12 @@ class Player:
         for card in self.hand.cards:
             if card.name == target_card.name:
                 if CardType.Action in card.type:
+                    assert isinstance(card, Action)
                     self.actions_played_this_turn += 1
                     card.play(player=self, game=game, generic_play=generic_play)
                     return
                 if CardType.Treasure in card.type:
+                    assert isinstance(card, Treasure)
                     card.play(player=self, game=game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
@@ -148,9 +151,11 @@ class Player:
 
         """
         if CardType.Action in card.type:
+            assert isinstance(card, Action)
             self.actions_played_this_turn += 1
             card.play(player=self, game=game, generic_play=generic_play)
         elif CardType.Treasure in card.type:
+            assert isinstance(card, Treasure)
             card.play(player=self, game=game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
@@ -275,7 +280,7 @@ class Player:
 
             valid_cards = [
                 c
-                for c in game.supply.avaliable_cards()
+                for c in game.supply.available_cards()
                 if c.get_cost(self, game) <= self.state.money
             ]
             card = self.decider.buy_phase_decision(
@@ -338,9 +343,8 @@ class Player:
 
         """
         total_vp: int = 0
-        for card in self.get_all_cards():
-            if CardType.Victory in card.type or CardType.Curse in card.type:
-                total_vp += card.score(self)
+        for card in get_score_cards(self.get_all_cards()):
+            total_vp += card.score(self)
         return total_vp
 
     def get_treasure_money(self) -> int:
@@ -349,9 +353,8 @@ class Player:
 
         """
         total_money: int = 0
-        for card in self.get_all_cards():
-            if CardType.Treasure in card.type:
-                total_money += card.money
+        for card in get_treasure_cards(self.get_all_cards()):
+            total_money += card.money
         return total_money
 
     def get_action_money(self) -> int:
@@ -360,9 +363,8 @@ class Player:
 
         """
         total_money: int = 0
-        for card in self.get_all_cards():
-            if CardType.Action in card.type:
-                total_money += card.money
+        for card in get_action_cards(self.get_all_cards()):
+            total_money += card.money
         return total_money
 
     def get_deck_money(self) -> int:

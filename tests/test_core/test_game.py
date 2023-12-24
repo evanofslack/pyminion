@@ -68,7 +68,7 @@ def test_setup_user_selected_card(human):
         kingdom_cards=[smithy],
     )
     game.supply = game._create_supply()
-    assert smithy in game.supply.avaliable_cards()
+    assert smithy in game.supply.available_cards()
 
 
 def test_setup_invalid_user_selected_card(human):
