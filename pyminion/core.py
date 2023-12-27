@@ -45,6 +45,9 @@ class Card:
         cost = max(0, self._cost - game.card_cost_reduction)
         return cost
 
+    def get_pile_starting_count(self, game: "Game") -> int:
+        return 10
+
 
 class ScoreCard(Card):
     def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
@@ -61,6 +64,15 @@ class ScoreCard(Card):
 class Victory(ScoreCard):
     def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
+
+    def get_pile_starting_count(self, game: "Game") -> int:
+        num_players = len(game.players)
+        if num_players == 1:
+            return 5
+        elif num_players == 2:
+            return 8
+        else:
+            return 12
 
 
 class Treasure(Card):
