@@ -2,7 +2,7 @@ import logging
 import random
 from typing import List, Optional
 
-from pyminion.core import CardType, Card, Deck, DeckCounter, Pile, Supply, Trash
+from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.event_registry import EventRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
@@ -47,7 +47,7 @@ class Game:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
         self.expansions = expansions
-        self.kingdom_cards = kingdom_cards
+        self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
         self.all_game_cards: List[Card] = []
         self.card_cost_reduction = 0
         self.start_deck = start_deck
@@ -135,7 +135,7 @@ class Game:
         PILE_LENGTH: int = 10
         KINGDOM_PILES: int = 10
 
-        # All avaliable cards from chosen expansions
+        # All available cards from chosen expansions
         kingdom_options = [card for expansion in self.expansions for card in expansion]
 
         # If user chooses kingdom cards, put them in the supply
@@ -168,7 +168,7 @@ class Game:
     def _create_supply(self) -> Supply:
         """
         Create a supply consisting of basic cards
-        avaliable in every kingdom as well
+        available in every kingdom as well
         as the kingdom specific cards.
 
         """
@@ -188,11 +188,15 @@ class Game:
         if self.random_order:
             random.shuffle(self.players)
         if not self.start_deck:
-            self.start_deck = [copper] * 7 + [estate] * 3
+            self.start_deck = []
+            for _ in range(7):
+                self.start_deck.append(copper)
+            for _ in range(3):
+                self.start_deck.append(estate)
 
         for player in self.players:
             player.reset()
-            player.discard_pile = Deck(self.start_deck[:])
+            player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(5)
 
@@ -230,7 +234,7 @@ class Game:
                 self.card_cost_reduction = 0
 
                 if self.is_over():
-                    result = self.summerize_game()
+                    result = self.summarize_game()
                     logging.info(f"\n{result}")
                     return result
 
@@ -282,7 +286,7 @@ class Game:
 
         return winners
 
-    def summerize_game(self) -> GameResult:
+    def summarize_game(self) -> GameResult:
         """
         Called at the end of the game,
         this creates a summary of the game

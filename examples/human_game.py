@@ -6,6 +6,7 @@ Either by yourself, with another human, or against a bot.
 
 from pyminion.bots.examples import BigMoney
 from pyminion.expansions.base import artisan, bandit, base_set, witch
+from pyminion.expansions.intrigue import intrigue_set, nobles, bridge
 from pyminion.game import Game
 from pyminion.human import Human
 
@@ -14,8 +15,8 @@ bm = BigMoney(player_id="Big Money")
 
 game = Game(
     players=[human, bm],
-    expansions=[base_set],
-    kingdom_cards=[artisan, bandit, witch],  # specific cards to add to the kingdom
+    expansions=[base_set, intrigue_set],
+    kingdom_cards=[artisan, bandit, witch, nobles, bridge],  # specific cards to add to the kingdom
     random_order=True,  # players start in random order
 )
 
