@@ -13,6 +13,7 @@ class EventRegistry:
         self.turn_on_play_handlers: List[EventHandler] = []
         self.persistent_on_play_handlers: List[EventHandler] = []
         self.on_gain_handlers: List[EventHandler] = []
+        self.on_buy_handlers: List[EventHandler] = []
 
     def end_turn(self) -> None:
         self.turn_on_play_handlers.clear()
@@ -35,4 +36,10 @@ class EventRegistry:
 
     def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
         for handler in self.on_gain_handlers:
+            handler(player, card, game)
+
+    def on_buy(self, player: "Player", card: "Card", game: "Game") -> None:
+        for handler in self.on_gain_handlers:
+            handler(player, card, game)
+        for handler in self.on_buy_handlers:
             handler(player, card, game)
