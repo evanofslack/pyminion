@@ -203,8 +203,8 @@ def test_insufficient_actions(player: Player, game: Game):
         player.hand.cards[0].play(player, game)
 
 
-def test_player_gain_card(player: Player, supply: Supply):
-    player.gain(card=copper, supply=supply)
+def test_player_gain_card(player: Player, game: Game):
+    player.gain(card=copper, game=game)
     assert player.discard_pile.cards[0] == copper
     assert len(player.discard_pile) == 1
 

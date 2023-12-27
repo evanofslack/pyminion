@@ -418,7 +418,7 @@ class Workshop(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 4
 
-        player.gain(gain_card, game.supply)
+        player.gain(gain_card, game)
 
 
 class Festival(Action):
@@ -597,7 +597,7 @@ class Artisan(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 5
 
-        player.gain(card=gain_card, supply=game.supply, destination=player.hand)
+        player.gain(card=gain_card, game=game, destination=player.hand)
 
         topdeck_cards = player.decider.topdeck_decision(
             prompt="Put a card from your hand onto your deck: ",
@@ -741,7 +741,7 @@ class Witch(Action):
                     try:
                         opponent.gain(
                             card=curse,
-                            supply=game.supply,
+                            game=game,
                         )
                     except EmptyPile:
                         pass
@@ -852,7 +852,7 @@ class Bandit(Action):
 
         # attempt to gain a gold. if gold pile is empty, proceed
         try:
-            player.gain(card=gold, supply=game.supply)
+            player.gain(card=gold, game=game)
         except EmptyPile:
             pass
 
@@ -911,7 +911,7 @@ class Bureaucrat(Action):
 
         # attempt to gain a silver. if silver pile is empty, proceed
         try:
-            player.gain(card=silver, supply=game.supply, destination=player.deck)
+            player.gain(card=silver, game=game, destination=player.deck)
         except EmptyPile:
             pass
 
@@ -1046,7 +1046,7 @@ class Remodel(Action):
         assert gain_card.get_cost(player, game) <= max_cost
 
         player.trash(trash_card, trash=game.trash)
-        player.gain(gain_card, game.supply)
+        player.gain(gain_card, game)
 
 
 class Mine(Action):
@@ -1113,7 +1113,7 @@ class Mine(Action):
         assert gain_card.get_cost(player, game) <= max_cost
 
         player.trash(trash_card, trash=game.trash)
-        player.gain(gain_card, game.supply, destination=player.hand)
+        player.gain(gain_card, game, destination=player.hand)
 
 
 class Militia(Action):

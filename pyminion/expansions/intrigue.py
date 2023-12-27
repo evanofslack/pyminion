@@ -56,7 +56,7 @@ class Baron(Action):
             player.discard(estate)
             player.state.money += 4
         elif game.supply.pile_length(estate.name) > 0:
-            player.gain(estate, game.supply)
+            player.gain(estate, game)
 
 
 class Bridge(Action):
@@ -187,7 +187,7 @@ class Courtier(Action):
             elif choice == Courtier.Choice.Money:
                 player.state.money += 3
             elif choice == Courtier.Choice.GainGold:
-                player.gain(gold, game.supply)
+                player.gain(gold, game)
             else:
                 raise ValueError(f"Unknown courtier choice '{choice}'")
 
@@ -364,7 +364,7 @@ class Ironworks(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 4
 
-        player.gain(card=gain_card, supply=game.supply)
+        player.gain(card=gain_card, game=game)
 
         if CardType.Action in gain_card.type:
             player.state.actions += 1
@@ -930,16 +930,16 @@ class Replace(Action):
         player.trash(trash_card, trash=game.trash)
 
         if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
-            player.gain(gain_card, game.supply, destination=player.deck)
+            player.gain(gain_card, game, destination=player.deck)
         else:
-            player.gain(gain_card, game.supply)
+            player.gain(gain_card, game)
 
         if CardType.Victory in gain_card.type:
             for opponent in game.players:
                 if opponent is not player and opponent.is_attacked(player, self, game):
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
-                        opponent.gain(curse, game.supply)
+                        opponent.gain(curse, game)
                     except EmptyPile:
                         pass
 
@@ -1222,7 +1222,7 @@ class Torturer(Action):
         try:
             opponent.gain(
                 card=curse,
-                supply=game.supply,
+                game=game,
                 destination=opponent.hand,
             )
         except EmptyPile:
@@ -1271,7 +1271,7 @@ class TradingPost(Action):
             # attempt to gain a silver to player's hand.
             # if silver pile is empty, proceed
             try:
-                player.gain(silver, game.supply, player.hand)
+                player.gain(silver, game, player.hand)
             except EmptyPile:
                 pass
 
@@ -1335,7 +1335,7 @@ class Upgrade(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) == new_cost
 
-        player.gain(gain_card, game.supply)
+        player.gain(gain_card, game)
 
 
 class WishingWell(Action):

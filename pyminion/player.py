@@ -196,10 +196,11 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
+        game.event_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
     def gain(
-        self, card: Card, supply: "Supply", destination: Optional[AbstractDeck] = None
+        self, card: Card, game: "Game", destination: Optional[AbstractDeck] = None
     ) -> None:
         """
         Gain a card from the supply and add to destination.
@@ -209,8 +210,9 @@ class Player:
         if destination is None:
             destination = self.discard_pile
 
-        gain_card = supply.gain_card(card)
+        gain_card = game.supply.gain_card(card)
         destination.add(gain_card)
+        game.event_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
 
     def trash(
