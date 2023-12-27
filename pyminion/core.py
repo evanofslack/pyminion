@@ -58,9 +58,6 @@ class Card:
         cost = max(0, self._cost - game.card_cost_reduction)
         return cost
 
-    def on_play(self, player: "Player", card: "Card", game: "Game", location: "CardLocation") -> None:
-        pass
-
     def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
         return True
 

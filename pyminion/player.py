@@ -120,14 +120,6 @@ class Player:
                 logger.info(f"{self} discards {card}")
                 return
 
-    def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
-        if self == player:
-            for c in self.hand.cards:
-                c.on_play(self, card, game, CardLocation.Hand)
-
-            for c in self.playmat.cards:
-                c.on_play(self, card, game, CardLocation.Playmat)
-
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
         """
         Find target card in player's hand and play it.
