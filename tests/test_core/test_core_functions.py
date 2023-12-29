@@ -1,7 +1,11 @@
-from pyminion.core import get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
+from pyminion.core import Action, CardType, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
 from pyminion.expansions.base import gold, silver, copper, province, duchy, estate, curse, market, smithy
 from pyminion.expansions.intrigue import nobles
+from pyminion.game import Game
+from pyminion.player import Player
 
+test_action = Action("test", 1, (CardType.Action,))
+test_victory = Victory("test", 1, (CardType.Victory,))
 
 def test_get_action_cards():
     cards_in = [
@@ -78,3 +82,24 @@ def test_get_score_cards():
     assert cards_out[1].name == "Province"
     assert cards_out[2].name == "Duchy"
     assert cards_out[3].name == "Nobles"
+
+
+def test_action_card_starting_count(player: Player):
+    players = [player] * 2
+    game = Game(players, [])
+
+    assert test_action.get_pile_starting_count(game) == 10
+
+
+def test_victory_card_start_count_2_players(player: Player):
+    players = [player] * 2
+    game = Game(players, [])
+
+    assert test_victory.get_pile_starting_count(game) == 8
+
+
+def test_victory_card_start_count_3_players(player: Player):
+    players = [player] * 3
+    game = Game(players, [])
+
+    assert test_victory.get_pile_starting_count(game) == 12

@@ -78,30 +78,7 @@ class Game:
 
         """
 
-        if len(self.players) == 1:
-            VICTORY_LENGTH = 5
-            CURSE_LENGTH = 10
-            COPPER_LENGTH = 53
-
-        elif len(self.players) == 2:
-            VICTORY_LENGTH = 8
-            CURSE_LENGTH = 10
-            COPPER_LENGTH = 46
-
-        elif len(self.players) == 3:
-            VICTORY_LENGTH = 12
-            CURSE_LENGTH = 20
-            COPPER_LENGTH = 39
-
-        else:
-            VICTORY_LENGTH = 12
-            CURSE_LENGTH = 30
-            COPPER_LENGTH = 32
-
-        SILVER_LENGTH = 40
-        GOLD_LENGTH = 30
-
-        basic_cards = [
+        basic_cards: List[Card] = [
             copper,
             silver,
             gold,
@@ -111,18 +88,10 @@ class Game:
             curse,
         ]
 
-        basic_piles = []
-        for card in basic_cards:
-            if card.name == "Copper":
-                basic_piles.append(Pile([card] * COPPER_LENGTH))
-            elif card.name == "Silver":
-                basic_piles.append(Pile([card] * SILVER_LENGTH))
-            elif card.name == "Gold":
-                basic_piles.append(Pile([card] * GOLD_LENGTH))
-            elif CardType.Victory in card.type:
-                basic_piles.append(Pile([card] * VICTORY_LENGTH))
-            elif CardType.Curse in card.type:
-                basic_piles.append(Pile([card] * CURSE_LENGTH))
+        basic_piles = [
+            Pile([card] * card.get_pile_starting_count(self))
+            for card in basic_cards
+        ]
 
         return basic_piles
 
@@ -132,7 +101,6 @@ class Game:
         This should be 10 piles each with 10 cards.
 
         """
-        PILE_LENGTH: int = 10
         KINGDOM_PILES: int = 10
 
         # All available cards from chosen expansions
@@ -152,7 +120,7 @@ class Game:
             chosen_cards = 0
 
         chosen_piles = (
-            [Pile([card] * PILE_LENGTH) for card in self.kingdom_cards]
+            [Pile([card] * card.get_pile_starting_count(self)) for card in self.kingdom_cards]
             if chosen_cards
             else []
         )
@@ -161,7 +129,7 @@ class Game:
             for card in self.kingdom_cards:
                 kingdom_options.remove(card)  # Do not duplicate any user chosen cards
         kingdom_ten = random.sample(kingdom_options, KINGDOM_PILES - chosen_cards)
-        random_piles = [Pile([card] * PILE_LENGTH) for card in kingdom_ten]
+        random_piles = [Pile([card] * card.get_pile_starting_count(self)) for card in kingdom_ten]
 
         return chosen_piles + random_piles
 

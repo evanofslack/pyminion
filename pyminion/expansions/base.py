@@ -23,6 +23,10 @@ class Copper(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
+    def get_pile_starting_count(self, game: "Game") -> int:
+        num_players = len(game.players)
+        return 60 - (7 * num_players)
+
     def play(self, player: Player, game: "Game") -> None:
         player.playmat.add(self)
         player.hand.remove(self)
@@ -39,6 +43,9 @@ class Silver(Treasure):
     ):
         super().__init__(name, cost, type, money)
 
+    def get_pile_starting_count(self, game: "Game") -> int:
+        return 40
+
     def play(self, player: Player, game: "Game") -> None:
         player.playmat.add(self)
         player.hand.remove(self)
@@ -54,6 +61,9 @@ class Gold(Treasure):
         money: int = 3,
     ):
         super().__init__(name, cost, type, money)
+
+    def get_pile_starting_count(self, game: "Game") -> int:
+        return 30
 
     def play(self, player: Player, game: "Game") -> None:
         player.playmat.add(self)
@@ -111,6 +121,17 @@ class Curse(ScoreCard):
         type: Tuple[CardType, ...] = (CardType.Curse,),
     ):
         super().__init__(name, cost, type)
+
+    def get_pile_starting_count(self, game: "Game") -> int:
+        num_players = len(game.players)
+        if num_players == 1:
+            return 10
+        elif num_players == 2:
+            return 10
+        elif num_players == 3:
+            return 20
+        else:
+            return 30
 
     def score(self, player: Player) -> int:
         vp = -1
