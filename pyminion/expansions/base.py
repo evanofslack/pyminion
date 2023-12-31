@@ -3,6 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
+from pyminion.effect_registry import Effect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -838,7 +839,8 @@ class Merchant(Action):
         player.draw(1)
         player.state.actions += 1
 
-        game.effect_registry.register_on_play_handler(self.on_play, one_turn=True)
+        effect = Effect("Merchant +$1", self.on_play)
+        game.effect_registry.register_on_play_handler(effect, one_turn=True)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
         if card.name == "Silver":

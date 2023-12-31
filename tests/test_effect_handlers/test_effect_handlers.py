@@ -1,4 +1,5 @@
 from pyminion.core import Card
+from pyminion.effect_registry import Effect
 from pyminion.expansions.base import gold, smithy
 from pyminion.game import Game
 from pyminion.player import Player
@@ -17,7 +18,7 @@ def test_on_gain(game: Game):
 
     tester = HandlerTester()
 
-    reg.register_on_gain_handler(tester.handler)
+    reg.register_on_gain_handler(Effect("test", tester.handler))
 
     player = game.players[0]
     player.hand.add(gold)
