@@ -3,7 +3,7 @@ import random
 from typing import List, Optional
 
 from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
-from pyminion.event_registry import EventRegistry
+from pyminion.effect_registry import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
@@ -54,7 +54,7 @@ class Game:
         self.random_order = random_order
         self.trash = Trash()
 
-        self.event_registry = EventRegistry()
+        self.effect_registry = EffectRegistry()
 
         if log_stdout:
             # Set up a handler that logs to stdout
@@ -196,7 +196,7 @@ class Game:
         while True:
             for player in self.players:
                 player.take_turn(self)
-                self.event_registry.end_turn()
+                self.effect_registry.end_turn()
 
                 # reset card cost reduction
                 self.card_cost_reduction = 0

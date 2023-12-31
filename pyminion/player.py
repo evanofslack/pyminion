@@ -6,7 +6,7 @@ from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPi
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
                            get_score_cards)
 from pyminion.decider import Decider
-from pyminion.event_registry import EventRegistry
+from pyminion.effect_registry import EffectRegistry
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidCardPlay)
 
@@ -138,12 +138,12 @@ class Player:
                     assert isinstance(card, Action)
                     self.actions_played_this_turn += 1
                     card.play(player=self, game=game, generic_play=generic_play)
-                    game.event_registry.on_play(self, card, game)
+                    game.effect_registry.on_play(self, card, game)
                     return
                 if CardType.Treasure in card.type:
                     assert isinstance(card, Treasure)
                     card.play(player=self, game=game)
-                    game.event_registry.on_play(self, card, game)
+                    game.effect_registry.on_play(self, card, game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
 
@@ -157,11 +157,11 @@ class Player:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
             card.play(player=self, game=game, generic_play=generic_play)
-            game.event_registry.on_play(self, card, game)
+            game.effect_registry.on_play(self, card, game)
         elif CardType.Treasure in card.type:
             assert isinstance(card, Treasure)
             card.play(player=self, game=game)
-            game.event_registry.on_play(self, card, game)
+            game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
@@ -201,7 +201,7 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
-        game.event_registry.on_buy(self, card, game)
+        game.effect_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
     def gain(
@@ -217,7 +217,7 @@ class Player:
 
         gain_card = game.supply.gain_card(card)
         destination.add(gain_card)
-        game.event_registry.on_gain(self, card, game)
+        game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
 
     def trash(

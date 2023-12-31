@@ -838,7 +838,7 @@ class Merchant(Action):
         player.draw(1)
         player.state.actions += 1
 
-        game.event_registry.register_on_play_handler(self.on_play, one_turn=True)
+        game.effect_registry.register_on_play_handler(self.on_play, one_turn=True)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
         if card.name == "Silver":

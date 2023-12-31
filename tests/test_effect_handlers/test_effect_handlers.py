@@ -13,7 +13,7 @@ class HandlerTester:
 
 
 def test_on_gain(game: Game):
-    reg = game.event_registry
+    reg = game.effect_registry
 
     tester = HandlerTester()
 
