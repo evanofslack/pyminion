@@ -1,5 +1,5 @@
 from pyminion.core import Card
-from pyminion.effect_registry import Effect
+from pyminion.effects import Effect
 from pyminion.expansions.base import gold, smithy
 from pyminion.game import Game
 from pyminion.player import Player

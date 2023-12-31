@@ -3,7 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
-from pyminion.effect_registry import Effect
+from pyminion.effects import Effect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 

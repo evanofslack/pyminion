@@ -6,7 +6,6 @@ from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPi
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
                            get_score_cards)
 from pyminion.decider import Decider
-from pyminion.effect_registry import EffectRegistry
 from pyminion.exceptions import (CardNotFound, EmptyPile, InsufficientBuys,
                                  InsufficientMoney, InvalidCardPlay)
 

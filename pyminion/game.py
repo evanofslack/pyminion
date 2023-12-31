@@ -3,7 +3,7 @@ import random
 from typing import List, Optional
 
 from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
-from pyminion.effect_registry import EffectRegistry
+from pyminion.effects import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
