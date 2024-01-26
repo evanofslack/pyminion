@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 PlayerGameEffectHandler = Callable[["Player", "Game"], None]
-EffectHandler = Callable[["Player", "Card", "Game"], None]
+PlayerCardGameEffectHandler = Callable[["Player", "Card", "Game"], None]
 
 
 class PlayerGameEffect:
@@ -16,24 +16,24 @@ class PlayerGameEffect:
         self.handler = handler
 
 
-class Effect:
-    def __init__(self, name: str, handler: EffectHandler):
+class PlayerCardGameEffect:
+    def __init__(self, name: str, handler: PlayerCardGameEffectHandler):
         self.name = name
         self.handler = handler
 
 
 class EffectRegistry:
     def __init__(self):
-        self.turn_on_play_effects: List[Effect] = []
-        self.persistent_on_play_effects: List[Effect] = []
-        self.on_gain_effects: List[Effect] = []
-        self.on_buy_effects: List[Effect] = []
+        self.turn_on_play_effects: List[PlayerCardGameEffect] = []
+        self.persistent_on_play_effects: List[PlayerCardGameEffect] = []
+        self.on_gain_effects: List[PlayerCardGameEffect] = []
+        self.on_buy_effects: List[PlayerCardGameEffect] = []
         self.on_shuffle_effects: List[PlayerGameEffect] = []
 
     def end_turn(self) -> None:
         self.turn_on_play_effects.clear()
 
-    def register_on_play_handler(self, effect: Effect, one_turn: bool = False) -> None:
+    def register_on_play_handler(self, effect: PlayerCardGameEffect, one_turn: bool = False) -> None:
         if one_turn:
             self.turn_on_play_effects.append(effect)
         else:
@@ -46,7 +46,7 @@ class EffectRegistry:
         for effect in self.persistent_on_play_effects:
             effect.handler(player, card, game)
 
-    def register_on_gain_handler(self, effect: Effect) -> None:
+    def register_on_gain_handler(self, effect: PlayerCardGameEffect) -> None:
         self.on_gain_effects.append(effect)
 
     def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
