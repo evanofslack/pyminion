@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 from enum import Enum
 from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
 
-logger = logging.getLogger()
 
+logger = logging.getLogger()
 
 
 class CardType(Enum):
@@ -63,6 +63,9 @@ class Card:
 
     def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
         return True
+
+    def set_up(self, game: "Game") -> None:
+        pass
 
 
 class ScoreCard(Card):

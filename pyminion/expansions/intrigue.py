@@ -106,7 +106,7 @@ class Conspirator(Action):
         player.state.money += 2
 
         if player.actions_played_this_turn >= 3:
-            player.draw(1)
+            player.draw(game, 1)
             player.state.actions += 1
 
 
@@ -211,7 +211,7 @@ class Courtyard(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(3)
+        player.draw(game, 3)
 
         topdeck_cards = player.decider.topdeck_decision(
             prompt="Enter the card you would like to topdeck: ",
@@ -251,7 +251,7 @@ class Diplomat(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(2)
+        player.draw(game, 2)
         if len(player.hand) <= 5:
             player.state.actions += 2
 
@@ -271,7 +271,7 @@ class Diplomat(Action):
 
         logger.info(f"{defending_player} reveals {self}")
 
-        defending_player.draw(2)
+        defending_player.draw(game, 2)
 
         discard_cards = defending_player.decider.discard_decision(
             prompt="Enter the cards you would like to discard: ",
@@ -373,7 +373,7 @@ class Ironworks(Action):
             player.state.money += 1
 
         if CardType.Victory in gain_card.type:
-            player.draw(1)
+            player.draw(game, 1)
 
 
 class Lurker(Action):
@@ -487,7 +487,7 @@ class Masquerade(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(2)
+        player.draw(game, 2)
 
         # get players who have at least 1 card in their hand
         valid_players = [p for p in game.players if len(p.hand) > 0]
@@ -564,7 +564,7 @@ class Mill(Action, Victory):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(1)
+        player.draw(game, 1)
         player.state.actions += 1
 
         discard = player.decider.binary_decision(
@@ -631,7 +631,7 @@ class MiningVillage(Action):
     def _play(
         self, player: Player, game: "Game", state: Any, generic_play: bool = True
     ) -> Any:
-        player.draw(1)
+        player.draw(game, 1)
         player.state.actions += 2
 
         trashed = False if state is None else bool(state)
@@ -706,7 +706,7 @@ class Minion(Action):
         elif choice == Minion.Choice.DiscardDrawAttack:
             for _ in range(len(player.hand.cards)):
                 player.discard(player.hand.cards[0])
-            player.draw(4)
+            player.draw(game, 4)
 
             i = 0
             for opponent in game.players:
@@ -714,7 +714,7 @@ class Minion(Action):
                     if len(opponent.hand) >= 5:
                         for _ in range(len(opponent.hand.cards)):
                             opponent.discard(opponent.hand.cards[0])
-                        opponent.draw(4)
+                        opponent.draw(game, 4)
                     i += 1
         else:
             raise ValueError(f"Unknown minion choice '{choice}'")
@@ -757,7 +757,7 @@ class Nobles(Action, Victory):
         choice = choices[0]
 
         if choice == Nobles.Choice.Cards:
-            player.draw(3)
+            player.draw(game, 3)
         elif choice == Nobles.Choice.Actions:
             player.state.actions += 2
         else:
@@ -789,10 +789,10 @@ class Patrol(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(3)
+        player.draw(game, 3)
 
         revealed = AbstractDeck()
-        player.draw(num_cards=4, destination=revealed, silent=True)
+        player.draw(game, num_cards=4, destination=revealed, silent=True)
         logger.info(f"{player} reveals {revealed}")
 
         victory_curse_cards = list(get_score_cards(revealed.cards))
@@ -861,7 +861,7 @@ class Pawn(Action):
 
         for choice in choices:
             if choice == Pawn.Choice.Card:
-                player.draw(1)
+                player.draw(game, 1)
             elif choice == Pawn.Choice.Action:
                 player.state.actions += 1
             elif choice == Pawn.Choice.Buy:
@@ -960,7 +960,7 @@ class SecretPassage(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(2)
+        player.draw(game, 2)
         player.state.actions += 1
 
         insert_cards = player.decider.topdeck_decision(
@@ -1016,7 +1016,7 @@ class ShantyTown(Action):
         player.state.actions += 2
 
         if not any(CardType.Action in c.type for c in player.hand.cards):
-            player.draw(2)
+            player.draw(game, 2)
 
 
 class Steward(Action):
@@ -1058,7 +1058,7 @@ class Steward(Action):
         choice = choices[0]
 
         if choice == Steward.Choice.Cards:
-            player.draw(2)
+            player.draw(game, 2)
         elif choice == Steward.Choice.Money:
             player.state.money += 2
         elif choice == Steward.Choice.Trash:
@@ -1113,7 +1113,7 @@ class Swindler(Action):
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(player, self, game):
                 revealed_cards = AbstractDeck()
-                opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
+                opponent.draw(game, num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
                 game.trash.add(trashed_card)
                 trashed_cost = trashed_card.get_cost(player, game)
@@ -1170,7 +1170,7 @@ class Torturer(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(3)
+        player.draw(game, 3)
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(player, self, game):
@@ -1290,7 +1290,7 @@ class Upgrade(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(1)
+        player.draw(game, 1)
         player.state.actions += 1
 
         trash_cards = player.decider.trash_decision(
@@ -1354,7 +1354,7 @@ class WishingWell(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(1)
+        player.draw(game, 1)
         player.state.actions += 1
 
         named_cards = player.decider.name_card_decision(
@@ -1372,7 +1372,7 @@ class WishingWell(Action):
         logger.info(f"{player} names {name}")
 
         revealed = AbstractDeck()
-        player.draw(1, revealed, silent=True)
+        player.draw(game, 1, revealed, silent=True)
         revealed_card = revealed.cards[0]
         revealed_name = revealed_card.name
 

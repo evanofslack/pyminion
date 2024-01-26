@@ -74,6 +74,7 @@ class Player:
 
     def draw(
         self,
+        game: "Game",
         num_cards: int = 1,
         destination: Optional[AbstractDeck] = None,
         silent: bool = False,
@@ -99,6 +100,7 @@ class Player:
                 self.discard_pile.move_to(self.deck)
                 self.deck.shuffle()
                 self.shuffles += 1
+                game.effect_registry.on_shuffle(self, game)
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
@@ -301,7 +303,7 @@ class Player:
 
             self.buy(card, game)
 
-    def start_cleanup_phase(self) -> None:
+    def start_cleanup_phase(self, game: "Game") -> None:
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
 
@@ -310,7 +312,7 @@ class Player:
         self.discard_pile.cards += self.playmat.cards
         self.hand.cards = []
         self.playmat.cards = []
-        self.draw(5)
+        self.draw(game, 5)
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
@@ -321,7 +323,7 @@ class Player:
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
-        self.start_cleanup_phase()
+        self.start_cleanup_phase(game)
 
     def get_all_cards(self) -> List[Card]:
         """

@@ -6,7 +6,14 @@ if TYPE_CHECKING:
     from pyminion.player import Player
 
 
+PlayerGameEffectHandler = Callable[["Player", "Game"], None]
 EffectHandler = Callable[["Player", "Card", "Game"], None]
+
+
+class PlayerGameEffect:
+    def __init__(self, name: str, handler: PlayerGameEffectHandler):
+        self.name = name
+        self.handler = handler
 
 
 class Effect:
@@ -21,6 +28,7 @@ class EffectRegistry:
         self.persistent_on_play_effects: List[Effect] = []
         self.on_gain_effects: List[Effect] = []
         self.on_buy_effects: List[Effect] = []
+        self.on_shuffle_effects: List[PlayerGameEffect] = []
 
     def end_turn(self) -> None:
         self.turn_on_play_effects.clear()
@@ -50,3 +58,10 @@ class EffectRegistry:
             effect.handler(player, card, game)
         for effect in self.on_buy_effects:
             effect.handler(player, card, game)
+
+    def register_on_shuffle_handler(self, effect: PlayerGameEffect) -> None:
+        self.on_shuffle_effects.append(effect)
+
+    def on_shuffle(self, player: "Player", game: "Game") -> None:
+        for effect in self.on_shuffle_effects:
+            effect.handler(player, game)

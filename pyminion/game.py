@@ -153,6 +153,9 @@ class Game:
         self.supply = self._create_supply()
         logger.info(f"Supply: \n{self.supply}")
 
+        for card in self.all_game_cards:
+            card.set_up(self)
+
         if self.random_order:
             random.shuffle(self.players)
         if not self.start_deck:
@@ -166,7 +169,7 @@ class Game:
             player.reset()
             player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
-            player.draw(5)
+            player.draw(self, 5)
 
     def is_over(self) -> bool:
         """

@@ -183,7 +183,7 @@ class Smithy(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(3)
+        player.draw(game, 3)
 
 
 class Village(Action):
@@ -212,7 +212,7 @@ class Village(Action):
             super().generic_play(player)
 
         player.state.actions += 2
-        player.draw()
+        player.draw(game)
 
 
 class Laboratory(Action):
@@ -241,7 +241,7 @@ class Laboratory(Action):
             super().generic_play(player)
 
         player.state.actions += 1
-        player.draw(2)
+        player.draw(game, 2)
 
 
 class Market(Action):
@@ -271,7 +271,7 @@ class Market(Action):
             super().generic_play(player)
 
         player.state.actions += 1
-        player.draw()
+        player.draw(game)
         player.state.money += 1
         player.state.buys += 1
 
@@ -361,7 +361,7 @@ class Cellar(Action):
 
         for card in discard_cards:
             player.discard(card)
-        player.draw(len(discard_cards))
+        player.draw(game, len(discard_cards))
 
 
 class Chapel(Action):
@@ -501,7 +501,7 @@ class Harbinger(Action):
             super().generic_play(player)
 
         player.state.actions += 1
-        player.draw()
+        player.draw(game)
 
         if not player.discard_pile:
             return
@@ -551,7 +551,7 @@ class Vassal(Action):
             super().generic_play(player)
 
         player.state.money += 2
-        player.draw(destination=player.discard_pile, silent=True)
+        player.draw(game, destination=player.discard_pile, silent=True)
 
         if not player.discard_pile:
             return
@@ -667,7 +667,7 @@ class Poacher(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw()
+        player.draw(game)
         player.state.actions += 1
         player.state.money += 1
 
@@ -719,12 +719,12 @@ class CouncilRoom(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(4)
+        player.draw(game, 4)
         player.state.buys += 1
 
         for p in game.players:
             if p is not player:
-                p.draw()
+                p.draw(game)
 
 
 class Witch(Action):
@@ -753,7 +753,7 @@ class Witch(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(2)
+        player.draw(game, 2)
 
         for opponent in game.players:
             if opponent is not player:
@@ -796,7 +796,7 @@ class Moat(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(2)
+        player.draw(game, 2)
 
     def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
         block = defending_player.decider.binary_decision(
@@ -836,7 +836,7 @@ class Merchant(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw(1)
+        player.draw(game, 1)
         player.state.actions += 1
 
         effect = Effect("Merchant +$1", self.on_play)
@@ -884,7 +884,7 @@ class Bandit(Action):
                 if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
                     revealed_cards = AbstractDeck()
-                    opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
+                    opponent.draw(game, num_cards=2, destination=revealed_cards, silent=True)
 
                     logger.info(f"{opponent} reveals {revealed_cards}")
 
@@ -1218,11 +1218,11 @@ class Sentry(Action):
         if generic_play:
             super().generic_play(player)
 
-        player.draw()
+        player.draw(game)
         player.state.actions += 1
 
         revealed = AbstractDeck()
-        player.draw(num_cards=2, destination=revealed, silent=True)
+        player.draw(game, num_cards=2, destination=revealed, silent=True)
         logger.info(f"{player} looks at {revealed}")
 
         trash_cards = player.decider.trash_decision(
@@ -1307,7 +1307,7 @@ class Library(Action):
             if len(player.deck) == 0 and len(player.discard_pile) == 0:
                 return
 
-            player.draw(num_cards=1, destination=set_aside)
+            player.draw(game, num_cards=1, destination=set_aside)
             drawn_card = set_aside.cards[-1]
 
             if CardType.Action in drawn_card.type:

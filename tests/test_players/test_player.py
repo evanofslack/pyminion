@@ -36,44 +36,44 @@ def test_create_player(decider, deck):
     assert len(player.playmat) == 0
 
 
-def test_draw_normal(player: Player):
+def test_draw_normal(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
-    player.draw()
+    player.draw(game)
     assert len(player.hand) == 1
     assert len(player.deck) == 9
 
 
-def test_draw_empty_deck(player: Player):
+def test_draw_empty_deck(player: Player, game: Game):
     player.deck.move_to(player.discard_pile)
     assert len(player.hand) == 0
     assert len(player.deck) == 0
     assert len(player.discard_pile) == 10
-    player.draw()
+    player.draw(game)
     assert len(player.deck) == 9
     assert len(player.hand) == 1
     assert len(player.discard_pile) == 0
 
 
-def test_draw_empty_deck_empty_discard_pile(player: Player):
+def test_draw_empty_deck_empty_discard_pile(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
     assert len(player.discard_pile) == 0
-    player.draw(10)
+    player.draw(game, 10)
     assert len(player.hand) == 10
     assert len(player.deck) == 0
     assert len(player.discard_pile) == 0
-    null = player.draw()
+    null = player.draw(game)
     assert null is None
     assert len(player.hand) == 10
     assert len(player.deck) == 0
     assert len(player.discard_pile) == 0
 
 
-def test_draw_multiple(player: Player):
+def test_draw_multiple(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
-    player.draw(num_cards=3)
+    player.draw(game, num_cards=3)
     assert len(player.hand) == 3
     assert len(player.deck) == 7
 
@@ -209,19 +209,19 @@ def test_player_gain_card(player: Player, game: Game):
     assert len(player.discard_pile) == 1
 
 
-def test_player_draw_to_discard(player: Player):
+def test_player_draw_to_discard(player: Player, game: Game):
     assert len(player.discard_pile) == 0
-    player.draw(num_cards=1, destination=player.discard_pile)
+    player.draw(game, num_cards=1, destination=player.discard_pile)
     assert len(player.discard_pile) == 1
 
 
-def test_shuffle_count(player: Player):
+def test_shuffle_count(player: Player, game: Game):
     assert player.shuffles == 0
     player.discard_pile.add(copper)
-    player.draw(11)
+    player.draw(game, 11)
     assert player.shuffles == 1
     player.discard_pile.add(copper)
-    player.draw(1)
+    player.draw(game, 1)
     assert player.shuffles == 2
 
 
@@ -277,9 +277,9 @@ def test_start_turn(player: Player):
     assert player.state.buys == 1
 
 
-def test_cleanup_phase(player: Player):
+def test_cleanup_phase(player: Player, game: Game):
     player.hand.add(copper)
     player.playmat.add(copper)
-    player.start_cleanup_phase()
+    player.start_cleanup_phase(game)
     assert len(player.hand) == 5
     assert len(player.playmat) == 0
