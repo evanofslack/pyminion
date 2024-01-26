@@ -18,7 +18,7 @@ def test_on_gain(game: Game):
 
     tester = HandlerTester()
 
-    reg.register_on_gain_handler(PlayerCardGameEffect("test", tester.handler))
+    reg.register_gain_effect(PlayerCardGameEffect("test", tester.handler))
 
     player = game.players[0]
     player.hand.add(gold)

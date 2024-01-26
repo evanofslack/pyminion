@@ -840,7 +840,7 @@ class Merchant(Action):
         player.state.actions += 1
 
         effect = PlayerCardGameEffect("Merchant +$1", self.on_play)
-        game.effect_registry.register_on_play_handler(effect, one_turn=True)
+        game.effect_registry.register_play_effect(effect, one_turn=True)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
         if card.name == "Silver":
