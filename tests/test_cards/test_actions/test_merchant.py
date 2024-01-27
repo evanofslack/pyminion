@@ -116,3 +116,25 @@ def test_merchant_throne_room(human: Human, game: Game, monkeypatch):
     assert human.state.actions == 2
     assert human.state.money == 6
     assert human.state.buys == 1
+
+
+def test_merchant_reset(player: Player, game: Game):
+    player.hand.add(merchant)
+    player.hand.add(silver)
+    assert len(player.hand) == 2
+    player.play(target_card=merchant, game=game)
+    player.play(target_card=silver, game=game)
+
+    assert len(player.hand) == 1
+    assert len(player.playmat) == 2
+    assert type(player.playmat.cards[0]) is Merchant
+    assert player.state.actions == 1
+    assert player.state.money == 3
+    assert player.state.buys == 1
+
+    player.start_cleanup_phase(game)
+    game.effect_registry.on_turn_end(player, game)
+
+    player.hand.add(silver)
+    player.play(silver, game)
+    assert player.state.money == 2
