@@ -199,7 +199,6 @@ class Game:
         while True:
             for player in self.players:
                 player.take_turn(self)
-                self.effect_registry.end_turn()
 
                 # reset card cost reduction
                 self.card_cost_reduction = 0

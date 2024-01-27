@@ -318,12 +318,16 @@ class Player:
         self.state.buys = 1
 
     def take_turn(self, game: "Game") -> None:
+        game.effect_registry.on_turn_start(self, game)
+
         self.start_turn()
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase(game)
+
+        game.effect_registry.on_turn_end(self, game)
 
     def get_all_cards(self) -> List[Card]:
         """
