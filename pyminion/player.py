@@ -94,20 +94,21 @@ class Player:
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
                 pass
-            # Deck is empty -> shuffle discard pile into deck
-            elif len(self.deck) == 0:
-                logger.info(f"{self} shuffles their deck")
-                self.discard_pile.move_to(self.deck)
-                self.deck.shuffle()
-                self.shuffles += 1
-                game.effect_registry.on_shuffle(self, game)
-                draw_card = self.deck.draw()
-                destination.add(draw_card)
-                drawn_cards.add(draw_card)
             else:
+                # Deck is empty -> shuffle discard pile into deck
+                if len(self.deck) == 0:
+                    logger.info(f"{self} shuffles their deck")
+                    self.discard_pile.move_to(self.deck)
+                    self.deck.shuffle()
+                    self.shuffles += 1
+                    game.effect_registry.on_shuffle(self, game)
+
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
+                if destination == self.hand:
+                    game.effect_registry.on_draw(self, draw_card, game)
+
         if not silent:
             logger.info(f"{self} draws {drawn_cards}")
 
@@ -169,7 +170,7 @@ class Player:
     def multi_play(self, card: Card, game: "Game", state: Any, generic_play: bool = True) -> Any:
         """
         Similar to previous exact_play method, except card's multi_play method is called.
-        This is method is necessary when playing "Throne Room variants".
+        This method is necessary when playing "Throne Room variants".
 
         """
         if CardType.Action in card.type:
