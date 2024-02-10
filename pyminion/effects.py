@@ -66,8 +66,17 @@ class EffectRegistry:
         for effect in self.turn_end_effects:
             effect.handler(player, game)
 
+    def register_buy_effect(self, effect: PlayerCardGameEffect) -> None:
+        self.buy_effects.append(effect)
+
+    def unregister_buy_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.buy_effects)
+
     def register_gain_effect(self, effect: PlayerCardGameEffect) -> None:
         self.gain_effects.append(effect)
+
+    def unregister_gain_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.gain_effects)
 
     def register_play_effect(self, effect: PlayerCardGameEffect) -> None:
         self.play_effects.append(effect)
@@ -78,8 +87,17 @@ class EffectRegistry:
     def register_shuffle_effect(self, effect: PlayerGameEffect) -> None:
         self.shuffle_effects.append(effect)
 
+    def unregister_shuffle_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.shuffle_effects)
+
     def register_turn_start_effect(self, effect: PlayerGameEffect) -> None:
         self.turn_start_effects.append(effect)
 
+    def unregister_turn_start_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.turn_start_effects)
+
     def register_turn_end_effect(self, effect: PlayerGameEffect) -> None:
         self.turn_end_effects.append(effect)
+
+    def unregister_turn_end_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.turn_end_effects)
