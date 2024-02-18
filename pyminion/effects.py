@@ -25,6 +25,7 @@ class PlayerCardGameEffect:
 class EffectRegistry:
     def __init__(self):
         self.buy_effects: List[PlayerCardGameEffect] = []
+        self.discard_effects: List[PlayerCardGameEffect] = []
         self.draw_effects: List[PlayerCardGameEffect] = []
         self.gain_effects: List[PlayerCardGameEffect] = []
         self.play_effects: List[PlayerCardGameEffect] = []
@@ -45,6 +46,10 @@ class EffectRegistry:
         for effect in self.gain_effects:
             effect.handler(player, card, game)
         for effect in self.buy_effects:
+            effect.handler(player, card, game)
+
+    def on_discard(self, player: "Player", card: "Card", game: "Game") -> None:
+        for effect in self.discard_effects:
             effect.handler(player, card, game)
 
     def on_draw(self, player: "Player", card: "Card", game: "Game") -> None:
@@ -76,6 +81,12 @@ class EffectRegistry:
 
     def unregister_buy_effects(self, name: str) -> None:
         self._unregister_effects(name, self.buy_effects)
+
+    def register_discard_effect(self, effect: PlayerCardGameEffect) -> None:
+        self.discard_effects.append(effect)
+
+    def unregister_discard_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.discard_effects)
 
     def register_draw_effect(self, effect: PlayerCardGameEffect) -> None:
         self.draw_effects.append(effect)

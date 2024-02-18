@@ -360,7 +360,7 @@ class Cellar(Action):
         )
 
         for card in discard_cards:
-            player.discard(card)
+            player.discard(game, card)
         player.draw(game, len(discard_cards))
 
 
@@ -690,7 +690,7 @@ class Poacher(Action):
         assert len(discard_cards) == discard_num
 
         for discard_card in discard_cards:
-            player.discard(discard_card)
+            player.discard(game, discard_card)
 
 
 class CouncilRoom(Action):
@@ -1196,7 +1196,7 @@ class Militia(Action):
                 assert len(discard_cards) == num_discard
 
                 for card in discard_cards:
-                    opponent.discard(target_card=card)
+                    opponent.discard(game, target_card=card)
 
 
 class Sentry(Action):

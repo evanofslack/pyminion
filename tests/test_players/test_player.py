@@ -141,12 +141,12 @@ def test_player_trash(player: Player, trash: Trash):
     assert type(trash.cards[0]) is Copper
 
 
-def test_player_discard(player: Player):
+def test_player_discard(player: Player, game: Game):
     player.hand.add(copper)
     player.hand.add(estate)
     assert len(player.discard_pile) == 0
     assert len(player.hand) == 2
-    player.discard(copper)
+    player.discard(game, copper)
     assert len(player.hand) == 1
     assert type(player.hand.cards[0]) is Estate
     assert len(player.discard_pile) == 1

@@ -53,7 +53,7 @@ class Baron(Action):
             discard_estate = (response == Baron.Choice.DiscardEstate)
 
         if discard_estate:
-            player.discard(estate)
+            player.discard(game, estate)
             player.state.money += 4
         elif game.supply.pile_length(estate.name) > 0:
             player.gain(estate, game)
@@ -285,7 +285,7 @@ class Diplomat(Action):
         assert len(discard_cards) == 3
 
         for card in discard_cards:
-            defending_player.discard(card)
+            defending_player.discard(game, card)
 
         return True
 
@@ -594,7 +594,7 @@ class Mill(Action, Victory):
                 player.state.money += 2
 
             for c in discard_cards:
-                player.discard(c)
+                player.discard(game, c)
 
     def score(self, player: Player) -> int:
         vp = 1
@@ -705,7 +705,7 @@ class Minion(Action):
             player.state.money += 2
         elif choice == Minion.Choice.DiscardDrawAttack:
             for _ in range(len(player.hand.cards)):
-                player.discard(player.hand.cards[0])
+                player.discard(game, player.hand.cards[0])
             player.draw(game, 4)
 
             i = 0
@@ -713,7 +713,7 @@ class Minion(Action):
                 if opponent is not player and is_attacked[i]:
                     if len(opponent.hand) >= 5:
                         for _ in range(len(opponent.hand.cards)):
-                            opponent.discard(opponent.hand.cards[0])
+                            opponent.discard(game, opponent.hand.cards[0])
                         opponent.draw(game, 4)
                     i += 1
         else:
@@ -1211,7 +1211,7 @@ class Torturer(Action):
         assert len(discard_cards) == num_discard
 
         for card in discard_cards:
-            opponent.discard(target_card=card)
+            opponent.discard(game, target_card=card)
 
     def _gain_curse(self, opponent: Player, game: "Game") -> None:
         try:
