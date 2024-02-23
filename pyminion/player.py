@@ -255,6 +255,8 @@ class Player:
         self.state.buys = 1
 
     def start_action_phase(self, game: "Game") -> None:
+        game.current_phase = game.Phase.Action
+
         while self.state.actions > 0:
             logger.info(f"{self.player_id}'s hand: {self.hand}")
 
@@ -269,6 +271,8 @@ class Player:
             self.play(card, game)
 
     def start_treasure_phase(self, game: "Game") -> None:
+        game.current_phase = game.Phase.Buy
+
         viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         while len(viable_treasures) > 0:
             logger.info(f"Hand: {self.hand}")
@@ -312,6 +316,8 @@ class Player:
         Move hand and playmat cards into discard pile and draw 5 new cards.
 
         """
+        game.current_phase = game.Phase.CleanUp
+
         for card in self.hand.cards:
             self.discard(game, card)
         for card in self.playmat.cards:

@@ -1,3 +1,4 @@
+from enum import IntEnum, unique
 import logging
 import random
 from typing import List, Optional
@@ -29,6 +30,12 @@ class Game:
 
     """
 
+    @unique
+    class Phase(IntEnum):
+        Action = 0
+        Buy = 1
+        CleanUp = 2
+
     def __init__(
         self,
         players: List[Player],
@@ -53,6 +60,7 @@ class Game:
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
+        self.current_phase: Game.Phase = Game.Phase.Action
 
         self.effect_registry = EffectRegistry()
 
