@@ -226,7 +226,7 @@ class Player:
         logger.info(f"{self} gains {gain_card}")
 
     def trash(
-        self, target_card: Card, trash: "Trash", source: Optional[AbstractDeck] = None
+        self, target_card: Card, game: "Game", source: Optional[AbstractDeck] = None
     ) -> None:
         """
         Move a card from source to the trash.
@@ -238,7 +238,8 @@ class Player:
 
         for card in source.cards:
             if card == target_card:
-                trash.add(source.remove(card))
+                game.trash.add(source.remove(card))
+                game.effect_registry.on_trash(self, card, game)
                 logger.info(f"{self} trashes {card}")
 
                 break

@@ -30,6 +30,7 @@ class EffectRegistry:
         self.gain_effects: List[PlayerCardGameEffect] = []
         self.play_effects: List[PlayerCardGameEffect] = []
         self.shuffle_effects: List[PlayerGameEffect] = []
+        self.trash_effects: List[PlayerCardGameEffect] = []
         self.turn_start_effects: List[PlayerGameEffect] = []
         self.turn_end_effects: List[PlayerGameEffect] = []
 
@@ -67,6 +68,10 @@ class EffectRegistry:
     def on_shuffle(self, player: "Player", game: "Game") -> None:
         for effect in self.shuffle_effects:
             effect.handler(player, game)
+
+    def on_trash(self, player: "Player", card: "Card", game: "Game") -> None:
+        for effect in self.trash_effects:
+            effect.handler(player, card, game)
 
     def on_turn_start(self, player: "Player", game: "Game") -> None:
         for effect in self.turn_start_effects:
@@ -111,6 +116,12 @@ class EffectRegistry:
 
     def unregister_shuffle_effects(self, name: str) -> None:
         self._unregister_effects(name, self.shuffle_effects)
+
+    def register_trash_effect(self, effect: PlayerCardGameEffect) -> None:
+        self.trash_effects.append(effect)
+
+    def unregister_trash_effects(self, name: str) -> None:
+        self._unregister_effects(name, self.trash_effects)
 
     def register_turn_start_effect(self, effect: PlayerGameEffect) -> None:
         self.turn_start_effects.append(effect)

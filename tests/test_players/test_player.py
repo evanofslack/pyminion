@@ -1,5 +1,5 @@
 import pytest
-from pyminion.core import DiscardPile, Hand, Playmat, Supply, Trash
+from pyminion.core import DiscardPile, Hand, Playmat
 from pyminion.exceptions import (
     CardNotFound,
     InsufficientActions,
@@ -129,16 +129,16 @@ def test_buy_insufficient_money(player: Player, game: Game):
         player.buy(estate, game)
 
 
-def test_player_trash(player: Player, trash: Trash):
+def test_player_trash(player: Player, game: Game):
     player.hand.add(copper)
     player.hand.add(estate)
-    assert len(trash) == 0
+    assert len(game.trash) == 0
     assert len(player.hand) == 2
-    player.trash(copper, trash)
+    player.trash(copper, game)
     assert len(player.hand) == 1
     assert type(player.hand.cards[0]) is Estate
-    assert len(trash) == 1
-    assert type(trash.cards[0]) is Copper
+    assert len(game.trash) == 1
+    assert type(game.trash.cards[0]) is Copper
 
 
 def test_player_discard(player: Player, game: Game):

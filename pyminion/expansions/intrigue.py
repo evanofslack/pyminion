@@ -541,7 +541,7 @@ class Masquerade(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-            player.trash(trash_card, game.trash)
+            player.trash(trash_card, game)
 
 
 class Mill(Action, Victory):
@@ -648,7 +648,7 @@ class MiningVillage(Action):
 
             if trashed:
                 player.state.money += 2
-                player.trash(self, game.trash, source=player.playmat)
+                player.trash(self, game, source=player.playmat)
 
         return trashed
 
@@ -922,7 +922,7 @@ class Replace(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
 
         if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
             player.gain(gain_card, game, destination=player.deck)
@@ -1064,7 +1064,7 @@ class Steward(Action):
         elif choice == Steward.Choice.Trash:
             trash_cards = self._get_trash_cards(player, game)
             for card in trash_cards:
-                player.trash(card, game.trash)
+                player.trash(card, game)
         else:
             raise ValueError(f"Unknown steward choice '{choice}'")
 
@@ -1260,7 +1260,7 @@ class TradingPost(Action):
             assert len(trash_cards) == 2
 
         for card in trash_cards:
-            player.trash(card, game.trash)
+            player.trash(card, game)
 
         if len(trash_cards) == 2:
             # attempt to gain a silver to player's hand.
@@ -1305,7 +1305,7 @@ class Upgrade(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
 
         new_cost = trash_card.get_cost(player, game) + 1
         valid_cards = [

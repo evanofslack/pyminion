@@ -313,7 +313,7 @@ class Moneylender(Action):
         )
 
         if response:
-            player.trash(target_card=copper, trash=game.trash)
+            player.trash(target_card=copper, game=game)
             player.state.money += 3
 
 
@@ -401,7 +401,7 @@ class Chapel(Action):
         assert len(trash_cards) <= 4
 
         for card in trash_cards:
-            player.trash(card, game.trash)
+            player.trash(card, game)
 
 
 class Workshop(Action):
@@ -1076,7 +1076,7 @@ class Remodel(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
         player.gain(gain_card, game)
 
 
@@ -1143,7 +1143,7 @@ class Mine(Action):
         assert CardType.Treasure in gain_card.type
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
         player.gain(gain_card, game, destination=player.hand)
 
 
