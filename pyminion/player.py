@@ -112,7 +112,13 @@ class Player:
         if not silent:
             logger.info(f"{self} draws {drawn_cards}")
 
-    def discard(self, game: "Game", target_card: Card, source: Optional[AbstractDeck] = None) -> None:
+    def discard(
+            self,
+            game: "Game",
+            target_card: Card,
+            source: Optional[AbstractDeck] = None,
+            silent: bool = False,
+    ) -> None:
         """
         Move specified card from the player's hand to the player's discard pile.
 
@@ -122,7 +128,8 @@ class Player:
         for card in source.cards:
             if card == target_card:
                 self.discard_pile.add(source.remove(card))
-                logger.info(f"{self} discards {card}")
+                if not silent:
+                    logger.info(f"{self} discards {card}")
                 game.effect_registry.on_discard(self, card, game)
                 return
 
@@ -333,9 +340,9 @@ class Player:
         game.effect_registry.on_cleanup_start(self, game)
 
         for card in self.hand.cards:
-            self.discard(game, card)
+            self.discard(game, card, silent=True)
         for card in self.playmat.cards:
-            self.discard(game, card, self.playmat)
+            self.discard(game, card, self.playmat, silent=True)
         self.draw(game, 5)
         self.state.actions = 1
         self.state.money = 0

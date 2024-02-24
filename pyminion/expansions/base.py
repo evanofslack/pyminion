@@ -792,6 +792,8 @@ class Moat(Action):
                     game=game,
                     relevant_cards=[attack_card],
                 )
+                if block:
+                    logger.info(f"{defending_player} blocks {attack_card} with Moat")
                 return not block
 
             return True
