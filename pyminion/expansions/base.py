@@ -894,7 +894,7 @@ class Bandit(Action):
                     revealed_cards = AbstractDeck()
                     opponent.draw(game, num_cards=2, destination=revealed_cards, silent=True)
 
-                    logger.info(f"{opponent} reveals {revealed_cards}")
+                    opponent.reveal(revealed_cards.cards, game)
 
                     trash_card = None
                     for card in revealed_cards.cards:

@@ -33,6 +33,7 @@ class EffectRegistry:
         self.draw_effects: List[PlayerCardGameEffect] = []
         self.gain_effects: List[PlayerCardGameEffect] = []
         self.play_effects: List[PlayerCardGameEffect] = []
+        self.reveal_effects: List[PlayerCardGameEffect] = []
         self.shuffle_effects: List[PlayerGameEffect] = []
         self.trash_effects: List[PlayerCardGameEffect] = []
         self.turn_start_effects: List[PlayerGameEffect] = []
@@ -87,6 +88,14 @@ class EffectRegistry:
 
         """
         for effect in self.play_effects:
+            effect.handler(player, card, game)
+
+    def on_reveal(self, player: "Player", card: "Card", game: "Game") -> None:
+        """
+        Trigger revealing effects.
+
+        """
+        for effect in self.reveal_effects:
             effect.handler(player, card, game)
 
     def on_shuffle(self, player: "Player", game: "Game") -> None:
@@ -190,6 +199,20 @@ class EffectRegistry:
 
         """
         self._unregister_effects(name, self.play_effects)
+
+    def register_reveal_effect(self, effect: PlayerCardGameEffect) -> None:
+        """
+        Register an effect to be triggered on revealing.
+
+        """
+        self.reveal_effects.append(effect)
+
+    def unregister_reveal_effects(self, name: str) -> None:
+        """
+        Unregister an effect from being triggered on revealing.
+
+        """
+        self._unregister_effects(name, self.reveal_effects)
 
     def register_shuffle_effect(self, effect: PlayerGameEffect) -> None:
         """

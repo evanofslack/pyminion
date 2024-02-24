@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -243,6 +243,18 @@ class Player:
                 logger.info(f"{self} trashes {card}")
 
                 break
+
+    def reveal(self, cards: Union[Card, List[Card]], game: "Game") -> None:
+        """
+        Reveal cards.
+
+        """
+        if isinstance(cards, Card):
+            cards = [cards]
+
+        logger.info(f"{self} reveals " + ", ".join(card.name for card in cards))
+        for card in cards:
+            game.effect_registry.on_reveal(self, card, game)
 
     def start_turn(self) -> None:
         """
