@@ -27,18 +27,6 @@ class CardType(Enum):
     Reaction = 6
 
 
-class CardLocation(Enum):
-    """
-    Where a card is located (e.g. hand, playmat, etc.).
-
-    """
-    Deck = 0
-    Hand = 1
-    Playmat = 2
-    DiscardPile = 3
-    Trash = 4
-
-
 class Card:
 
     """
