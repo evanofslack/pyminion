@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
+from pyminion.effects import AttackEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
@@ -240,6 +241,45 @@ class Diplomat(Action):
 
     """
 
+    class DiplomatAttackEffect(AttackEffect):
+        def __init__(self, player: Player):
+            super().__init__(f"Diplomat: {player.player_id} block attack")
+            self.player = player
+
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            if len(defending_player.hand) < 5:
+                return True
+
+            reveal = defending_player.decider.binary_decision(
+                prompt=f"Reveal {diplomat} to draw 2 cards then discard 3? y/n: ",
+                card=diplomat,
+                player=defending_player,
+                game=game,
+                relevant_cards=[attack_card],
+            )
+            if not reveal:
+                return True
+
+            logger.info(f"{defending_player} reveals {diplomat}")
+
+            defending_player.draw(game, 2)
+
+            discard_cards = defending_player.decider.discard_decision(
+                prompt="Enter the cards you would like to discard: ",
+                card=diplomat,
+                valid_cards=defending_player.hand.cards,
+                player=defending_player,
+                game=game,
+                min_num_discard=3,
+                max_num_discard=3,
+            )
+            assert len(discard_cards) == 3
+
+            for card in discard_cards:
+                defending_player.discard(game, card)
+
+            return True
+
     def __init__(self):
         super().__init__("Diplomat", 4, (CardType.Action, CardType.Reaction), draw=2)
 
@@ -255,39 +295,20 @@ class Diplomat(Action):
         if len(player.hand) <= 5:
             player.state.actions += 2
 
-    def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: Card, game: "Game") -> bool:
-        if len(defending_player.hand) < 5:
-            return True
+    def set_up(self, game: "Game") -> None:
+        draw_effect = PlayerCardGameEffect("Diplomat: Draw", self.on_draw)
+        game.effect_registry.register_draw_effect(draw_effect)
 
-        reveal = defending_player.decider.binary_decision(
-            prompt=f"Reveal {self} to draw 2 cards then discard 3? y/n: ",
-            card=self,
-            player=defending_player,
-            game=game,
-            relevant_cards=[attack_card],
-        )
-        if not reveal:
-            return True
+        cleanup_effect = PlayerGameEffect("Diplomat: Clean-up", self.on_cleanup_start)
+        game.effect_registry.register_cleanup_start_effect(cleanup_effect)
 
-        logger.info(f"{defending_player} reveals {self}")
+    def on_draw(self, player: Player, card: Card, game: "Game") -> None:
+        if card.name == self.name:
+            effect = Diplomat.DiplomatAttackEffect(player)
+            game.effect_registry.register_attack_effect(effect)
 
-        defending_player.draw(game, 2)
-
-        discard_cards = defending_player.decider.discard_decision(
-            prompt="Enter the cards you would like to discard: ",
-            card=self,
-            valid_cards=defending_player.hand.cards,
-            player=defending_player,
-            game=game,
-            min_num_discard=3,
-            max_num_discard=3,
-        )
-        assert len(discard_cards) == 3
-
-        for card in discard_cards:
-            defending_player.discard(game, card)
-
-        return True
+    def on_cleanup_start(self, player: Player, game: "Game") -> None:
+        game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} block attack")
 
 
 class Duke(Victory):

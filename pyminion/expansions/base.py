@@ -3,7 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
-from pyminion.effects import PlayerCardGameEffect, PlayerGameEffect
+from pyminion.effects import AttackEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -778,6 +778,24 @@ class Moat(Action):
 
     """
 
+    class MoatAttackEffect(AttackEffect):
+        def __init__(self, player: Player):
+            super().__init__(f"Moat: {player.player_id} block attack")
+            self.player = player
+
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            if self.player.player_id == defending_player.player_id:
+                block = defending_player.decider.binary_decision(
+                    prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
+                    card=moat,
+                    player=defending_player,
+                    game=game,
+                    relevant_cards=[attack_card],
+                )
+                return not block
+
+            return True
+
     def __init__(
         self,
         name: str = "Moat",
@@ -798,15 +816,20 @@ class Moat(Action):
 
         player.draw(game, 2)
 
-    def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
-        block = defending_player.decider.binary_decision(
-            prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
-            card=self,
-            player=defending_player,
-            game=game,
-            relevant_cards=[attack_card],
-        )
-        return not block
+    def set_up(self, game: "Game") -> None:
+        draw_effect = PlayerCardGameEffect("Moat: Draw", self.on_draw)
+        game.effect_registry.register_draw_effect(draw_effect)
+
+        cleanup_effect = PlayerGameEffect("Moat: Clean-up", self.on_cleanup_start)
+        game.effect_registry.register_cleanup_start_effect(cleanup_effect)
+
+    def on_draw(self, player: Player, card: Card, game: "Game") -> None:
+        if card.name == self.name:
+            effect = Moat.MoatAttackEffect(player)
+            game.effect_registry.register_attack_effect(effect)
+
+    def on_cleanup_start(self, player: Player, game: "Game") -> None:
+        game.effect_registry.unregister_attack_effects(f"Moat: {player.player_id} block attack")
 
 
 class Merchant(Action):

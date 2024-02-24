@@ -61,9 +61,6 @@ class Card:
     def get_pile_starting_count(self, game: "Game") -> int:
         return 10
 
-    def on_attack(self, defending_player: "Player", attacking_player: "Player", attack_card: "Card", game: "Game") -> bool:
-        return True
-
     def set_up(self, game: "Game") -> None:
         pass
 

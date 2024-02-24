@@ -330,6 +330,7 @@ class Player:
 
         """
         game.current_phase = game.Phase.CleanUp
+        game.effect_registry.on_cleanup_start(self, game)
 
         for card in self.hand.cards:
             self.discard(game, card)
@@ -412,7 +413,5 @@ class Player:
         return treasure_money + action_money
 
     def is_attacked(self, attacking_player: "Player", attack_card: Card, game: "Game") -> bool:
-        attacked = True
-        for card in self.hand.cards:
-            attacked &= card.on_attack(self, attacking_player, attack_card, game)
+        attacked = game.effect_registry.on_attack(attacking_player, self, attack_card, game)
         return attacked

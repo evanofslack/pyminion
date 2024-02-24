@@ -89,6 +89,8 @@ def test_torturer_gain_curse_no_curses(multiplayer_game: Game, monkeypatch):
 
 
 def test_torturer_moat(multiplayer_game: Game, monkeypatch):
+    moat.set_up(multiplayer_game)
+
     players = multiplayer_game.players
     p1 = players[0]
     p2 = players[1]
@@ -98,7 +100,8 @@ def test_torturer_moat(multiplayer_game: Game, monkeypatch):
 
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
-    p2.hand.cards.append(moat)
+    p2.deck.add(moat)
+    p2.draw(multiplayer_game)
 
     p1.play(torturer, multiplayer_game)
     assert len(p1.hand) == 3

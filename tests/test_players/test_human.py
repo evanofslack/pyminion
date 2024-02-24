@@ -18,11 +18,14 @@ def test_no_input(human: Human, game: Game, monkeypatch):
 
 
 def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):
+    moat.set_up(game)
     assert human.is_attacked(attacking_player=human, attack_card=witch, game=game)
 
 
 def test_is_attacked_yes_moat(human: Human, game: Game, monkeypatch):
-    human.hand.add(card=moat)
+    moat.set_up(game)
+    human.deck.add(card=moat)
+    human.draw(game)
     monkeypatch.setattr("builtins.input", lambda _: "yes")
     assert not human.is_attacked(attacking_player=human, attack_card=witch, game=game)
 

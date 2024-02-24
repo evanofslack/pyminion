@@ -407,6 +407,8 @@ def test_courtyard_bot(bot: OptimizedBot, game: Game):
 
 
 def test_diplomat_bot(multiplayer_bot_game: Game):
+    diplomat.set_up(multiplayer_bot_game)
+
     p1 = multiplayer_bot_game.players[0]
     p2 = multiplayer_bot_game.players[1]
 
@@ -416,7 +418,8 @@ def test_diplomat_bot(multiplayer_bot_game: Game):
     p1.hand.add(estate)
     p1.hand.add(estate)
     p1.hand.add(estate)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw(multiplayer_bot_game)
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)

@@ -29,13 +29,16 @@ def test_diplomat_no_actions(player: Player, game: Game):
 
 
 def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
+    diplomat.set_up(multiplayer_game)
+
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
 
     p1.hand.cards.clear()
     for _ in range(4):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw(multiplayer_game)
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -53,13 +56,16 @@ def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
 
 
 def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
+    diplomat.set_up(multiplayer_game)
+
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
 
     p1.hand.cards.clear()
     for _ in range(4):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw(multiplayer_game)
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -73,14 +79,17 @@ def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     assert type(p1.discard_pile.cards[-1]) is Curse
 
 
-def test_diplomat_cannot_block_witch(multiplayer_game: Game, monkeypatch):
+def test_diplomat_cannot_block_witch(multiplayer_game: Game):
+    diplomat.set_up(multiplayer_game)
+
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
 
     p1.hand.cards.clear()
     for _ in range(3):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw(multiplayer_game)
     assert len(p1.hand) == 4
 
     p2.hand.add(witch)

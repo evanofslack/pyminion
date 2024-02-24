@@ -22,12 +22,21 @@ class PlayerCardGameEffect:
         self.handler = handler
 
 
+class AttackEffect:
+    def __init__(self, name: str):
+        self.name = name
+
+    def handler(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
+        raise NotImplementedError("AttackEffect handler is not implemented")
+
+
 class EffectRegistry:
     """
-    Registery for effects to be triggered on various game events.
+    Registry for effects to be triggered on various game events.
 
     """
     def __init__(self):
+        self.attack_effects: List[AttackEffect] = []
         self.buy_effects: List[PlayerCardGameEffect] = []
         self.discard_effects: List[PlayerCardGameEffect] = []
         self.draw_effects: List[PlayerCardGameEffect] = []
@@ -38,8 +47,9 @@ class EffectRegistry:
         self.trash_effects: List[PlayerCardGameEffect] = []
         self.turn_start_effects: List[PlayerGameEffect] = []
         self.turn_end_effects: List[PlayerGameEffect] = []
+        self.cleanup_start_effects: List[PlayerGameEffect] = []
 
-    def _unregister_effects(self, name: str, effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect]]) -> None:
+    def _unregister_effects(self, name: str, effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect], List[AttackEffect]]) -> None:
         i = 0
         while i < len(effect_list):
             effect = effect_list[i]
@@ -47,6 +57,16 @@ class EffectRegistry:
                 effect_list.pop(i)
             else:
                 i += 1
+
+    def on_attack(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
+        """
+        Trigger attacking effects.
+
+        """
+        attacked = True
+        for effect in self.attack_effects:
+            attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+        return attacked
 
     def on_buy(self, player: "Player", card: "Card", game: "Game") -> None:
         """
@@ -116,7 +136,7 @@ class EffectRegistry:
 
     def on_turn_start(self, player: "Player", game: "Game") -> None:
         """
-        Trigger turn starting effects.
+        Trigger turn start effects.
 
         """
         for effect in self.turn_start_effects:
@@ -124,11 +144,33 @@ class EffectRegistry:
 
     def on_turn_end(self, player: "Player", game: "Game") -> None:
         """
-        Trigger turn ending effects.
+        Trigger turn end effects.
 
         """
         for effect in self.turn_end_effects:
             effect.handler(player, game)
+
+    def on_cleanup_start(self, player: "Player", game: "Game") -> None:
+        """
+        Trigger clean-up start effects.
+
+        """
+        for effect in self.cleanup_start_effects:
+            effect.handler(player, game)
+
+    def register_attack_effect(self, effect: AttackEffect) -> None:
+        """
+        Register an effect to be triggered on attacking.
+
+        """
+        self.attack_effects.append(effect)
+
+    def unregister_attack_effects(self, name: str) -> None:
+        """
+        Unregister an effect from being triggered on attacking.
+
+        """
+        self._unregister_effects(name, self.attack_effects)
 
     def register_buy_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -244,28 +286,42 @@ class EffectRegistry:
 
     def register_turn_start_effect(self, effect: PlayerGameEffect) -> None:
         """
-        Register an effect to be triggered on turn starting.
+        Register an effect to be triggered on turn start.
 
         """
         self.turn_start_effects.append(effect)
 
     def unregister_turn_start_effects(self, name: str) -> None:
         """
-        Unregister an effect from being triggered on turn starting.
+        Unregister an effect from being triggered on turn start.
 
         """
         self._unregister_effects(name, self.turn_start_effects)
 
     def register_turn_end_effect(self, effect: PlayerGameEffect) -> None:
         """
-        Register an effect to be triggered on turn ending.
+        Register an effect to be triggered on turn end.
 
         """
         self.turn_end_effects.append(effect)
 
     def unregister_turn_end_effects(self, name: str) -> None:
         """
-        Unregister an effect from being triggered on turn ending.
+        Unregister an effect from being triggered on turn end.
 
         """
         self._unregister_effects(name, self.turn_end_effects)
+
+    def register_cleanup_start_effect(self, effect: PlayerGameEffect) -> None:
+        """
+        Register an effect to be triggered on clean-up start.
+
+        """
+        self.cleanup_start_effects.append(effect)
+
+    def unregister_cleanup_start_effects(self, name: str) -> None:
+        """
+        Unregister an effect from being triggered on clean-up start.
+
+        """
+        self._unregister_effects(name, self.cleanup_start_effects)
