@@ -3,6 +3,7 @@ from pyminion.effects import PlayerCardGameEffect
 from pyminion.expansions.base import gold, smithy
 from pyminion.game import Game
 from pyminion.player import Player
+import pytest
 
 
 class HandlerTester:
@@ -13,6 +14,7 @@ class HandlerTester:
         self.handler_called = True
 
 
+@pytest.mark.kingdom_cards([smithy])
 def test_on_gain(game: Game):
     reg = game.effect_registry
 

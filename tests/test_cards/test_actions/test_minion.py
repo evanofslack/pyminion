@@ -1,6 +1,7 @@
 from pyminion.expansions.base import moat
 from pyminion.expansions.intrigue import Minion, minion
 from pyminion.game import Game
+import pytest
 
 
 def test_minion_money(multiplayer_game: Game, monkeypatch):
@@ -68,9 +69,8 @@ def test_minion_opponent_no_discard(multiplayer_game: Game, monkeypatch):
     assert len(p2.discard_pile) == 0
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_minion_moat(multiplayer_game: Game, monkeypatch):
-    moat.set_up(multiplayer_game)
-
     players = multiplayer_game.players
     p1 = players[0]
     p2 = players[1]

@@ -1,5 +1,6 @@
 from pyminion.game import Game
 from pyminion.expansions.base import Moat, curse, moat, witch
+import pytest
 
 
 def test_moat_draw(multiplayer_game: Game):
@@ -15,9 +16,8 @@ def test_moat_draw(multiplayer_game: Game):
     assert player.state.buys == 1
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_moat_block_witch(multiplayer_game: Game, monkeypatch):
-    moat.set_up(multiplayer_game)
-
     witch_player = multiplayer_game.players[0]
     witch_player.hand.add(witch)
 
@@ -35,9 +35,8 @@ def test_moat_block_witch(multiplayer_game: Game, monkeypatch):
             assert len(p.discard_pile) == 0
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_moat_no_block_witch(multiplayer_game: Game, monkeypatch):
-    moat.set_up(multiplayer_game)
-
     witch_player = multiplayer_game.players[0]
     witch_player.hand.add(witch)
 

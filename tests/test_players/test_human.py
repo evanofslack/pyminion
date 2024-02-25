@@ -1,6 +1,7 @@
 from pyminion.expansions.base import copper, moat, witch
 from pyminion.game import Game
 from pyminion.human import Human
+import pytest
 
 
 def test_yes_input(human: Human, game: Game, monkeypatch):
@@ -17,13 +18,13 @@ def test_no_input(human: Human, game: Game, monkeypatch):
     assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is False
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):
-    moat.set_up(game)
     assert human.is_attacked(attacking_player=human, attack_card=witch, game=game)
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_is_attacked_yes_moat(human: Human, game: Game, monkeypatch):
-    moat.set_up(game)
     human.deck.add(card=moat)
     human.draw(game)
     monkeypatch.setattr("builtins.input", lambda _: "yes")

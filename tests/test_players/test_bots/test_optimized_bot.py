@@ -52,6 +52,7 @@ from pyminion.expansions.intrigue import (
     wishing_well,
 )
 from pyminion.game import Game
+import pytest
 
 
 def test_artisan_bot(bot: OptimizedBot, game: Game):
@@ -406,9 +407,8 @@ def test_courtyard_bot(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-1].name == "Torturer"
 
 
+@pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_bot(multiplayer_bot_game: Game):
-    diplomat.set_up(multiplayer_bot_game)
-
     p1 = multiplayer_bot_game.players[0]
     p2 = multiplayer_bot_game.players[1]
 

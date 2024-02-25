@@ -12,11 +12,9 @@ from pyminion.expansions.base import (
     gold,
     province,
     silver,
-    smithy,
 )
 from pyminion.expansions.intrigue import (
     intrigue_set,
-    mill,
 )
 from pyminion.game import Game, Card
 from pyminion.human import Human
@@ -24,6 +22,12 @@ from pyminion.player import Player
 
 START_COPPER = 7
 START_ESTATE = 3
+
+
+def pytest_configure(config: pytest.Config):
+    config.addinivalue_line(
+        "markers", "kingdom_cards(cards): kingdom cards for game"
+    )
 
 
 class TestDecider:
@@ -46,7 +50,10 @@ def decider():
 
 @pytest.fixture
 def deck():
-    start_cards = [copper] * START_COPPER + [estate] * START_ESTATE
+    copper_cards: List["Card"] = [copper] * START_COPPER
+    estate_cards: List["Card"] = [estate] * START_ESTATE
+    start_cards: List["Card"] = copper_cards + estate_cards
+
     deck = Deck(cards=start_cards)
     return deck
 
@@ -92,30 +99,48 @@ def trash():
 
 @pytest.fixture
 def supply():
-    estates = Pile([estate] * 8)
-    duchies = Pile([duchy] * 8)
-    provinces = Pile([province] * 8)
-    coppers = Pile([copper] * 60)
-    silvers = Pile([silver] * 40)
-    golds = Pile([gold] * 30)
+    estate_cards: List["Card"] = [estate] * 8
+    estates = Pile(estate_cards)
+    duchy_cards: List["Card"] = [duchy] * 8
+    duchies = Pile(duchy_cards)
+    province_cards: List["Card"] = [province] * 8
+    provinces = Pile(province_cards)
+    copper_cards: List["Card"] = [copper] * 60
+    coppers = Pile(copper_cards)
+    silver_cards: List["Card"] = [silver] * 40
+    silvers = Pile(silver_cards)
+    gold_cards: List["Card"] = [gold] * 30
+    golds = Pile(gold_cards)
     supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
     return supply
 
 
 @pytest.fixture
-def game(player):
+def game(request, player):
+    marker = request.node.get_closest_marker("kingdom_cards")
+    if marker is None:
+        kingdom_cards = []
+    else:
+        kingdom_cards = marker.args[0]
+
     game = Game(
         players=[player],
         expansions=[base_set, intrigue_set],
-        kingdom_cards=[mill, smithy],
-        # start_cards=start_cards,
+        kingdom_cards=kingdom_cards,
     )
     game.supply = game._create_supply()
+    for card in game.all_game_cards:
+        card.set_up(game)
     return game
 
 
 @pytest.fixture
-def multiplayer_game():
+def multiplayer_game(request):
+    marker = request.node.get_closest_marker("kingdom_cards")
+    if marker is None:
+        kingdom_cards = []
+    else:
+        kingdom_cards = marker.args[0]
 
     human1 = Human(player_id="human_1")
     human2 = Human(player_id="human_2")
@@ -123,7 +148,7 @@ def multiplayer_game():
     game = Game(
         players=[human1, human2],
         expansions=[base_set, intrigue_set],
-        kingdom_cards=[mill, smithy],
+        kingdom_cards=kingdom_cards,
     )
     game.start()
 
@@ -131,14 +156,20 @@ def multiplayer_game():
 
 
 @pytest.fixture
-def multiplayer_bot_game():
+def multiplayer_bot_game(request):
+    marker = request.node.get_closest_marker("kingdom_cards")
+    if marker is None:
+        kingdom_cards = []
+    else:
+        kingdom_cards = marker.args[0]
 
     bot1 = OptimizedBot(player_id="bot_1")
     bot2 = OptimizedBot(player_id="bot_2")
 
     game = Game(
         players=[bot1, bot2],
-        expansions=[base_set],
+        expansions=[base_set, intrigue_set],
+        kingdom_cards=kingdom_cards,
     )
     game.start()
 
