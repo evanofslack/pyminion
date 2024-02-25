@@ -243,7 +243,7 @@ class Diplomat(Action):
 
     class DiplomatAttackEffect(AttackEffect):
         def __init__(self, player: Player):
-            super().__init__(f"Diplomat: {player.player_id} block attack")
+            super().__init__(f"Diplomat: {player.player_id} attack reaction")
             self.player = player
 
         def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
@@ -308,7 +308,7 @@ class Diplomat(Action):
             game.effect_registry.register_attack_effect(effect)
 
     def on_cleanup_start(self, player: Player, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} block attack")
+        game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} attack reaction")
 
 
 class Duke(Victory):
