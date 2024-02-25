@@ -218,7 +218,11 @@ class Player:
         logger.info(f"{self} buys {card}")
 
     def gain(
-        self, card: Card, game: "Game", destination: Optional[AbstractDeck] = None
+        self,
+        card: Card,
+        game: "Game",
+        destination: Optional[AbstractDeck] = None,
+        source: Optional[AbstractDeck] = None,
     ) -> None:
         """
         Gain a card from the supply and add to destination.
@@ -227,8 +231,10 @@ class Player:
         """
         if destination is None:
             destination = self.discard_pile
+        if source is None:
+            source = game.supply.get_pile(card.name)
 
-        gain_card = game.supply.gain_card(card)
+        gain_card = source.remove(card)
         destination.add(gain_card)
         game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")

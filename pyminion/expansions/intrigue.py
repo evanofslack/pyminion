@@ -151,13 +151,13 @@ class Courtier(Action):
                 valid_cards=player.hand.cards,
                 player=player,
                 game=game,
-                min_num_reveal = 1,
-                max_num_reveal = 1,
+                min_num_reveal=1,
+                max_num_reveal=1,
             )
             assert len(reveal_cards) == 1
             reveal_card = reveal_cards[0]
 
-        logger.info(f"{player} reveals {reveal_card}")
+        player.reveal(reveal_card, game)
 
         num_choices = min(len(reveal_card.type), 4)
 
@@ -178,7 +178,7 @@ class Courtier(Action):
                 num_choices=num_choices,
                 unique=True,
             )
-            assert len(set(choices)) == num_choices # ensure number of unique choices is correct
+            assert len(set(choices)) == num_choices  # ensure number of unique choices is correct
 
         for choice in choices:
             if choice == Courtier.Choice.Action:
@@ -260,7 +260,7 @@ class Diplomat(Action):
             if not reveal:
                 return True
 
-            logger.info(f"{defending_player} reveals {diplomat}")
+            defending_player.reveal(diplomat, game)
 
             defending_player.draw(game, 2)
 
@@ -462,7 +462,8 @@ class Lurker(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-            game.supply.trash_card(trash_card, game.trash)
+            pile = game.supply.get_pile(trash_card.name)
+            player.trash(trash_card, game, pile)
 
         elif choice == Lurker.Choice.GainAction:
             if len(trash_action_cards) == 0:
@@ -480,8 +481,7 @@ class Lurker(Action):
             assert len(gain_cards) == 1
             gain_card = gain_cards[0]
 
-            game.trash.remove(gain_card)
-            player.discard_pile.add(gain_card)
+            player.gain(gain_card, game, source=game.trash)
 
         else:
             raise ValueError(f"Unknown lurker choice '{choice}'")
@@ -814,7 +814,7 @@ class Patrol(Action):
 
         revealed = AbstractDeck()
         player.draw(game, num_cards=4, destination=revealed, silent=True)
-        logger.info(f"{player} reveals {revealed}")
+        player.reveal(revealed.cards, game)
 
         victory_curse_cards = list(get_score_cards(revealed.cards))
         for card in victory_curse_cards:
@@ -1036,6 +1036,8 @@ class ShantyTown(Action):
 
         player.state.actions += 2
 
+        player.reveal(player.hand.cards, game)
+
         if not any(CardType.Action in c.type for c in player.hand.cards):
             player.draw(game, 2)
 
@@ -1136,10 +1138,8 @@ class Swindler(Action):
                 revealed_cards = AbstractDeck()
                 opponent.draw(game, num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
-                game.trash.add(trashed_card)
+                opponent.trash(trashed_card, game, source=revealed_cards)
                 trashed_cost = trashed_card.get_cost(player, game)
-
-                logger.info(f"{opponent} trashes {trashed_card}")
 
                 valid_cards = [
                     c
@@ -1160,9 +1160,7 @@ class Swindler(Action):
                 )
                 assert len(gain_cards) == 1
                 gain_card = gain_cards[0]
-                opponent.discard_pile.add(gain_card)
-
-                logger.info(f"{opponent} gains {gain_card}")
+                opponent.gain(gain_card, game)
 
 
 class Torturer(Action):
@@ -1397,15 +1395,15 @@ class WishingWell(Action):
         revealed_card = revealed.cards[0]
         revealed_name = revealed_card.name
 
-        msg = f"{player} reveals {revealed_name} and "
+        msg = f"{player} reveals and "
         if revealed_name == name:
             player.hand.add(revealed_card)
-            msg += "puts it into their hand"
+            msg += "puts into their hand "
         else:
             player.deck.add(revealed_card)
-            msg += "topdecks it"
+            msg += "topdecks "
 
-        logger.info(msg)
+        player.reveal(revealed_card, game, msg)
 
 
 baron = Baron()
