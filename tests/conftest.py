@@ -24,7 +24,7 @@ START_COPPER = 7
 START_ESTATE = 3
 
 
-def pytest_configure(config: pytest.Config):
+def pytest_configure(config):
     config.addinivalue_line(
         "markers", "kingdom_cards(cards): kingdom cards for game"
     )
