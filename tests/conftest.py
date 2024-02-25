@@ -4,6 +4,7 @@ from pyminion.bots.bot import Bot
 from pyminion.bots.examples import BigMoney
 from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import Deck, Pile, Supply, Trash
+from pyminion.effects import EffectRegistry
 from pyminion.expansions.base import (
     base_set,
     copper,
@@ -113,6 +114,12 @@ def supply():
     golds = Pile(gold_cards)
     supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
     return supply
+
+
+@pytest.fixture
+def effect_registry():
+    effect_registry = EffectRegistry()
+    return effect_registry
 
 
 @pytest.fixture
