@@ -339,9 +339,11 @@ class Player:
         game.current_phase = game.Phase.CleanUp
         game.effect_registry.on_cleanup_start(self, game)
 
-        for card in self.hand.cards:
+        hand_copy = self.hand.cards[:]
+        for card in hand_copy:
             self.discard(game, card, silent=True)
-        for card in self.playmat.cards:
+        playmat_copy = self.playmat.cards[:]
+        for card in playmat_copy:
             self.discard(game, card, self.playmat, silent=True)
         self.draw(game, 5)
         self.state.actions = 1
