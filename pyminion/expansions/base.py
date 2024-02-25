@@ -3,7 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
-from pyminion.effects import AttackEffect, PlayerCardGameEffect, PlayerGameEffect
+from pyminion.effects import AttackEffect, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -819,10 +819,10 @@ class Moat(Action):
         player.draw(game, 2)
 
     def set_up(self, game: "Game") -> None:
-        draw_effect = PlayerCardGameEffect("Moat: Draw", self.on_draw)
+        draw_effect = FuncPlayerCardGameEffect("Moat: Draw", self.on_draw)
         game.effect_registry.register_draw_effect(draw_effect)
 
-        cleanup_effect = PlayerGameEffect("Moat: Clean-up", self.on_cleanup_start)
+        cleanup_effect = FuncPlayerGameEffect("Moat: Clean-up", self.on_cleanup_start)
         game.effect_registry.register_cleanup_start_effect(cleanup_effect)
 
     def on_draw(self, player: Player, card: Card, game: "Game") -> None:
@@ -843,6 +843,15 @@ class Merchant(Action):
     """
 
     MONEY_EFFECT_NAME = "Merchant: +$1"
+    class MoneyEffect(PlayerCardGameEffect):
+        def __init__(self):
+            super().__init__(Merchant.MONEY_EFFECT_NAME)
+            self.first_play = True
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            if card.name == "Silver" and self.first_play:
+                player.state.money += 1
+                self.first_play = False
 
     def __init__(
         self,
@@ -866,17 +875,11 @@ class Merchant(Action):
         player.draw(game, 1)
         player.state.actions += 1
 
-        money_effect = PlayerCardGameEffect(self.MONEY_EFFECT_NAME, self.on_play)
+        money_effect = Merchant.MoneyEffect()
         game.effect_registry.register_play_effect(money_effect)
 
-        reset_effect = PlayerGameEffect("Merchant: reset", self.remove_play_handlers)
+        reset_effect = FuncPlayerGameEffect("Merchant: reset", self.remove_play_handlers)
         game.effect_registry.register_turn_end_effect(reset_effect)
-
-    def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
-        if card.name == "Silver":
-            num_silver = sum(1 for c in player.playmat.cards if c.name == "Silver")
-            if num_silver == 1:
-                player.state.money += 1
 
     def remove_play_handlers(self, player: "Player", game: "Game") -> None:
         game.effect_registry.unregister_play_effects(self.MONEY_EFFECT_NAME)

@@ -11,15 +11,37 @@ PlayerCardGameEffectHandler = Callable[["Player", "Card", "Game"], None]
 
 
 class PlayerGameEffect:
-    def __init__(self, name: str, handler: PlayerGameEffectHandler):
+    def __init__(self, name: str):
         self.name = name
-        self.handler = handler
+
+    def handler(self, player: "Player", game: "Game") -> None:
+        raise NotImplementedError("PlayerGameEffect handler is not implemented")
+
+
+class FuncPlayerGameEffect(PlayerGameEffect):
+    def __init__(self, name: str, handler_func: PlayerGameEffectHandler):
+        super().__init__(name)
+        self.handler_func = handler_func
+
+    def handler(self, player: "Player", game: "Game") -> None:
+        self.handler_func(player, game)
 
 
 class PlayerCardGameEffect:
-    def __init__(self, name: str, handler: PlayerCardGameEffectHandler):
+    def __init__(self, name: str):
         self.name = name
-        self.handler = handler
+
+    def handler(self, player: "Player", card: "Card", game: "Game") -> None:
+        raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
+
+
+class FuncPlayerCardGameEffect(PlayerCardGameEffect):
+    def __init__(self, name: str, handler_func: PlayerCardGameEffectHandler):
+        super().__init__(name)
+        self.handler_func = handler_func
+
+    def handler(self, player: "Player", card: "Card", game: "Game") -> None:
+        self.handler_func(player, card, game)
 
 
 class AttackEffect:
