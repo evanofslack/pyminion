@@ -95,7 +95,6 @@ def test_on_buy(game: Game):
 
     buy_effect = PlayerCardGameEffectTest()
     gain_effect = PlayerCardGameEffectTest()
-
     reg.register_buy_effect(buy_effect)
     reg.register_gain_effect(gain_effect)
 
@@ -111,13 +110,37 @@ def test_on_buy(game: Game):
     assert gain_effect.handler_called
 
 
+def test_on_discard(game: Game):
+    reg = game.effect_registry
+
+    discard_effect = PlayerCardGameEffectTest()
+    reg.register_discard_effect(discard_effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+    player.discard(game, player.hand.cards[0])
+
+    assert discard_effect.handler_called
+
+
+def test_on_draw(game: Game):
+    reg = game.effect_registry
+
+    draw_effect = PlayerCardGameEffectTest()
+    reg.register_draw_effect(draw_effect)
+
+    player = game.players[0]
+    player.draw(game)
+
+    assert draw_effect.handler_called
+
+
 @pytest.mark.kingdom_cards([smithy])
 def test_on_gain(game: Game):
     reg = game.effect_registry
 
     buy_effect = PlayerCardGameEffectTest()
     gain_effect = PlayerCardGameEffectTest()
-
     reg.register_buy_effect(buy_effect)
     reg.register_gain_effect(gain_effect)
 
