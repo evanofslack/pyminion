@@ -551,20 +551,22 @@ class Vassal(Action):
             super().generic_play(player)
 
         player.state.money += 2
-        player.draw(game, destination=player.discard_pile, silent=True)
 
-        if not player.discard_pile:
+        temp = AbstractDeck()
+        player.draw(game, destination=temp, silent=True)
+
+        if len(temp) == 0:
             return
 
-        discard_card = player.discard_pile.cards[-1]
+        discard_card = temp.cards[0]
 
-        logger.info(f"{player} discards {discard_card}")
+        player.discard(game, discard_card, temp)
 
         if CardType.Action not in discard_card.type:
             return
 
         decision = player.decider.binary_decision(
-            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  ",
+            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n): ",
             card=self,
             player=player,
             game=game,
@@ -576,7 +578,6 @@ class Vassal(Action):
         played_card = player.discard_pile.cards.pop()
         player.playmat.add(played_card)
         player.exact_play(card=player.playmat.cards[-1], game=game, generic_play=False)
-        return
 
 
 class Artisan(Action):
@@ -793,6 +794,7 @@ class Moat(Action):
                     relevant_cards=[attack_card],
                 )
                 if block:
+                    defending_player.reveal(moat, game)
                     logger.info(f"{defending_player} blocks {attack_card} with Moat")
                 return not block
 
@@ -843,6 +845,7 @@ class Merchant(Action):
     """
 
     MONEY_EFFECT_NAME = "Merchant: +$1"
+
     class MoneyEffect(PlayerCardGameEffect):
         def __init__(self):
             super().__init__(Merchant.MONEY_EFFECT_NAME)
@@ -940,8 +943,9 @@ class Bandit(Action):
                     if trash_card:
                         game.trash.add(revealed_cards.remove(trash_card))
 
-                    revealed_cards.move_to(opponent.discard_pile)
-                    del revealed_cards
+                    revealed_cards_copy = revealed_cards.cards[:]
+                    for card in revealed_cards_copy:
+                        opponent.discard(game, card, revealed_cards)
 
 
 class Bureaucrat(Action):
@@ -985,7 +989,7 @@ class Bureaucrat(Action):
                         victory_cards.append(card)
 
                 if not victory_cards:
-                    logger.info(f"{opponent} reveals hand: {opponent.hand}")
+                    opponent.reveal(opponent.hand.cards, game, f"{opponent} reveals hand: ")
                     continue
 
                 topdeck_cards = opponent.decider.topdeck_decision(
@@ -1001,7 +1005,7 @@ class Bureaucrat(Action):
                 topdeck_card = topdeck_cards[0]
 
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
-                logger.info(f"{opponent} topdecks {topdeck_card}")
+                opponent.reveal(topdeck_card, game, f"{opponent} reveals and topdecks ")
 
 
 class ThroneRoom(Action):
@@ -1257,14 +1261,13 @@ class Sentry(Action):
         player.draw(game)
         player.state.actions += 1
 
-        revealed = AbstractDeck()
-        player.draw(game, num_cards=2, destination=revealed, silent=True)
-        logger.info(f"{player} looks at {revealed}")
+        looked_at = AbstractDeck()
+        player.draw(game, num_cards=2, destination=looked_at, silent=True)
 
         trash_cards = player.decider.trash_decision(
             prompt="Enter the cards you would like to trash: ",
             card=self,
-            valid_cards=revealed.cards,
+            valid_cards=looked_at.cards,
             player=player,
             game=game,
             min_num_trash=0,
@@ -1272,24 +1275,24 @@ class Sentry(Action):
         )
 
         for card in trash_cards:
-            revealed.remove(card)
+            looked_at.remove(card)
 
         discard_cards: List[Card] = []
-        if len(revealed.cards) > 0:
+        if len(looked_at.cards) > 0:
             discard_cards = player.decider.discard_decision(
                 prompt="Enter the cards you would like to discard: ",
                 card=self,
-                valid_cards=revealed.cards,
+                valid_cards=looked_at.cards,
                 player=player,
                 game=game,
             )
             for card in discard_cards:
-                revealed.remove(card)
+                looked_at.remove(card)
 
         reorder = False
-        if len(revealed.cards) == 2:
+        if len(looked_at.cards) == 2:
             logger.info(
-                f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
+                f"Current order: {looked_at.cards[0]} (Top), {looked_at.cards[1]} (Bottom)"
             )
             reorder = player.decider.binary_decision(
                 prompt="Would you like to switch the order of the cards?",
@@ -1298,20 +1301,22 @@ class Sentry(Action):
                 game=game,
             )
 
+        to_trash = AbstractDeck(trash_cards[:])
         for card in trash_cards:
-            game.trash.add(card)
-            logger.info(f"{player} trashes {card}")
+            player.trash(card, game, to_trash)
+
+        to_discard = AbstractDeck(discard_cards[:])
         for card in discard_cards:
-            player.discard_pile.add(card)
-            logger.info(f"{player} discards {card}")
-        if revealed.cards:
+            player.discard(game, card, to_discard)
+
+        if looked_at.cards:
             if reorder:
-                for card in revealed.cards:
+                for card in looked_at.cards:
                     player.deck.add(card)
             else:
-                for card in reversed(revealed.cards):
+                for card in reversed(looked_at.cards):
                     player.deck.add(card)
-            logger.info(f"{player} topdecks {len(revealed.cards)} cards")
+            logger.info(f"{player} topdecks {len(looked_at.cards)} cards")
 
 
 class Library(Action):
@@ -1360,9 +1365,8 @@ class Library(Action):
             else:
                 player.hand.add(set_aside.remove(drawn_card))
 
-        if set_aside.cards:
-            logger.info(f"{player} discards {set_aside}")
-            set_aside.move_to(destination=player.discard_pile)
+        for card in set_aside.cards[:]:
+            player.discard(game, card, set_aside)
 
 
 copper = Copper()

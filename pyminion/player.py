@@ -187,6 +187,7 @@ class Player:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
             state = card.multi_play(player=self, game=game, state=state, generic_play=generic_play)
+            game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
         return state
@@ -251,15 +252,17 @@ class Player:
 
                 break
 
-    def reveal(self, cards: Union[Card, List[Card]], game: "Game") -> None:
+    def reveal(self, cards: Union[Card, List[Card]], game: "Game", message: Optional[str] = None) -> None:
         """
         Reveal cards.
 
         """
         if isinstance(cards, Card):
             cards = [cards]
+        if message is None:
+            message = f"{self} reveals "
 
-        logger.info(f"{self} reveals " + ", ".join(card.name for card in cards))
+        logger.info(message + ", ".join(card.name for card in cards))
         for card in cards:
             game.effect_registry.on_reveal(self, card, game)
 
