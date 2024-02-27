@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Callable, Iterable, Iterator, List, Union
+from typing import TYPE_CHECKING, Callable, Iterable, List, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -82,13 +82,55 @@ class EffectRegistry:
         self.turn_end_effects: List[PlayerGameEffect] = []
         self.cleanup_start_effects: List[PlayerGameEffect] = []
 
-    def _order_player_card_game_effects(
+    def _handle_player_game_effects(
+            self,
+            effects: Iterable[PlayerGameEffect],
+            player: "Player",
+            game: "Game",
+    ) -> None:
+        # sort effects by type
+        hidden: List[PlayerGameEffect] = []
+        order_required: List[PlayerGameEffect] = []
+        order_not_required: List[PlayerGameEffect] = []
+        for effect in effects:
+            if effect.order == EffectOrderType.Hidden:
+                hidden.append(effect)
+            elif effect.order == EffectOrderType.OrderRequired:
+                order_required.append(effect)
+            elif effect.order == EffectOrderType.OrderNotRequired:
+                order_not_required.append(effect)
+
+        # hidden effects always happen first
+        for effect in hidden:
+            effect.handler(player, game)
+
+        if len(order_required) == 0:
+            for effect in order_not_required:
+                effect.handler(player, game)
+        else:
+            combined = order_required + order_not_required
+            if len(combined) == 1:
+                combined[0].handler(player, game)
+            else:
+                # ask user to specify order
+                combined = order_required + order_not_required
+                order = player.decider.effects_order_decision(
+                    [e.name for e in combined],
+                    player,
+                    game,
+                )
+                assert len(order) == len(set(order)) == len(combined)
+
+                for idx in order:
+                    combined[idx].handler(player, game)
+
+    def _handle_player_card_game_effects(
             self,
             effects: Iterable[PlayerCardGameEffect],
             player: "Player",
             card: "Card",
             game: "Game",
-    ) -> Iterator[PlayerCardGameEffect]:
+    ) -> None:
         # sort effects by type
         hidden: List[PlayerCardGameEffect] = []
         order_required: List[PlayerCardGameEffect] = []
@@ -103,23 +145,26 @@ class EffectRegistry:
 
         # hidden effects always happen first
         for effect in hidden:
-            yield effect
+            effect.handler(player, card, game)
 
         if len(order_required) == 0:
             for effect in order_not_required:
-                yield effect
+                effect.handler(player, card, game)
         else:
             # ask user to specify order
             combined = order_required + order_not_required
-            order = player.decider.effects_order_decision(
-                [e.name for e in combined],
-                player,
-                game,
-            )
-            assert len(order) == len(set(order)) == len(combined)
+            if len(combined) == 1:
+                combined[0].handler(player, card, game)
+            else:
+                order = player.decider.effects_order_decision(
+                    [e.name for e in combined],
+                    player,
+                    game,
+                )
+                assert len(order) == len(set(order)) == len(combined)
 
-            for idx in order:
-                yield combined[idx]
+                for idx in order:
+                    combined[idx].handler(player, card, game)
 
     def _unregister_effects(
             self,
@@ -143,8 +188,42 @@ class EffectRegistry:
 
         """
         attacked = True
+
+        # sort effects by type
+        hidden: List[AttackEffect] = []
+        order_required: List[AttackEffect] = []
+        order_not_required: List[AttackEffect] = []
         for effect in self.attack_effects:
+            if effect.order == EffectOrderType.Hidden:
+                hidden.append(effect)
+            elif effect.order == EffectOrderType.OrderRequired:
+                order_required.append(effect)
+            elif effect.order == EffectOrderType.OrderNotRequired:
+                order_not_required.append(effect)
+
+        # hidden effects always happen first
+        for effect in hidden:
             attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+
+        if len(order_required) == 0:
+            for effect in order_not_required:
+                attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+        else:
+            combined = order_required + order_not_required
+            if len(combined) == 1:
+                attacked &= combined[0].handler(attacking_player, defending_player, attack_card, game)
+            else:
+                # ask user to specify order
+                order = defending_player.decider.effects_order_decision(
+                    [e.name for e in combined],
+                    defending_player,
+                    game,
+                )
+                assert len(order) == len(set(order)) == len(combined)
+
+                for idx in order:
+                    attacked &= combined[idx].handler(attacking_player, defending_player, attack_card, game)
+
         return attacked
 
     def on_buy(self, player: "Player", card: "Card", game: "Game") -> None:
@@ -152,90 +231,77 @@ class EffectRegistry:
         Trigger buying effects.
 
         """
-        for effect in self.gain_effects:
-            effect.handler(player, card, game)
-        for effect in self.buy_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.gain_effects + self.buy_effects, player, card, game)
 
     def on_discard(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger discarding effects.
 
         """
-        for effect in self.discard_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.discard_effects, player, card, game)
 
     def on_draw(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger drawing effects.
 
         """
-        for effect in self.draw_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.draw_effects, player, card, game)
 
     def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger gaining effects.
 
         """
-        for effect in self._order_player_card_game_effects(self.gain_effects, player, card, game):
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.gain_effects, player, card, game)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger playing effects.
 
         """
-        for effect in self.play_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.play_effects, player, card, game)
 
     def on_reveal(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger revealing effects.
 
         """
-        for effect in self.reveal_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.reveal_effects, player, card, game)
 
     def on_shuffle(self, player: "Player", game: "Game") -> None:
         """
         Trigger shuffling effects.
 
         """
-        for effect in self.shuffle_effects:
-            effect.handler(player, game)
+        self._handle_player_game_effects(self.shuffle_effects, player, game)
 
     def on_trash(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger trashing effects.
 
         """
-        for effect in self.trash_effects:
-            effect.handler(player, card, game)
+        self._handle_player_card_game_effects(self.trash_effects, player, card, game)
 
     def on_turn_start(self, player: "Player", game: "Game") -> None:
         """
         Trigger turn start effects.
 
         """
-        for effect in self.turn_start_effects:
-            effect.handler(player, game)
+        self._handle_player_game_effects(self.turn_start_effects, player, game)
 
     def on_turn_end(self, player: "Player", game: "Game") -> None:
         """
         Trigger turn end effects.
 
         """
-        for effect in self.turn_end_effects:
-            effect.handler(player, game)
+        self._handle_player_game_effects(self.turn_end_effects, player, game)
 
     def on_cleanup_start(self, player: "Player", game: "Game") -> None:
         """
         Trigger clean-up start effects.
 
         """
-        for effect in self.cleanup_start_effects:
-            effect.handler(player, game)
+        self._handle_player_game_effects(self.cleanup_start_effects, player, game)
 
     def register_attack_effect(self, effect: AttackEffect) -> None:
         """
