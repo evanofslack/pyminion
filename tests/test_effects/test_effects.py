@@ -18,12 +18,21 @@ class OrderCounter:
 
 
 class AttackEffectTest(AttackEffect):
-    def __init__(self, name: str = "AttackEffectTest", order: EffectOrderType = EffectOrderType.Hidden):
+    def __init__(
+        self,
+        name: str = "AttackEffectTest",
+        order: EffectOrderType = EffectOrderType.Hidden,
+        order_counter: Optional[OrderCounter] = None,
+    ):
         super().__init__(name, order)
         self.handler_called = False
+        self.order_counter = order_counter
+        self.order_count = -1
 
     def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: Game) -> bool:
         self.handler_called = True
+        if self.order_counter is not None:
+            self.order_count = self.order_counter.inc_count()
         return True
 
 
@@ -45,12 +54,21 @@ class PlayerCardGameEffectTest(PlayerCardGameEffect):
             self.order_count = self.order_counter.inc_count()
 
 class PlayerGameEffectTest(PlayerGameEffect):
-    def __init__(self, name: str = "PlayerGameEffectTest", order: EffectOrderType = EffectOrderType.Hidden):
+    def __init__(
+        self,
+        name: str = "PlayerGameEffectTest",
+        order: EffectOrderType = EffectOrderType.Hidden,
+        order_counter: Optional[OrderCounter] = None,
+    ):
         super().__init__(name, order)
         self.handler_called = False
+        self.order_counter = order_counter
+        self.order_count = -1
 
     def handler(self, player: Player, game: Game) -> None:
         self.handler_called = True
+        if self.order_counter is not None:
+            self.order_count = self.order_counter.inc_count()
 
 
 def test_register_effects(effect_registry: EffectRegistry):
@@ -184,7 +202,34 @@ def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 2
 
 
-def test_effect_order(multiplayer_game: Game, monkeypatch):
+def test_attack_effect_order(multiplayer_game: Game, monkeypatch):
+    reg = multiplayer_game.effect_registry
+    order_counter = OrderCounter()
+
+    hidden_effect = AttackEffectTest("Hidden", EffectOrderType.Hidden, order_counter)
+    order_not_required_effect = AttackEffectTest("OrderNotRequired", EffectOrderType.OrderNotRequired, order_counter)
+    order_required_effect1 = AttackEffectTest("OrderRequired1", EffectOrderType.OrderRequired, order_counter)
+    order_required_effect2 = AttackEffectTest("OrderRequired2", EffectOrderType.OrderRequired, order_counter)
+
+    reg.register_attack_effect(order_required_effect1)
+    reg.register_attack_effect(order_required_effect2)
+    reg.register_attack_effect(order_not_required_effect)
+    reg.register_attack_effect(hidden_effect)
+
+    responses = iter(["2, 3, 1"])
+    monkeypatch.setattr("builtins.input", lambda input: next(responses))
+
+    player = multiplayer_game.players[0]
+    player.hand.add(witch)
+    player.play(witch, multiplayer_game)
+
+    assert hidden_effect.order_count == 0
+    assert order_required_effect2.order_count == 1
+    assert order_not_required_effect.order_count == 2
+    assert order_required_effect1.order_count == 3
+
+
+def test_player_card_game_effect_order(multiplayer_game: Game, monkeypatch):
     reg = multiplayer_game.effect_registry
     order_counter = OrderCounter()
 
@@ -203,6 +248,33 @@ def test_effect_order(multiplayer_game: Game, monkeypatch):
 
     player = multiplayer_game.players[0]
     player.gain(gold, multiplayer_game)
+
+    assert hidden_effect.order_count == 0
+    assert order_required_effect2.order_count == 1
+    assert order_not_required_effect.order_count == 2
+    assert order_required_effect1.order_count == 3
+
+
+def test_player_game_effect_order(multiplayer_game: Game, monkeypatch):
+    reg = multiplayer_game.effect_registry
+    order_counter = OrderCounter()
+
+    hidden_effect = PlayerGameEffectTest("Hidden", EffectOrderType.Hidden, order_counter)
+    order_not_required_effect = PlayerGameEffectTest("OrderNotRequired", EffectOrderType.OrderNotRequired, order_counter)
+    order_required_effect1 = PlayerGameEffectTest("OrderRequired1", EffectOrderType.OrderRequired, order_counter)
+    order_required_effect2 = PlayerGameEffectTest("OrderRequired2", EffectOrderType.OrderRequired, order_counter)
+
+    reg.register_shuffle_effect(order_required_effect1)
+    reg.register_shuffle_effect(order_required_effect2)
+    reg.register_shuffle_effect(order_not_required_effect)
+    reg.register_shuffle_effect(hidden_effect)
+
+    responses = iter(["2, 3, 1"])
+    monkeypatch.setattr("builtins.input", lambda input: next(responses))
+
+    player = multiplayer_game.players[0]
+    player.deck.move_to(player.discard_pile)
+    player.draw(multiplayer_game) # trigger shuffle
 
     assert hidden_effect.order_count == 0
     assert order_required_effect2.order_count == 1
