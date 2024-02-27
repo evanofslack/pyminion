@@ -54,6 +54,13 @@ class InvalidCardPlay(Exception):
     """
 
 
+class InvalidEffectsOrderInput(InvalidInput):
+    """
+    Invalid response, not a valid order number
+
+    """
+
+
 class InvalidBinaryInput(InvalidInput):
     """
     Invalid response, valid choices are "y" or "n"

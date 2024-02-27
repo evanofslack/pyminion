@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Callable, List, Union
+from enum import IntEnum, unique
+from typing import TYPE_CHECKING, Callable, Iterable, Iterator, List, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -10,17 +11,25 @@ PlayerGameEffectHandler = Callable[["Player", "Game"], None]
 PlayerCardGameEffectHandler = Callable[["Player", "Card", "Game"], None]
 
 
+@unique
+class EffectOrderType(IntEnum):
+    Hidden = 0
+    OrderRequired = 1
+    OrderNotRequired = 2
+
+
 class PlayerGameEffect:
-    def __init__(self, name: str):
+    def __init__(self, name: str, order: EffectOrderType):
         self.name = name
+        self.order = order
 
     def handler(self, player: "Player", game: "Game") -> None:
         raise NotImplementedError("PlayerGameEffect handler is not implemented")
 
 
 class FuncPlayerGameEffect(PlayerGameEffect):
-    def __init__(self, name: str, handler_func: PlayerGameEffectHandler):
-        super().__init__(name)
+    def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerGameEffectHandler):
+        super().__init__(name, order)
         self.handler_func = handler_func
 
     def handler(self, player: "Player", game: "Game") -> None:
@@ -28,16 +37,17 @@ class FuncPlayerGameEffect(PlayerGameEffect):
 
 
 class PlayerCardGameEffect:
-    def __init__(self, name: str):
+    def __init__(self, name: str, order: EffectOrderType):
         self.name = name
+        self.order = order
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
 
 
 class FuncPlayerCardGameEffect(PlayerCardGameEffect):
-    def __init__(self, name: str, handler_func: PlayerCardGameEffectHandler):
-        super().__init__(name)
+    def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerCardGameEffectHandler):
+        super().__init__(name, order)
         self.handler_func = handler_func
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
@@ -45,8 +55,9 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
 
 
 class AttackEffect:
-    def __init__(self, name: str):
+    def __init__(self, name: str, order: EffectOrderType):
         self.name = name
+        self.order = order
 
     def handler(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
@@ -70,6 +81,45 @@ class EffectRegistry:
         self.turn_start_effects: List[PlayerGameEffect] = []
         self.turn_end_effects: List[PlayerGameEffect] = []
         self.cleanup_start_effects: List[PlayerGameEffect] = []
+
+    def _order_player_card_game_effects(
+            self,
+            effects: Iterable[PlayerCardGameEffect],
+            player: "Player",
+            card: "Card",
+            game: "Game",
+    ) -> Iterator[PlayerCardGameEffect]:
+        # sort effects by type
+        hidden: List[PlayerCardGameEffect] = []
+        order_required: List[PlayerCardGameEffect] = []
+        order_not_required: List[PlayerCardGameEffect] = []
+        for effect in effects:
+            if effect.order == EffectOrderType.Hidden:
+                hidden.append(effect)
+            elif effect.order == EffectOrderType.OrderRequired:
+                order_required.append(effect)
+            elif effect.order == EffectOrderType.OrderNotRequired:
+                order_not_required.append(effect)
+
+        # hidden effects always happen first
+        for effect in hidden:
+            yield effect
+
+        if len(order_required) == 0:
+            for effect in order_not_required:
+                yield effect
+        else:
+            # ask user to specify order
+            combined = order_required + order_not_required
+            order = player.decider.effects_order_decision(
+                [e.name for e in combined],
+                player,
+                game,
+            )
+            assert len(order) == len(set(order)) == len(combined)
+
+            for idx in order:
+                yield combined[idx]
 
     def _unregister_effects(
             self,
@@ -128,7 +178,7 @@ class EffectRegistry:
         Trigger gaining effects.
 
         """
-        for effect in self.gain_effects:
+        for effect in self._order_player_card_game_effects(self.gain_effects, player, card, game):
             effect.handler(player, card, game)
 
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:

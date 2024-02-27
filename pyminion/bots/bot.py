@@ -75,6 +75,14 @@ class BotDecider:
 
         return None
 
+    def effects_order_decision(
+        self,
+        effect_names: List[str],
+        player: "Player",
+        game: "Game",
+    ) -> List[int]:
+        return list(range(len(effect_names)))
+
     def binary_decision(
         self,
         prompt: str,

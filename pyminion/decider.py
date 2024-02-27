@@ -35,6 +35,14 @@ class Decider(Protocol):
     ) -> Optional["Card"]:
         raise NotImplementedError("buy_phase_decision is not implemented")
 
+    def effects_order_decision(
+        self,
+        effect_names: List[str],
+        player: "Player",
+        game: "Game",
+    ) -> List[int]:
+        raise NotImplementedError("effects_order_decision is not implemented")
+
     def binary_decision(
         self,
         prompt: str,

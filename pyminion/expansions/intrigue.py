@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
-from pyminion.effects import AttackEffect, FuncPlayerCardGameEffect, FuncPlayerGameEffect
+from pyminion.effects import AttackEffect, EffectOrderType, FuncPlayerCardGameEffect, FuncPlayerGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
@@ -243,7 +243,7 @@ class Diplomat(Action):
 
     class DiplomatAttackEffect(AttackEffect):
         def __init__(self, player: Player):
-            super().__init__(f"Diplomat: {player.player_id} attack reaction")
+            super().__init__(f"Diplomat: {player.player_id} attack reaction", EffectOrderType.OrderRequired)
             self.player = player
 
         def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
@@ -296,10 +296,10 @@ class Diplomat(Action):
             player.state.actions += 2
 
     def set_up(self, game: "Game") -> None:
-        draw_effect = FuncPlayerCardGameEffect("Diplomat: Draw", self.on_draw)
+        draw_effect = FuncPlayerCardGameEffect("Diplomat: Draw", EffectOrderType.Hidden, self.on_draw)
         game.effect_registry.register_draw_effect(draw_effect)
 
-        cleanup_effect = FuncPlayerGameEffect("Diplomat: Clean-up", self.on_cleanup_start)
+        cleanup_effect = FuncPlayerGameEffect("Diplomat: Clean-up", EffectOrderType.Hidden, self.on_cleanup_start)
         game.effect_registry.register_cleanup_start_effect(cleanup_effect)
 
     def on_draw(self, player: Player, card: Card, game: "Game") -> None:

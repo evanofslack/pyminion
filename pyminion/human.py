@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
 from pyminion.core import (CardType, Card, Deck)
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
-                                 InvalidSingleCardInput, InvalidDeckPositionInput)
+                                 InvalidSingleCardInput, InvalidDeckPositionInput,
+                                 InvalidEffectsOrderInput)
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -41,6 +42,41 @@ def validate_input(
         return wrapper
 
     return decorator(func) if callable(func) else decorator
+
+
+def effects_order_decision(effect_names: List[str]) -> List[int]:
+    """
+    Get user input to select the order in which effects will occur
+
+    Raise exception if user provided selection is not a valid option
+
+    """
+    print("List the order in which the following effects will occur:")
+    for i, name in enumerate(effect_names):
+        print(f"{i + 1}: {name}")
+    order_input = input("Order: ")
+    order_strings = [x.strip() for x in order_input.split(",")]
+
+    if len(order_strings) != len(effect_names):
+        raise InvalidEffectsOrderInput("Invalid input, did not choose order for all effects")
+
+    order_list: List[int] = []
+    for order in order_strings:
+        try:
+            order_num = int(order)
+        except ValueError:
+            raise InvalidEffectsOrderInput(f"'{order}' is not a valid number")
+
+        if order_num <= 0 or order_num > len(effect_names):
+            raise InvalidEffectsOrderInput(f"'{order_num}' is not a valid option")
+
+        order_index = order_num - 1
+        if order_index in order_list:
+            raise InvalidEffectsOrderInput(f"Order {order_num} occurs multiple times")
+
+        order_list.append(order_index)
+
+    return order_list
 
 
 def binary_decision(prompt: str) -> bool:
@@ -260,6 +296,15 @@ class HumanDecider:
             raise InvalidSingleCardInput("You must choose a valid card")
 
         return card
+
+    @validate_input(exceptions=InvalidEffectsOrderInput)
+    def effects_order_decision(
+        self,
+        effect_names: List[str],
+        player: "Player",
+        game: "Game",
+    ) -> List[int]:
+        return effects_order_decision(effect_names)
 
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(

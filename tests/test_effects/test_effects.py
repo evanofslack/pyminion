@@ -1,14 +1,25 @@
 from pyminion.core import Card
-from pyminion.effects import EffectRegistry, AttackEffect, PlayerCardGameEffect, PlayerGameEffect
+from pyminion.effects import EffectOrderType, EffectRegistry, AttackEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.expansions.base import gold, smithy, witch
 from pyminion.game import Game
 from pyminion.player import Player
 import pytest
+from typing import Optional
+
+
+class OrderCounter:
+    def __init__(self):
+        self._count = 0
+
+    def inc_count(self) -> int:
+        ret = self._count
+        self._count += 1
+        return ret
 
 
 class AttackEffectTest(AttackEffect):
-    def __init__(self, name: str = "AttackEffectTest"):
-        super().__init__(name)
+    def __init__(self, name: str = "AttackEffectTest", order: EffectOrderType = EffectOrderType.Hidden):
+        super().__init__(name, order)
         self.handler_called = False
 
     def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: Game) -> bool:
@@ -17,17 +28,25 @@ class AttackEffectTest(AttackEffect):
 
 
 class PlayerCardGameEffectTest(PlayerCardGameEffect):
-    def __init__(self, name: str = "PlayerCardGameEffectTest"):
-        super().__init__(name)
+    def __init__(
+            self,
+            name: str = "PlayerCardGameEffectTest",
+            order: EffectOrderType = EffectOrderType.Hidden,
+            order_counter: Optional[OrderCounter] = None,
+    ):
+        super().__init__(name, order)
         self.handler_called = False
+        self.order_counter = order_counter
+        self.order_count = -1
 
     def handler(self, player: Player, card: Card, game: Game) -> None:
         self.handler_called = True
-
+        if self.order_counter is not None:
+            self.order_count = self.order_counter.inc_count()
 
 class PlayerGameEffectTest(PlayerGameEffect):
-    def __init__(self, name: str = "PlayerGameEffectTest"):
-        super().__init__(name)
+    def __init__(self, name: str = "PlayerGameEffectTest", order: EffectOrderType = EffectOrderType.Hidden):
+        super().__init__(name, order)
         self.handler_called = False
 
     def handler(self, player: Player, game: Game) -> None:
@@ -163,6 +182,32 @@ def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
     effect_registry.unregister_attack_effects("test1", max_unregister=1)
 
     assert len(effect_registry.attack_effects) == 2
+
+
+def test_effect_order(multiplayer_game: Game, monkeypatch):
+    reg = multiplayer_game.effect_registry
+    order_counter = OrderCounter()
+
+    hidden_effect = PlayerCardGameEffectTest("Hidden", EffectOrderType.Hidden, order_counter)
+    order_not_required_effect = PlayerCardGameEffectTest("OrderNotRequired", EffectOrderType.OrderNotRequired, order_counter)
+    order_required_effect1 = PlayerCardGameEffectTest("OrderRequired1", EffectOrderType.OrderRequired, order_counter)
+    order_required_effect2 = PlayerCardGameEffectTest("OrderRequired2", EffectOrderType.OrderRequired, order_counter)
+
+    reg.register_gain_effect(order_required_effect1)
+    reg.register_gain_effect(order_required_effect2)
+    reg.register_gain_effect(order_not_required_effect)
+    reg.register_gain_effect(hidden_effect)
+
+    responses = iter(["2, 3, 1"])
+    monkeypatch.setattr("builtins.input", lambda input: next(responses))
+
+    player = multiplayer_game.players[0]
+    player.gain(gold, multiplayer_game)
+
+    assert hidden_effect.order_count == 0
+    assert order_required_effect2.order_count == 1
+    assert order_not_required_effect.order_count == 2
+    assert order_required_effect1.order_count == 3
 
 
 @pytest.mark.kingdom_cards([witch])
