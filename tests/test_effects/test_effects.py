@@ -43,15 +43,20 @@ class PlayerCardGameEffectTest(PlayerCardGameEffect):
             order: EffectOrderType = EffectOrderType.Hidden,
             order_counter: Optional[OrderCounter] = None,
     ):
-        super().__init__(name, order)
+        super().__init__(name)
+        self._order = order
         self.handler_called = False
         self.order_counter = order_counter
         self.order_count = -1
+
+    def get_order(self) -> EffectOrderType:
+        return self._order
 
     def handler(self, player: Player, card: Card, game: Game) -> None:
         self.handler_called = True
         if self.order_counter is not None:
             self.order_count = self.order_counter.inc_count()
+
 
 class PlayerGameEffectTest(PlayerGameEffect):
     def __init__(
@@ -60,10 +65,14 @@ class PlayerGameEffectTest(PlayerGameEffect):
         order: EffectOrderType = EffectOrderType.Hidden,
         order_counter: Optional[OrderCounter] = None,
     ):
-        super().__init__(name, order)
+        super().__init__(name)
+        self._order = order
         self.handler_called = False
         self.order_counter = order_counter
         self.order_count = -1
+
+    def get_order(self) -> EffectOrderType:
+        return self._order
 
     def handler(self, player: Player, game: Game) -> None:
         self.handler_called = True

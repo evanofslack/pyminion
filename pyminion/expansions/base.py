@@ -848,8 +848,11 @@ class Merchant(Action):
 
     class MoneyEffect(PlayerCardGameEffect):
         def __init__(self):
-            super().__init__(Merchant.MONEY_EFFECT_NAME, EffectOrderType.OrderNotRequired)
+            super().__init__(Merchant.MONEY_EFFECT_NAME)
             self.first_play = True
+
+        def get_order(self) -> EffectOrderType:
+            return EffectOrderType.OrderNotRequired
 
         def handler(self, player: Player, card: Card, game: "Game") -> None:
             if card.name == "Silver" and self.first_play:

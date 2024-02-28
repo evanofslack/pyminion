@@ -18,10 +18,14 @@ class EffectOrderType(IntEnum):
     OrderNotRequired = 2
 
 
-class PlayerGameEffect:
-    def __init__(self, name: str, order: EffectOrderType):
+class Effect:
+    def get_order(self) -> EffectOrderType:
+        raise NotImplementedError("get_order is not implemented")
+
+
+class PlayerGameEffect(Effect):
+    def __init__(self, name: str):
         self.name = name
-        self.order = order
 
     def handler(self, player: "Player", game: "Game") -> None:
         raise NotImplementedError("PlayerGameEffect handler is not implemented")
@@ -29,17 +33,20 @@ class PlayerGameEffect:
 
 class FuncPlayerGameEffect(PlayerGameEffect):
     def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerGameEffectHandler):
-        super().__init__(name, order)
+        super().__init__(name)
+        self._order = order
         self.handler_func = handler_func
+
+    def get_order(self) -> EffectOrderType:
+        return self._order
 
     def handler(self, player: "Player", game: "Game") -> None:
         self.handler_func(player, game)
 
 
-class PlayerCardGameEffect:
-    def __init__(self, name: str, order: EffectOrderType):
+class PlayerCardGameEffect(Effect):
+    def __init__(self, name: str):
         self.name = name
-        self.order = order
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
@@ -47,17 +54,24 @@ class PlayerCardGameEffect:
 
 class FuncPlayerCardGameEffect(PlayerCardGameEffect):
     def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerCardGameEffectHandler):
-        super().__init__(name, order)
+        super().__init__(name)
+        self._order = order
         self.handler_func = handler_func
+
+    def get_order(self) -> EffectOrderType:
+        return self._order
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         self.handler_func(player, card, game)
 
 
-class AttackEffect:
+class AttackEffect(Effect):
     def __init__(self, name: str, order: EffectOrderType):
         self.name = name
-        self.order = order
+        self._order = order
+
+    def get_order(self) -> EffectOrderType:
+        return self._order
 
     def handler(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
@@ -93,11 +107,11 @@ class EffectRegistry:
         order_required: List[PlayerGameEffect] = []
         order_not_required: List[PlayerGameEffect] = []
         for effect in effects:
-            if effect.order == EffectOrderType.Hidden:
+            if effect.get_order() == EffectOrderType.Hidden:
                 hidden.append(effect)
-            elif effect.order == EffectOrderType.OrderRequired:
+            elif effect.get_order() == EffectOrderType.OrderRequired:
                 order_required.append(effect)
-            elif effect.order == EffectOrderType.OrderNotRequired:
+            elif effect.get_order() == EffectOrderType.OrderNotRequired:
                 order_not_required.append(effect)
 
         # hidden effects always happen first
@@ -136,11 +150,11 @@ class EffectRegistry:
         order_required: List[PlayerCardGameEffect] = []
         order_not_required: List[PlayerCardGameEffect] = []
         for effect in effects:
-            if effect.order == EffectOrderType.Hidden:
+            if effect.get_order() == EffectOrderType.Hidden:
                 hidden.append(effect)
-            elif effect.order == EffectOrderType.OrderRequired:
+            elif effect.get_order() == EffectOrderType.OrderRequired:
                 order_required.append(effect)
-            elif effect.order == EffectOrderType.OrderNotRequired:
+            elif effect.get_order() == EffectOrderType.OrderNotRequired:
                 order_not_required.append(effect)
 
         # hidden effects always happen first
@@ -194,11 +208,11 @@ class EffectRegistry:
         order_required: List[AttackEffect] = []
         order_not_required: List[AttackEffect] = []
         for effect in self.attack_effects:
-            if effect.order == EffectOrderType.Hidden:
+            if effect.get_order() == EffectOrderType.Hidden:
                 hidden.append(effect)
-            elif effect.order == EffectOrderType.OrderRequired:
+            elif effect.get_order() == EffectOrderType.OrderRequired:
                 order_required.append(effect)
-            elif effect.order == EffectOrderType.OrderNotRequired:
+            elif effect.get_order() == EffectOrderType.OrderNotRequired:
                 order_not_required.append(effect)
 
         # hidden effects always happen first
