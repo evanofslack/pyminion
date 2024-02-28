@@ -29,6 +29,9 @@ class AttackEffectTest(AttackEffect):
         self.order_counter = order_counter
         self.order_count = -1
 
+    def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+        return True
+
     def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: Game) -> bool:
         self.handler_called = True
         if self.order_counter is not None:
@@ -52,6 +55,9 @@ class PlayerCardGameEffectTest(PlayerCardGameEffect):
     def get_order(self) -> EffectOrderType:
         return self._order
 
+    def is_triggered(self, player: Player, card: Card, game: Game) -> bool:
+        return True
+
     def handler(self, player: Player, card: Card, game: Game) -> None:
         self.handler_called = True
         if self.order_counter is not None:
@@ -73,6 +79,9 @@ class PlayerGameEffectTest(PlayerGameEffect):
 
     def get_order(self) -> EffectOrderType:
         return self._order
+
+    def is_triggered(self, player: Player, game: Game) -> bool:
+        return True
 
     def handler(self, player: Player, game: Game) -> None:
         self.handler_called = True

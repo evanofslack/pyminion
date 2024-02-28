@@ -20,12 +20,15 @@ class EffectOrderType(IntEnum):
 
 class Effect:
     def get_order(self) -> EffectOrderType:
-        raise NotImplementedError("get_order is not implemented")
+        raise NotImplementedError("Effect get_order is not implemented")
 
 
 class PlayerGameEffect(Effect):
     def __init__(self, name: str):
         self.name = name
+
+    def is_triggered(self, player: "Player", game: "Game") -> bool:
+        raise NotImplementedError("PlayerGameEffect is_triggered is not implemented")
 
     def handler(self, player: "Player", game: "Game") -> None:
         raise NotImplementedError("PlayerGameEffect handler is not implemented")
@@ -40,6 +43,9 @@ class FuncPlayerGameEffect(PlayerGameEffect):
     def get_order(self) -> EffectOrderType:
         return self._order
 
+    def is_triggered(self, player: "Player", game: "Game") -> bool:
+        return True
+
     def handler(self, player: "Player", game: "Game") -> None:
         self.handler_func(player, game)
 
@@ -47,6 +53,9 @@ class FuncPlayerGameEffect(PlayerGameEffect):
 class PlayerCardGameEffect(Effect):
     def __init__(self, name: str):
         self.name = name
+
+    def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
+        raise NotImplementedError("PlayerCardGameEffect is_triggered is not implemented")
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
@@ -61,6 +70,9 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
     def get_order(self) -> EffectOrderType:
         return self._order
 
+    def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
+        return True
+
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         self.handler_func(player, card, game)
 
@@ -72,6 +84,9 @@ class AttackEffect(Effect):
 
     def get_order(self) -> EffectOrderType:
         return self._order
+
+    def is_triggered(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
+        raise NotImplementedError("AttackEffect handler is not implemented")
 
     def handler(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
@@ -107,12 +122,13 @@ class EffectRegistry:
         order_required: List[PlayerGameEffect] = []
         order_not_required: List[PlayerGameEffect] = []
         for effect in effects:
-            if effect.get_order() == EffectOrderType.Hidden:
-                hidden.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderRequired:
-                order_required.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                order_not_required.append(effect)
+            if effect.is_triggered(player, game):
+                if effect.get_order() == EffectOrderType.Hidden:
+                    hidden.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderRequired:
+                    order_required.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderNotRequired:
+                    order_not_required.append(effect)
 
         # hidden effects always happen first
         for effect in hidden:
@@ -150,12 +166,13 @@ class EffectRegistry:
         order_required: List[PlayerCardGameEffect] = []
         order_not_required: List[PlayerCardGameEffect] = []
         for effect in effects:
-            if effect.get_order() == EffectOrderType.Hidden:
-                hidden.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderRequired:
-                order_required.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                order_not_required.append(effect)
+            if effect.is_triggered(player, card, game):
+                if effect.get_order() == EffectOrderType.Hidden:
+                    hidden.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderRequired:
+                    order_required.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderNotRequired:
+                    order_not_required.append(effect)
 
         # hidden effects always happen first
         for effect in hidden:
@@ -208,12 +225,13 @@ class EffectRegistry:
         order_required: List[AttackEffect] = []
         order_not_required: List[AttackEffect] = []
         for effect in self.attack_effects:
-            if effect.get_order() == EffectOrderType.Hidden:
-                hidden.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderRequired:
-                order_required.append(effect)
-            elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                order_not_required.append(effect)
+            if effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                if effect.get_order() == EffectOrderType.Hidden:
+                    hidden.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderRequired:
+                    order_required.append(effect)
+                elif effect.get_order() == EffectOrderType.OrderNotRequired:
+                    order_not_required.append(effect)
 
         # hidden effects always happen first
         for effect in hidden:

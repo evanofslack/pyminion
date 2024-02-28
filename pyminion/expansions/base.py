@@ -784,21 +784,22 @@ class Moat(Action):
             super().__init__(f"Moat: {player.player_id} block attack", EffectOrderType.OrderRequired)
             self.player = player
 
-        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
-            if self.player.player_id == defending_player.player_id:
-                block = defending_player.decider.binary_decision(
-                    prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
-                    card=moat,
-                    player=defending_player,
-                    game=game,
-                    relevant_cards=[attack_card],
-                )
-                if block:
-                    defending_player.reveal(moat, game)
-                    logger.info(f"{defending_player} blocks {attack_card} with Moat")
-                return not block
+        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return self.player.player_id == defending_player.player_id
 
-            return True
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            block = defending_player.decider.binary_decision(
+                prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
+                card=moat,
+                player=defending_player,
+                game=game,
+                relevant_cards=[attack_card],
+            )
+            if block:
+                defending_player.reveal(moat, game)
+                logger.info(f"{defending_player} blocks {attack_card} with Moat")
+
+            return not block
 
     def __init__(
         self,
@@ -854,10 +855,12 @@ class Merchant(Action):
         def get_order(self) -> EffectOrderType:
             return EffectOrderType.OrderNotRequired
 
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return card.name == "Silver" and self.first_play
+
         def handler(self, player: Player, card: Card, game: "Game") -> None:
-            if card.name == "Silver" and self.first_play:
-                player.state.money += 1
-                self.first_play = False
+            player.state.money += 1
+            self.first_play = False
 
     def __init__(
         self,

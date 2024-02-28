@@ -246,10 +246,10 @@ class Diplomat(Action):
             super().__init__(f"Diplomat: {player.player_id} attack reaction", EffectOrderType.OrderRequired)
             self.player = player
 
-        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
-            if len(defending_player.hand) < 5:
-                return True
+        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return self.player.player_id == defending_player.player_id and len(defending_player.hand) >= 5
 
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
             reveal = defending_player.decider.binary_decision(
                 prompt=f"Reveal {diplomat} to draw 2 cards then discard 3? y/n: ",
                 card=diplomat,
