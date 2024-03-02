@@ -204,8 +204,10 @@ class Deck(AbstractDeck):
             cards: Optional[List[Card]] = None,
             on_add: Optional[Callable[[Card], None]] = None,
             on_remove: Optional[Callable[[Card], None]] = None,
+            on_shuffle: Optional[Callable[[], None]] = None,
     ):
         super().__init__(cards, on_add, on_remove)
+        self.on_shuffle = on_shuffle
 
     def draw(self) -> Card:
         drawn_card = self.cards.pop()
@@ -215,6 +217,8 @@ class Deck(AbstractDeck):
 
     def shuffle(self) -> None:
         random.shuffle(self.cards)
+        if self.on_shuffle is not None:
+            self.on_shuffle()
 
 
 class DiscardPile(AbstractDeck):

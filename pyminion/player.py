@@ -101,7 +101,6 @@ class Player:
                     self.discard_pile.move_to(self.deck)
                     self.deck.shuffle()
                     self.shuffles += 1
-                    game.effect_registry.on_shuffle(self, game)
 
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
