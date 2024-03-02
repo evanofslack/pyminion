@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Callable, Iterable, List, Union
+from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -8,7 +8,9 @@ if TYPE_CHECKING:
 
 
 PlayerGameEffectHandler = Callable[["Player", "Game"], None]
+PlayerGameEffectTriggerHandler = Callable[["Player", "Game"], bool]
 PlayerCardGameEffectHandler = Callable[["Player", "Card", "Game"], None]
+PlayerCardGameEffectTriggerHandler = Callable[["Player", "Card", "Game"], bool]
 
 
 @unique
@@ -35,16 +37,28 @@ class PlayerGameEffect(Effect):
 
 
 class FuncPlayerGameEffect(PlayerGameEffect):
-    def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerGameEffectHandler):
+    def __init__(
+        self,
+        name: str,
+        order: EffectOrderType,
+        handler_func: PlayerGameEffectHandler,
+        is_triggered_func: Optional[PlayerGameEffectTriggerHandler] = None,
+    ):
         super().__init__(name)
         self._order = order
         self.handler_func = handler_func
+
+        self.is_triggered_func: PlayerGameEffectTriggerHandler
+        if is_triggered_func is None:
+            self.is_triggered_func = lambda p, g: True
+        else:
+            self.is_triggered_func = is_triggered_func
 
     def get_order(self) -> EffectOrderType:
         return self._order
 
     def is_triggered(self, player: "Player", game: "Game") -> bool:
-        return True
+        return self.is_triggered_func(player, game)
 
     def handler(self, player: "Player", game: "Game") -> None:
         self.handler_func(player, game)
@@ -62,16 +76,28 @@ class PlayerCardGameEffect(Effect):
 
 
 class FuncPlayerCardGameEffect(PlayerCardGameEffect):
-    def __init__(self, name: str, order: EffectOrderType, handler_func: PlayerCardGameEffectHandler):
+    def __init__(
+        self,
+        name: str,
+        order: EffectOrderType,
+        handler_func: PlayerCardGameEffectHandler,
+        is_triggered_func: Optional[PlayerCardGameEffectTriggerHandler] = None,
+    ):
         super().__init__(name)
         self._order = order
         self.handler_func = handler_func
+
+        self.is_triggered_func: PlayerCardGameEffectTriggerHandler
+        if is_triggered_func is None:
+            self.is_triggered_func = lambda p, c, g: True
+        else:
+            self.is_triggered_func = is_triggered_func
 
     def get_order(self) -> EffectOrderType:
         return self._order
 
     def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
-        return True
+        return self.is_triggered_func(player, card, game)
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         self.handler_func(player, card, game)

@@ -296,18 +296,27 @@ class Diplomat(Action):
             player.state.actions += 2
 
     def set_up(self, game: "Game") -> None:
-        draw_effect = FuncPlayerCardGameEffect("Diplomat: Draw", EffectOrderType.Hidden, self.on_draw)
-        game.effect_registry.register_draw_effect(draw_effect)
+        hand_add_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Add",
+            EffectOrderType.Hidden,
+            self.on_hand_add,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        cleanup_effect = FuncPlayerGameEffect("Diplomat: Clean-up", EffectOrderType.Hidden, self.on_cleanup_start)
-        game.effect_registry.register_cleanup_start_effect(cleanup_effect)
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Remove",
+            EffectOrderType.Hidden,
+            self.on_hand_remove,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
-    def on_draw(self, player: Player, card: Card, game: "Game") -> None:
-        if card.name == self.name:
-            effect = Diplomat.DiplomatAttackEffect(player)
-            game.effect_registry.register_attack_effect(effect)
+    def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
+        effect = Diplomat.DiplomatAttackEffect(player)
+        game.effect_registry.register_attack_effect(effect)
 
-    def on_cleanup_start(self, player: Player, game: "Game") -> None:
+    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
         game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} attack reaction")
 
 

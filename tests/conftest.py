@@ -135,9 +135,15 @@ def game(request, player):
         expansions=[base_set, intrigue_set],
         kingdom_cards=kingdom_cards,
     )
+
+    # TODO: It would be better to call game.start() here, but this breaks
+    # several unit tests, so they need to be fixed first
     game.supply = game._create_supply()
     for card in game.all_game_cards:
         card.set_up(game)
+    player.hand.on_add = lambda card, player=player: game.effect_registry.on_hand_add(player, card, game)
+    player.hand.on_remove = lambda card, player=player: game.effect_registry.on_hand_remove(player, card, game)
+
     return game
 
 

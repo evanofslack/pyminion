@@ -822,18 +822,27 @@ class Moat(Action):
         player.draw(game, 2)
 
     def set_up(self, game: "Game") -> None:
-        draw_effect = FuncPlayerCardGameEffect("Moat: Draw", EffectOrderType.Hidden, self.on_draw)
-        game.effect_registry.register_draw_effect(draw_effect)
+        hand_add_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Add",
+            EffectOrderType.Hidden,
+            self.on_hand_add,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        cleanup_effect = FuncPlayerGameEffect("Moat: Clean-up", EffectOrderType.Hidden, self.on_cleanup_start)
-        game.effect_registry.register_cleanup_start_effect(cleanup_effect)
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Remove",
+            EffectOrderType.Hidden,
+            self.on_hand_remove,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
-    def on_draw(self, player: Player, card: Card, game: "Game") -> None:
-        if card.name == self.name:
-            effect = Moat.MoatAttackEffect(player)
-            game.effect_registry.register_attack_effect(effect)
+    def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
+        effect = Moat.MoatAttackEffect(player)
+        game.effect_registry.register_attack_effect(effect)
 
-    def on_cleanup_start(self, player: Player, game: "Game") -> None:
+    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
         game.effect_registry.unregister_attack_effects(f"Moat: {player.player_id} block attack")
 
 

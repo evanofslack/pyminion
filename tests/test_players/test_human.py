@@ -19,16 +19,20 @@ def test_no_input(human: Human, game: Game, monkeypatch):
 
 
 @pytest.mark.kingdom_cards([moat])
-def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):
-    assert human.is_attacked(attacking_player=human, attack_card=witch, game=game)
+def test_is_attacked_no_moat(multiplayer_game: Game, monkeypatch):
+    human = multiplayer_game.players[0]
+    assert isinstance(human, Human)
+    assert human.is_attacked(attacking_player=human, attack_card=witch, game=multiplayer_game)
 
 
 @pytest.mark.kingdom_cards([moat])
-def test_is_attacked_yes_moat(human: Human, game: Game, monkeypatch):
+def test_is_attacked_yes_moat(multiplayer_game: Game, monkeypatch):
+    human = multiplayer_game.players[0]
+    assert isinstance(human, Human)
     human.deck.add(card=moat)
-    human.draw(game)
+    human.draw(multiplayer_game)
     monkeypatch.setattr("builtins.input", lambda _: "yes")
-    assert not human.is_attacked(attacking_player=human, attack_card=witch, game=game)
+    assert not human.is_attacked(attacking_player=human, attack_card=witch, game=multiplayer_game)
 
 
 def test_action_phase_no_actions(human: Human, game: Game):
