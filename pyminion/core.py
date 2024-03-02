@@ -1,7 +1,7 @@
 import logging
 import random
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Iterable, Iterator, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -145,17 +145,23 @@ class DeckCounter(Counter):
 
 
 class AbstractDeck:
-
     """
     Base class representing a generic list of dominion cards
 
     """
 
-    def __init__(self, cards: Optional[List[Card]] = None):
+    def __init__(
+            self,
+            cards: Optional[List[Card]] = None,
+            on_add: Optional[Callable[[Card], None]] = None,
+            on_remove: Optional[Callable[[Card], None]] = None,
+    ):
         if cards:
             self.cards = cards
         else:
             self.cards = []
+        self.on_add = on_add
+        self.on_remove = on_remove
 
     def __repr__(self):
         return str(DeckCounter(self.cards))
@@ -165,22 +171,46 @@ class AbstractDeck:
 
     def add(self, card: Card) -> None:
         self.cards.append(card)
+        if self.on_add is not None:
+            self.on_add(card)
 
     def remove(self, card: Card) -> Card:
         self.cards.remove(card)
+        if self.on_remove is not None:
+            self.on_remove(card)
         return card
 
     def move_to(self, destination: "AbstractDeck") -> None:
-        destination.cards += self.cards
-        self.cards = []
+        if destination.on_add is None and self.on_remove is None:
+            destination.cards += self.cards
+            self.cards = []
+        else:
+            cards = self.cards[:] # copy cards that are being moved
+            destination.cards += self.cards
+            self.cards = []
+
+            if destination.on_add is not None:
+                for card in cards:
+                    destination.on_add(card)
+
+            if self.on_remove is not None:
+                for card in cards:
+                    self.on_remove(card)
 
 
 class Deck(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
-        super().__init__(cards)
+    def __init__(
+            self,
+            cards: Optional[List[Card]] = None,
+            on_add: Optional[Callable[[Card], None]] = None,
+            on_remove: Optional[Callable[[Card], None]] = None,
+    ):
+        super().__init__(cards, on_add, on_remove)
 
     def draw(self) -> Card:
         drawn_card = self.cards.pop()
+        if self.on_remove is not None:
+            self.on_remove(drawn_card)
         return drawn_card
 
     def shuffle(self) -> None:
@@ -193,8 +223,13 @@ class DiscardPile(AbstractDeck):
 
 
 class Hand(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
-        super().__init__(cards)
+    def __init__(
+            self,
+            cards: Optional[List[Card]] = None,
+            on_add: Optional[Callable[[Card], None]] = None,
+            on_remove: Optional[Callable[[Card], None]] = None,
+    ):
+        super().__init__(cards, on_add, on_remove)
 
 
 class Pile(AbstractDeck):
@@ -210,7 +245,7 @@ class Pile(AbstractDeck):
     def remove(self, card: Card) -> Card:
         if len(self.cards) < 1:
             raise EmptyPile(f"{self.name} pile is empty, cannot gain card")
-        self.cards.remove(card)
+        super().remove(card)
         return card
 
 

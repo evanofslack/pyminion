@@ -175,6 +175,8 @@ class Game:
 
         for player in self.players:
             player.reset()
+            player.hand.on_add = lambda card, player=player: self.effect_registry.on_hand_add(player, card, self)
+            player.hand.on_remove = lambda card, player=player: self.effect_registry.on_hand_remove(player, card, self)
             player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(self, 5)

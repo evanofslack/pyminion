@@ -103,6 +103,8 @@ class EffectRegistry:
         self.discard_effects: List[PlayerCardGameEffect] = []
         self.draw_effects: List[PlayerCardGameEffect] = []
         self.gain_effects: List[PlayerCardGameEffect] = []
+        self.hand_add_effects: List[PlayerCardGameEffect] = []
+        self.hand_remove_effects: List[PlayerCardGameEffect] = []
         self.play_effects: List[PlayerCardGameEffect] = []
         self.reveal_effects: List[PlayerCardGameEffect] = []
         self.shuffle_effects: List[PlayerGameEffect] = []
@@ -286,6 +288,20 @@ class EffectRegistry:
         """
         self._handle_player_card_game_effects(self.gain_effects, player, card, game)
 
+    def on_hand_add(self, player: "Player", card: "Card", game: "Game") -> None:
+        """
+        Trigger hand adding effects.
+
+        """
+        self._handle_player_card_game_effects(self.hand_add_effects, player, card, game)
+
+    def on_hand_remove(self, player: "Player", card: "Card", game: "Game") -> None:
+        """
+        Trigger hand removing effects.
+
+        """
+        self._handle_player_card_game_effects(self.hand_remove_effects, player, card, game)
+
     def on_play(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger playing effects.
@@ -404,6 +420,34 @@ class EffectRegistry:
 
         """
         self._unregister_effects(name, self.gain_effects, max_unregister)
+
+    def register_hand_add_effect(self, effect: PlayerCardGameEffect) -> None:
+        """
+        Register an effect to be triggered on hand adding.
+
+        """
+        self.hand_add_effects.append(effect)
+
+    def unregister_hand_add_effects(self, name: str, max_unregister: int = -1) -> None:
+        """
+        Unregister an effect from being triggered on hand adding.
+
+        """
+        self._unregister_effects(name, self.hand_add_effects, max_unregister)
+
+    def register_hand_remove_effect(self, effect: PlayerCardGameEffect) -> None:
+        """
+        Register an effect to be triggered on hand removing.
+
+        """
+        self.hand_remove_effects.append(effect)
+
+    def unregister_hand_remove_effects(self, name: str, max_unregister: int = -1) -> None:
+        """
+        Unregister an effect from being triggered on hand removing.
+
+        """
+        self._unregister_effects(name, self.hand_remove_effects, max_unregister)
 
     def register_play_effect(self, effect: PlayerCardGameEffect) -> None:
         """
