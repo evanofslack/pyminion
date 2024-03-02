@@ -307,15 +307,6 @@ class Supply:
         pile = self.get_pile(card.name)
         pile.add(card)
 
-    def trash_card(self, card: Card, trash: "Trash") -> None:
-        """
-        Trash a card from the supply.
-
-        """
-        pile = self.get_pile(card.name)
-        pile.remove(card)
-        trash.add(card)
-
     def available_cards(self) -> List[Card]:
         """
         Returns a list containing a single card from each non-empty pile in the supply.
