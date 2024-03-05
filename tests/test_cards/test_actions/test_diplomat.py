@@ -38,7 +38,7 @@ def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     for _ in range(4):
         p1.hand.add(copper)
     p1.deck.add(diplomat)
-    p1.draw(multiplayer_game)
+    p1.draw()
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -64,7 +64,7 @@ def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     for _ in range(4):
         p1.hand.add(copper)
     p1.deck.add(diplomat)
-    p1.draw(multiplayer_game)
+    p1.draw()
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -87,7 +87,7 @@ def test_diplomat_cannot_block_witch(multiplayer_game: Game):
     for _ in range(3):
         p1.hand.add(copper)
     p1.deck.add(diplomat)
-    p1.draw(multiplayer_game)
+    p1.draw()
     assert len(p1.hand) == 4
 
     p2.hand.add(witch)

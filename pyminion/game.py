@@ -180,7 +180,7 @@ class Game:
             player.deck.on_shuffle = lambda player=player: self.effect_registry.on_shuffle(player, self)
             player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
-            player.draw(self, 5)
+            player.draw(5)
 
     def is_over(self) -> bool:
         """

@@ -74,7 +74,6 @@ class Player:
 
     def draw(
         self,
-        game: "Game",
         num_cards: int = 1,
         destination: Optional[AbstractDeck] = None,
         silent: bool = False,
@@ -351,7 +350,7 @@ class Player:
         playmat_copy = self.playmat.cards[:]
         for card in playmat_copy:
             self.discard(game, card, self.playmat, silent=True)
-        self.draw(game, 5)
+        self.draw(5)
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1

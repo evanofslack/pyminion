@@ -101,7 +101,7 @@ def test_torturer_moat(multiplayer_game: Game, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
     p2.deck.add(moat)
-    p2.draw(multiplayer_game)
+    p2.draw()
 
     p1.play(torturer, multiplayer_game)
     assert len(p1.hand) == 3

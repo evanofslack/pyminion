@@ -419,7 +419,7 @@ def test_diplomat_bot(multiplayer_bot_game: Game):
     p1.hand.add(estate)
     p1.hand.add(estate)
     p1.deck.add(diplomat)
-    p1.draw(multiplayer_bot_game)
+    p1.draw()
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)

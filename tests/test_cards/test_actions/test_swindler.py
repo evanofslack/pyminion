@@ -34,7 +34,7 @@ def test_swindler_moat(multiplayer_game: Game, monkeypatch):
     p1.hand.add(swindler)
     p2.deck.add(moat)
     p2.deck.add(moat)
-    p2.draw(multiplayer_game)
+    p2.draw()
 
     monkeypatch.setattr("builtins.input", lambda _: "y")
 

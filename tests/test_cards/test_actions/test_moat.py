@@ -23,7 +23,7 @@ def test_moat_block_witch(multiplayer_game: Game, monkeypatch):
 
     moat_player = multiplayer_game.players[1]
     moat_player.deck.add(moat)
-    moat_player.draw(multiplayer_game)
+    moat_player.draw()
 
     for p in multiplayer_game.players:
         if p is not witch_player:
@@ -42,7 +42,7 @@ def test_moat_no_block_witch(multiplayer_game: Game, monkeypatch):
 
     moat_player = multiplayer_game.players[1]
     moat_player.deck.add(moat)
-    moat_player.draw(multiplayer_game)
+    moat_player.draw()
 
     for p in multiplayer_game.players:
         if p is not witch_player:

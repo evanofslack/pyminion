@@ -77,7 +77,7 @@ def test_minion_moat(multiplayer_game: Game, monkeypatch):
 
     p1.hand.add(minion)
     p2.deck.add(moat)
-    p2.draw(multiplayer_game)
+    p2.draw()
 
     responses = iter(["y", "2"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))

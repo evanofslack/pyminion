@@ -30,7 +30,7 @@ def test_is_attacked_yes_moat(multiplayer_game: Game, monkeypatch):
     human = multiplayer_game.players[0]
     assert isinstance(human, Human)
     human.deck.add(card=moat)
-    human.draw(multiplayer_game)
+    human.draw()
     monkeypatch.setattr("builtins.input", lambda _: "yes")
     assert not human.is_attacked(attacking_player=human, attack_card=witch, game=multiplayer_game)
 

@@ -284,7 +284,7 @@ def test_player_game_effect_order(multiplayer_game: Game, monkeypatch):
 
     player = multiplayer_game.players[0]
     player.deck.move_to(player.discard_pile)
-    player.draw(multiplayer_game) # trigger shuffle
+    player.draw() # trigger shuffle
 
     assert hidden_effect.order_count == 0
     assert order_required_effect2.order_count == 1
