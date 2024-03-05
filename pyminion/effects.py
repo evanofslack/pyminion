@@ -170,7 +170,6 @@ class EffectRegistry:
                 combined[0].handler(player, game)
             else:
                 # ask user to specify order
-                combined = order_required + order_not_required
                 order = player.decider.effects_order_decision(
                     [e.name for e in combined],
                     player,
@@ -209,11 +208,11 @@ class EffectRegistry:
             for effect in order_not_required:
                 effect.handler(player, card, game)
         else:
-            # ask user to specify order
             combined = order_required + order_not_required
             if len(combined) == 1:
                 combined[0].handler(player, card, game)
             else:
+                # ask user to specify order
                 order = player.decider.effects_order_decision(
                     [e.name for e in combined],
                     player,
