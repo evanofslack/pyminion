@@ -127,7 +127,6 @@ class EffectRegistry:
         self.attack_effects: List[AttackEffect] = []
         self.buy_effects: List[PlayerCardGameEffect] = []
         self.discard_effects: List[PlayerCardGameEffect] = []
-        self.draw_effects: List[PlayerCardGameEffect] = []
         self.gain_effects: List[PlayerCardGameEffect] = []
         self.hand_add_effects: List[PlayerCardGameEffect] = []
         self.hand_remove_effects: List[PlayerCardGameEffect] = []
@@ -300,13 +299,6 @@ class EffectRegistry:
         """
         self._handle_player_card_game_effects(self.discard_effects, player, card, game)
 
-    def on_draw(self, player: "Player", card: "Card", game: "Game") -> None:
-        """
-        Trigger drawing effects.
-
-        """
-        self._handle_player_card_game_effects(self.draw_effects, player, card, game)
-
     def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
         """
         Trigger gaining effects.
@@ -418,20 +410,6 @@ class EffectRegistry:
 
         """
         self._unregister_effects(name, self.discard_effects, max_unregister)
-
-    def register_draw_effect(self, effect: PlayerCardGameEffect) -> None:
-        """
-        Register an effect to be triggered on drawing.
-
-        """
-        self.draw_effects.append(effect)
-
-    def unregister_draw_effects(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on drawing.
-
-        """
-        self._unregister_effects(name, self.draw_effects, max_unregister)
 
     def register_gain_effect(self, effect: PlayerCardGameEffect) -> None:
         """

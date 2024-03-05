@@ -105,8 +105,6 @@ class Player:
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
-                if destination == self.hand:
-                    game.effect_registry.on_draw(self, draw_card, game)
 
         if not silent:
             logger.info(f"{self} draws {drawn_cards}")

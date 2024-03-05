@@ -93,7 +93,6 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
-    assert len(effect_registry.draw_effects) == 0
     assert len(effect_registry.gain_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
@@ -106,7 +105,6 @@ def test_register_effects(effect_registry: EffectRegistry):
     effect_registry.register_attack_effect(AttackEffectTest())
     effect_registry.register_buy_effect(PlayerCardGameEffectTest())
     effect_registry.register_discard_effect(PlayerCardGameEffectTest())
-    effect_registry.register_draw_effect(PlayerCardGameEffectTest())
     effect_registry.register_gain_effect(PlayerCardGameEffectTest())
     effect_registry.register_play_effect(PlayerCardGameEffectTest())
     effect_registry.register_reveal_effect(PlayerCardGameEffectTest())
@@ -119,7 +117,6 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 1
     assert len(effect_registry.buy_effects) == 1
     assert len(effect_registry.discard_effects) == 1
-    assert len(effect_registry.draw_effects) == 1
     assert len(effect_registry.gain_effects) == 1
     assert len(effect_registry.play_effects) == 1
     assert len(effect_registry.reveal_effects) == 1
@@ -134,7 +131,6 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
-    assert len(effect_registry.draw_effects) == 0
     assert len(effect_registry.gain_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
@@ -147,7 +143,6 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     effect_registry.register_attack_effect(AttackEffectTest())
     effect_registry.register_buy_effect(PlayerCardGameEffectTest())
     effect_registry.register_discard_effect(PlayerCardGameEffectTest())
-    effect_registry.register_draw_effect(PlayerCardGameEffectTest())
     effect_registry.register_gain_effect(PlayerCardGameEffectTest())
     effect_registry.register_play_effect(PlayerCardGameEffectTest())
     effect_registry.register_reveal_effect(PlayerCardGameEffectTest())
@@ -160,7 +155,6 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 1
     assert len(effect_registry.buy_effects) == 1
     assert len(effect_registry.discard_effects) == 1
-    assert len(effect_registry.draw_effects) == 1
     assert len(effect_registry.gain_effects) == 1
     assert len(effect_registry.play_effects) == 1
     assert len(effect_registry.reveal_effects) == 1
@@ -173,7 +167,6 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     effect_registry.unregister_attack_effects("AttackEffectTest")
     effect_registry.unregister_buy_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_discard_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_draw_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_gain_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_play_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_reveal_effects("PlayerCardGameEffectTest")
@@ -186,7 +179,6 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
-    assert len(effect_registry.draw_effects) == 0
     assert len(effect_registry.gain_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
@@ -346,18 +338,6 @@ def test_on_discard(game: Game):
     player.discard(game, player.hand.cards[0])
 
     assert discard_effect.handler_called
-
-
-def test_on_draw(game: Game):
-    reg = game.effect_registry
-
-    draw_effect = PlayerCardGameEffectTest()
-    reg.register_draw_effect(draw_effect)
-
-    player = game.players[0]
-    player.draw(game)
-
-    assert draw_effect.handler_called
 
 
 @pytest.mark.kingdom_cards([smithy])
