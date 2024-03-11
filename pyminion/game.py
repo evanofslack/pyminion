@@ -158,6 +158,8 @@ class Game:
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
 
+        self.effect_registry.reset()
+
         self.supply = self._create_supply()
         logger.info(f"Supply: \n{self.supply}")
 

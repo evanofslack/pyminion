@@ -138,6 +138,25 @@ class EffectRegistry:
         self.turn_end_effects: List[PlayerGameEffect] = []
         self.cleanup_start_effects: List[PlayerGameEffect] = []
 
+    def reset(self) -> None:
+        """
+        Reset the registry for a new game.
+
+        """
+        self.attack_effects.clear()
+        self.buy_effects.clear()
+        self.discard_effects.clear()
+        self.gain_effects.clear()
+        self.hand_add_effects.clear()
+        self.hand_remove_effects.clear()
+        self.play_effects.clear()
+        self.reveal_effects.clear()
+        self.shuffle_effects.clear()
+        self.trash_effects.clear()
+        self.turn_start_effects.clear()
+        self.turn_end_effects.clear()
+        self.cleanup_start_effects.clear()
+
     def _handle_player_game_effects(
             self,
             effects: Iterable[PlayerGameEffect],
