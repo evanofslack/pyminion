@@ -1,5 +1,5 @@
 from pyminion.core import Card
-from pyminion.effects import EffectOrderType, EffectRegistry, AttackEffect, PlayerCardGameEffect, PlayerGameEffect
+from pyminion.effects import Effect, EffectOrderType, EffectRegistry, AttackEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.expansions.base import gold, smithy, witch
 from pyminion.game import Game
 from pyminion.player import Player
@@ -87,6 +87,13 @@ class PlayerGameEffectTest(PlayerGameEffect):
         self.handler_called = True
         if self.order_counter is not None:
             self.order_count = self.order_counter.inc_count()
+
+
+def test_effect_id():
+    e1 = Effect("e1")
+    e2 = Effect("e2")
+    e3 = Effect("e3")
+    assert e1.get_id() != e2.get_id() != e3.get_id()
 
 
 def test_register_effects(effect_registry: EffectRegistry):

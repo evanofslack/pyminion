@@ -21,13 +21,30 @@ class EffectOrderType(IntEnum):
 
 
 class Effect:
+    _next_id = 0
+
+    @staticmethod
+    def reset_id() -> None:
+        Effect._next_id = 0
+
+    def __init__(self, name: str):
+        self._id = Effect._next_id
+        Effect._next_id += 1
+        self._name = name
+
+    def get_id(self) -> int:
+        return self._id
+
+    def get_name(self) -> str:
+        return self._name
+
     def get_order(self) -> EffectOrderType:
         raise NotImplementedError("Effect get_order is not implemented")
 
 
 class PlayerGameEffect(Effect):
     def __init__(self, name: str):
-        self.name = name
+        super().__init__(name)
 
     def is_triggered(self, player: "Player", game: "Game") -> bool:
         raise NotImplementedError("PlayerGameEffect is_triggered is not implemented")
@@ -66,7 +83,7 @@ class FuncPlayerGameEffect(PlayerGameEffect):
 
 class PlayerCardGameEffect(Effect):
     def __init__(self, name: str):
-        self.name = name
+        super().__init__(name)
 
     def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
         raise NotImplementedError("PlayerCardGameEffect is_triggered is not implemented")
@@ -105,7 +122,7 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
 
 class AttackEffect(Effect):
     def __init__(self, name: str, order: EffectOrderType):
-        self.name = name
+        super().__init__(name)
         self._order = order
 
     def get_order(self) -> EffectOrderType:
@@ -143,6 +160,8 @@ class EffectRegistry:
         Reset the registry for a new game.
 
         """
+        Effect.reset_id()
+
         self.attack_effects.clear()
         self.buy_effects.clear()
         self.discard_effects.clear()
@@ -190,7 +209,7 @@ class EffectRegistry:
             else:
                 # ask user to specify order
                 order = player.decider.effects_order_decision(
-                    [e.name for e in combined],
+                    [e.get_name() for e in combined],
                     player,
                     game,
                 )
@@ -233,7 +252,7 @@ class EffectRegistry:
             else:
                 # ask user to specify order
                 order = player.decider.effects_order_decision(
-                    [e.name for e in combined],
+                    [e.get_name() for e in combined],
                     player,
                     game,
                 )
@@ -252,7 +271,7 @@ class EffectRegistry:
         i = 0
         while i < len(effect_list) and (max_unregister < 0 or unregister_count < max_unregister):
             effect = effect_list[i]
-            if effect.name == name:
+            if effect.get_name() == name:
                 effect_list.pop(i)
                 unregister_count += 1
             else:
@@ -292,7 +311,7 @@ class EffectRegistry:
             else:
                 # ask user to specify order
                 order = defending_player.decider.effects_order_decision(
-                    [e.name for e in combined],
+                    [e.get_name() for e in combined],
                     defending_player,
                     game,
                 )
