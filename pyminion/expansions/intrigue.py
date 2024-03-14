@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
-from pyminion.effects import AttackEffect, EffectOrderType, FuncPlayerCardGameEffect, FuncPlayerGameEffect
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
@@ -243,7 +243,7 @@ class Diplomat(Action):
 
     class DiplomatAttackEffect(AttackEffect):
         def __init__(self, player: Player):
-            super().__init__(f"Diplomat: {player.player_id} attack reaction", EffectOrderType.OrderRequired)
+            super().__init__(f"Diplomat: {player.player_id} attack reaction", EffectAction.HandAddRemoveCards)
             self.player = player
 
         def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
@@ -298,7 +298,7 @@ class Diplomat(Action):
     def set_up(self, game: "Game") -> None:
         hand_add_effect = FuncPlayerCardGameEffect(
             "Diplomat: Hand Add",
-            EffectOrderType.Hidden,
+            EffectAction.Other,
             self.on_hand_add,
             lambda p, c, g: c.name == self.name,
         )
@@ -306,7 +306,7 @@ class Diplomat(Action):
 
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Diplomat: Hand Remove",
-            EffectOrderType.Hidden,
+            EffectAction.Other,
             self.on_hand_remove,
             lambda p, c, g: c.name == self.name,
         )

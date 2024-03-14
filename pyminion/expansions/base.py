@@ -3,7 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
-from pyminion.effects import AttackEffect, EffectOrderType, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -781,7 +781,7 @@ class Moat(Action):
 
     class MoatAttackEffect(AttackEffect):
         def __init__(self, player: Player):
-            super().__init__(f"Moat: {player.player_id} block attack", EffectOrderType.OrderRequired)
+            super().__init__(f"Moat: {player.player_id} block attack", EffectAction.Other)
             self.player = player
 
         def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
@@ -824,7 +824,7 @@ class Moat(Action):
     def set_up(self, game: "Game") -> None:
         hand_add_effect = FuncPlayerCardGameEffect(
             "Moat: Hand Add",
-            EffectOrderType.Hidden,
+            EffectAction.Other,
             self.on_hand_add,
             lambda p, c, g: c.name == self.name,
         )
@@ -832,7 +832,7 @@ class Moat(Action):
 
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Moat: Hand Remove",
-            EffectOrderType.Hidden,
+            EffectAction.Other,
             self.on_hand_remove,
             lambda p, c, g: c.name == self.name,
         )
@@ -861,8 +861,8 @@ class Merchant(Action):
             super().__init__(Merchant.MONEY_EFFECT_NAME)
             self.first_play = True
 
-        def get_order(self) -> EffectOrderType:
-            return EffectOrderType.OrderNotRequired
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
             return card.name == "Silver" and self.first_play
@@ -896,7 +896,7 @@ class Merchant(Action):
         money_effect = Merchant.MoneyEffect()
         game.effect_registry.register_play_effect(money_effect)
 
-        reset_effect = FuncPlayerGameEffect("Merchant: reset", EffectOrderType.Hidden, self.remove_play_handlers)
+        reset_effect = FuncPlayerGameEffect("Merchant: reset", EffectAction.Other, self.remove_play_handlers)
         game.effect_registry.register_turn_end_effect(reset_effect)
 
     def remove_play_handlers(self, player: "Player", game: "Game") -> None:

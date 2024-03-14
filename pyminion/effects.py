@@ -29,8 +29,8 @@ class Effect:
         Effect._next_id = 0
 
     def __init__(self, name: str):
-        self._id = self._next_id
-        self._next_id += 1
+        self._id = Effect._next_id
+        Effect._next_id += 1
         self._name = name
 
     def get_id(self) -> int:
@@ -252,46 +252,77 @@ class EffectRegistry:
 
     def _handle_player_card_game_effects(
             self,
-            effects: Iterable[PlayerCardGameEffect],
+            effects: List[PlayerCardGameEffect],
             player: "Player",
             card: "Card",
             game: "Game",
     ) -> None:
-        # sort effects by type
-        hidden: List[PlayerCardGameEffect] = []
-        order_required: List[PlayerCardGameEffect] = []
-        order_not_required: List[PlayerCardGameEffect] = []
-        for effect in effects:
-            if effect.is_triggered(player, card, game):
-                if effect.get_action() == EffectAction.Hidden:
-                    hidden.append(effect)
-                elif effect.get_action() == EffectAction.actionRequired:
-                    action_required.append(effect)
-                elif effect.get_action() == EffectAction.actionNotRequired:
-                    action_not_required.append(effect)
+        if len(effects) == 0:
+            return
 
-        # hidden effects always happen first
-        for effect in hidden:
-            effect.handler(player, card, game)
+        handled_ids: Set[int] = set()
 
-        if len(action_required) == 0:
-            for effect in action_not_required:
-                effect.handler(player, card, game)
-        else:
-            combined = action_required + action_not_required
-            if len(combined) == 1:
-                combined[0].handler(player, card, game)
-            else:
-                # ask user to specify order
-                order = player.decider.effects_order_decision(
-                    [e.get_name() for e in combined],
-                    player,
-                    game,
-                )
-                assert len(order) == len(set(order)) == len(combined)
+        effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
+        while not effect_ids.issubset(handled_ids):
+            ask_order_effects: List[PlayerCardGameEffect] = []
 
-                for idx in order:
-                    combined[idx].handler(player, card, game)
+            # handle all effects where order doesn't matter
+            handled_other = False
+            for effect in effects:
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, card, game):
+                    effect.handler(player, card, game)
+                    handled_ids.add(effect.get_id())
+                    handled_other = True
+                    break
+
+            # if there were no "other" effects to handle, check if there were non-"other" effects
+            if not handled_other:
+                # build data structures of non-"other" effects that are triggered
+                order_effects: List[PlayerCardGameEffect] = []
+                grouped_effects: Dict[EffectAction, List[PlayerCardGameEffect]] = {}
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, card, game):
+                        order_effects.append(effect)
+                        action = effect.get_action()
+                        if action in grouped_effects:
+                            grouped_effects[action].append(effect)
+                        else:
+                            grouped_effects[action] = [effect]
+
+                # if there were no more effects to handle we should have exited the loop by now
+                assert len(order_effects) > 0
+
+                # if there is only one effect left, handle it
+                if len(order_effects) == 1:
+                    effect_index = 0
+                else:
+                    effect_names = [e.get_name() for e in order_effects]
+                    if len(grouped_effects) > 1:
+                        need_player_decision = True
+                    else:
+                        if EffectAction.HandAddRemoveCards in grouped_effects:
+                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
+                            if len(unique_names) > 1:
+                                need_player_decision = True
+                            else:
+                                need_player_decision = False
+                        else:
+                            need_player_decision = False
+
+                    if need_player_decision:
+                        # ask user to specify next effect to execute
+                        effect_index = player.decider.effects_order_decision(
+                            effect_names,
+                            player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
+
+                order_effects[effect_index].handler(player, card, game)
+                handled_ids.add(effect.get_id())
+
+            effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
 
     def _unregister_effects(
             self,
@@ -314,43 +345,74 @@ class EffectRegistry:
         Trigger attacking effects.
 
         """
+        if len(self.attack_effects) == 0:
+            return True
+
         attacked = True
 
-        # sort effects by type
-        hidden: List[AttackEffect] = []
-        order_required: List[AttackEffect] = []
-        order_not_required: List[AttackEffect] = []
-        for effect in self.attack_effects:
-            if effect.is_triggered(attacking_player, defending_player, attack_card, game):
-                if effect.get_action() == EffectAction.Hidden:
-                    hidden.append(effect)
-                elif effect.get_action() == EffectAction.actionRequired:
-                    action_required.append(effect)
-                elif effect.get_action() == EffectAction.actionNotRequired:
-                    action_not_required.append(effect)
+        handled_ids: Set[int] = set()
 
-        # hidden effects always happen first
-        for effect in hidden:
-            attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+        effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
+        while not effect_ids.issubset(handled_ids):
+            ask_order_effects: List[AttackEffect] = []
 
-        if len(action_required) == 0:
-            for effect in action_not_required:
-                attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
-        else:
-            combined = action_required + action_not_required
-            if len(combined) == 1:
-                attacked &= combined[0].handler(attacking_player, defending_player, attack_card, game)
-            else:
-                # ask user to specify order
-                order = defending_player.decider.effects_order_decision(
-                    [e.get_name() for e in combined],
-                    defending_player,
-                    game,
-                )
-                assert len(order) == len(set(order)) == len(combined)
+            # handle all effects where order doesn't matter
+            handled_other = False
+            for effect in self.attack_effects:
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                    attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+                    handled_ids.add(effect.get_id())
+                    handled_other = True
+                    break
 
-                for idx in order:
-                    attacked &= combined[idx].handler(attacking_player, defending_player, attack_card, game)
+            # if there were no "other" effects to handle, check if there were non-"other" effects
+            if not handled_other:
+                # build data structures of non-"other" effects that are triggered
+                order_effects: List[AttackEffect] = []
+                grouped_effects: Dict[EffectAction, List[AttackEffect]] = {}
+                for effect in self.attack_effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                        order_effects.append(effect)
+                        action = effect.get_action()
+                        if action in grouped_effects:
+                            grouped_effects[action].append(effect)
+                        else:
+                            grouped_effects[action] = [effect]
+
+                # if there were no more effects to handle we should have exited the loop by now
+                assert len(order_effects) > 0
+
+                # if there is only one effect left, handle it
+                if len(order_effects) == 1:
+                    effect_index = 0
+                else:
+                    effect_names = [e.get_name() for e in order_effects]
+                    if len(grouped_effects) > 1:
+                        need_player_decision = True
+                    else:
+                        if EffectAction.HandAddRemoveCards in grouped_effects:
+                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
+                            if len(unique_names) > 1:
+                                need_player_decision = True
+                            else:
+                                need_player_decision = False
+                        else:
+                            need_player_decision = False
+
+                    if need_player_decision:
+                        # ask user to specify next effect to execute
+                        effect_index = defending_player.decider.effects_order_decision(
+                            effect_names,
+                            defending_player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
+
+                attacked &= order_effects[effect_index].handler(attacking_player, defending_player, attack_card, game)
+                handled_ids.add(effect.get_id())
+
+            effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
 
         return attacked
 
