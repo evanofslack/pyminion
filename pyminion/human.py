@@ -44,39 +44,29 @@ def validate_input(
     return decorator(func) if callable(func) else decorator
 
 
-def effects_order_decision(effect_names: List[str]) -> List[int]:
+def effects_order_decision(effect_names: List[str]) -> int:
     """
     Get user input to select the order in which effects will occur
 
     Raise exception if user provided selection is not a valid option
 
     """
-    print("List the order in which the following effects will occur:")
+    print("Pick the next effect to occur:")
     for i, name in enumerate(effect_names):
         print(f"{i + 1}: {name}")
-    order_input = input("Order: ")
-    order_strings = [x.strip() for x in order_input.split(",")]
+    order_input = input("Effect number: ")
 
-    if len(order_strings) != len(effect_names):
-        raise InvalidEffectsOrderInput("Invalid input, did not choose order for all effects")
+    try:
+        order_num = int(order_input)
+    except ValueError:
+        raise InvalidEffectsOrderInput(f"'{order_input}' is not a valid number")
 
-    order_list: List[int] = []
-    for order in order_strings:
-        try:
-            order_num = int(order)
-        except ValueError:
-            raise InvalidEffectsOrderInput(f"'{order}' is not a valid number")
+    if order_num <= 0 or order_num > len(effect_names):
+        raise InvalidEffectsOrderInput(f"'{order_num}' is not a valid option")
 
-        if order_num <= 0 or order_num > len(effect_names):
-            raise InvalidEffectsOrderInput(f"'{order_num}' is not a valid option")
+    order_index = order_num - 1
 
-        order_index = order_num - 1
-        if order_index in order_list:
-            raise InvalidEffectsOrderInput(f"Order {order_num} occurs multiple times")
-
-        order_list.append(order_index)
-
-    return order_list
+    return order_index
 
 
 def binary_decision(prompt: str) -> bool:
@@ -303,7 +293,7 @@ class HumanDecider:
         effect_names: List[str],
         player: "Player",
         game: "Game",
-    ) -> List[int]:
+    ) -> int:
         return effects_order_decision(effect_names)
 
     @validate_input(exceptions=InvalidBinaryInput)

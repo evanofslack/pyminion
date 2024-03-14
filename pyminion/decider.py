@@ -40,7 +40,7 @@ class Decider(Protocol):
         effect_names: List[str],
         player: "Player",
         game: "Game",
-    ) -> List[int]:
+    ) -> int:
         raise NotImplementedError("effects_order_decision is not implemented")
 
     def binary_decision(

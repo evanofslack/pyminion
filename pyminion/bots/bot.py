@@ -80,8 +80,8 @@ class BotDecider:
         effect_names: List[str],
         player: "Player",
         game: "Game",
-    ) -> List[int]:
-        return list(range(len(effect_names)))
+    ) -> int:
+        return 0
 
     def binary_decision(
         self,

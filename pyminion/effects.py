@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Optional, Set, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -14,10 +14,11 @@ PlayerCardGameEffectTriggerHandler = Callable[["Player", "Card", "Game"], bool]
 
 
 @unique
-class EffectOrderType(IntEnum):
-    Hidden = 0
-    OrderRequired = 1
-    OrderNotRequired = 2
+class EffectAction(IntEnum):
+    Other = 0
+    HandAddCards = 1
+    HandRemoveCards = 2
+    HandAddRemoveCards = 3
 
 
 class Effect:
@@ -28,8 +29,8 @@ class Effect:
         Effect._next_id = 0
 
     def __init__(self, name: str):
-        self._id = Effect._next_id
-        Effect._next_id += 1
+        self._id = self._next_id
+        self._next_id += 1
         self._name = name
 
     def get_id(self) -> int:
@@ -38,8 +39,8 @@ class Effect:
     def get_name(self) -> str:
         return self._name
 
-    def get_order(self) -> EffectOrderType:
-        raise NotImplementedError("Effect get_order is not implemented")
+    def get_action(self) -> EffectAction:
+        raise NotImplementedError("Effect get_action is not implemented")
 
 
 class PlayerGameEffect(Effect):
@@ -57,12 +58,12 @@ class FuncPlayerGameEffect(PlayerGameEffect):
     def __init__(
         self,
         name: str,
-        order: EffectOrderType,
+        action: EffectAction,
         handler_func: PlayerGameEffectHandler,
         is_triggered_func: Optional[PlayerGameEffectTriggerHandler] = None,
     ):
         super().__init__(name)
-        self._order = order
+        self._action = action
         self.handler_func = handler_func
 
         self.is_triggered_func: PlayerGameEffectTriggerHandler
@@ -71,8 +72,8 @@ class FuncPlayerGameEffect(PlayerGameEffect):
         else:
             self.is_triggered_func = is_triggered_func
 
-    def get_order(self) -> EffectOrderType:
-        return self._order
+    def get_action(self) -> EffectAction:
+        return self._action
 
     def is_triggered(self, player: "Player", game: "Game") -> bool:
         return self.is_triggered_func(player, game)
@@ -96,12 +97,12 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
     def __init__(
         self,
         name: str,
-        order: EffectOrderType,
+        action: EffectAction,
         handler_func: PlayerCardGameEffectHandler,
         is_triggered_func: Optional[PlayerCardGameEffectTriggerHandler] = None,
     ):
         super().__init__(name)
-        self._order = order
+        self._action = action
         self.handler_func = handler_func
 
         self.is_triggered_func: PlayerCardGameEffectTriggerHandler
@@ -110,8 +111,8 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
         else:
             self.is_triggered_func = is_triggered_func
 
-    def get_order(self) -> EffectOrderType:
-        return self._order
+    def get_action(self) -> EffectAction:
+        return self._action
 
     def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
         return self.is_triggered_func(player, card, game)
@@ -121,12 +122,12 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
 
 
 class AttackEffect(Effect):
-    def __init__(self, name: str, order: EffectOrderType):
+    def __init__(self, name: str, action: EffectAction):
         super().__init__(name)
-        self._order = order
+        self._action = action
 
-    def get_order(self) -> EffectOrderType:
-        return self._order
+    def get_action(self) -> EffectAction:
+        return self._action
 
     def is_triggered(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
@@ -178,45 +179,76 @@ class EffectRegistry:
 
     def _handle_player_game_effects(
             self,
-            effects: Iterable[PlayerGameEffect],
+            effects: List[PlayerGameEffect],
             player: "Player",
             game: "Game",
     ) -> None:
-        # sort effects by type
-        hidden: List[PlayerGameEffect] = []
-        order_required: List[PlayerGameEffect] = []
-        order_not_required: List[PlayerGameEffect] = []
-        for effect in effects:
-            if effect.is_triggered(player, game):
-                if effect.get_order() == EffectOrderType.Hidden:
-                    hidden.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderRequired:
-                    order_required.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                    order_not_required.append(effect)
+        if len(effects) == 0:
+            return
 
-        # hidden effects always happen first
-        for effect in hidden:
-            effect.handler(player, game)
+        handled_ids: Set[int] = set()
 
-        if len(order_required) == 0:
-            for effect in order_not_required:
-                effect.handler(player, game)
-        else:
-            combined = order_required + order_not_required
-            if len(combined) == 1:
-                combined[0].handler(player, game)
-            else:
-                # ask user to specify order
-                order = player.decider.effects_order_decision(
-                    [e.get_name() for e in combined],
-                    player,
-                    game,
-                )
-                assert len(order) == len(set(order)) == len(combined)
+        effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
+        while not effect_ids.issubset(handled_ids):
+            ask_order_effects: List[PlayerGameEffect] = []
 
-                for idx in order:
-                    combined[idx].handler(player, game)
+            # handle all effects where order doesn't matter
+            handled_other = False
+            for effect in effects:
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, game):
+                    effect.handler(player, game)
+                    handled_ids.add(effect.get_id())
+                    handled_other = True
+                    break
+
+            # if there were no "other" effects to handle, check if there were non-"other" effects
+            if not handled_other:
+                # build data structures of non-"other" effects that are triggered
+                order_effects: List[PlayerGameEffect] = []
+                grouped_effects: Dict[EffectAction, List[PlayerGameEffect]] = {}
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, game):
+                        order_effects.append(effect)
+                        action = effect.get_action()
+                        if action in grouped_effects:
+                            grouped_effects[action].append(effect)
+                        else:
+                            grouped_effects[action] = [effect]
+
+                # if there were no more effects to handle we should have exited the loop by now
+                assert len(order_effects) > 0
+
+                # if there is only one effect left, handle it
+                if len(order_effects) == 1:
+                    effect_index = 0
+                else:
+                    effect_names = [e.get_name() for e in order_effects]
+                    if len(grouped_effects) > 1:
+                        need_player_decision = True
+                    else:
+                        if EffectAction.HandAddRemoveCards in grouped_effects:
+                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
+                            if len(unique_names) > 1:
+                                need_player_decision = True
+                            else:
+                                need_player_decision = False
+                        else:
+                            need_player_decision = False
+
+                    if need_player_decision:
+                        # ask user to specify next effect to execute
+                        effect_index = player.decider.effects_order_decision(
+                            effect_names,
+                            player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
+
+                order_effects[effect_index].handler(player, game)
+                handled_ids.add(effect.get_id())
+
+            effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
 
     def _handle_player_card_game_effects(
             self,
@@ -231,22 +263,22 @@ class EffectRegistry:
         order_not_required: List[PlayerCardGameEffect] = []
         for effect in effects:
             if effect.is_triggered(player, card, game):
-                if effect.get_order() == EffectOrderType.Hidden:
+                if effect.get_action() == EffectAction.Hidden:
                     hidden.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderRequired:
-                    order_required.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                    order_not_required.append(effect)
+                elif effect.get_action() == EffectAction.actionRequired:
+                    action_required.append(effect)
+                elif effect.get_action() == EffectAction.actionNotRequired:
+                    action_not_required.append(effect)
 
         # hidden effects always happen first
         for effect in hidden:
             effect.handler(player, card, game)
 
-        if len(order_required) == 0:
-            for effect in order_not_required:
+        if len(action_required) == 0:
+            for effect in action_not_required:
                 effect.handler(player, card, game)
         else:
-            combined = order_required + order_not_required
+            combined = action_required + action_not_required
             if len(combined) == 1:
                 combined[0].handler(player, card, game)
             else:
@@ -290,22 +322,22 @@ class EffectRegistry:
         order_not_required: List[AttackEffect] = []
         for effect in self.attack_effects:
             if effect.is_triggered(attacking_player, defending_player, attack_card, game):
-                if effect.get_order() == EffectOrderType.Hidden:
+                if effect.get_action() == EffectAction.Hidden:
                     hidden.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderRequired:
-                    order_required.append(effect)
-                elif effect.get_order() == EffectOrderType.OrderNotRequired:
-                    order_not_required.append(effect)
+                elif effect.get_action() == EffectAction.actionRequired:
+                    action_required.append(effect)
+                elif effect.get_action() == EffectAction.actionNotRequired:
+                    action_not_required.append(effect)
 
         # hidden effects always happen first
         for effect in hidden:
             attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
 
-        if len(order_required) == 0:
-            for effect in order_not_required:
+        if len(action_required) == 0:
+            for effect in action_not_required:
                 attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
         else:
-            combined = order_required + order_not_required
+            combined = action_required + action_not_required
             if len(combined) == 1:
                 attacked &= combined[0].handler(attacking_player, defending_player, attack_card, game)
             else:
