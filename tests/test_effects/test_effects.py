@@ -101,6 +101,8 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
     assert len(effect_registry.gain_effects) == 0
+    assert len(effect_registry.hand_add_effects) == 0
+    assert len(effect_registry.hand_remove_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
     assert len(effect_registry.shuffle_effects) == 0
@@ -113,6 +115,8 @@ def test_register_effects(effect_registry: EffectRegistry):
     effect_registry.register_buy_effect(PlayerCardGameEffectTest())
     effect_registry.register_discard_effect(PlayerCardGameEffectTest())
     effect_registry.register_gain_effect(PlayerCardGameEffectTest())
+    effect_registry.register_hand_add_effect(PlayerCardGameEffectTest())
+    effect_registry.register_hand_remove_effect(PlayerCardGameEffectTest())
     effect_registry.register_play_effect(PlayerCardGameEffectTest())
     effect_registry.register_reveal_effect(PlayerCardGameEffectTest())
     effect_registry.register_shuffle_effect(PlayerGameEffectTest())
@@ -125,6 +129,8 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.buy_effects) == 1
     assert len(effect_registry.discard_effects) == 1
     assert len(effect_registry.gain_effects) == 1
+    assert len(effect_registry.hand_add_effects) == 1
+    assert len(effect_registry.hand_remove_effects) == 1
     assert len(effect_registry.play_effects) == 1
     assert len(effect_registry.reveal_effects) == 1
     assert len(effect_registry.shuffle_effects) == 1
@@ -139,6 +145,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
     assert len(effect_registry.gain_effects) == 0
+    assert len(effect_registry.hand_add_effects) == 0
+    assert len(effect_registry.hand_remove_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
     assert len(effect_registry.shuffle_effects) == 0
@@ -151,6 +159,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     effect_registry.register_buy_effect(PlayerCardGameEffectTest())
     effect_registry.register_discard_effect(PlayerCardGameEffectTest())
     effect_registry.register_gain_effect(PlayerCardGameEffectTest())
+    effect_registry.register_hand_add_effect(PlayerCardGameEffectTest())
+    effect_registry.register_hand_remove_effect(PlayerCardGameEffectTest())
     effect_registry.register_play_effect(PlayerCardGameEffectTest())
     effect_registry.register_reveal_effect(PlayerCardGameEffectTest())
     effect_registry.register_shuffle_effect(PlayerGameEffectTest())
@@ -163,6 +173,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.buy_effects) == 1
     assert len(effect_registry.discard_effects) == 1
     assert len(effect_registry.gain_effects) == 1
+    assert len(effect_registry.hand_add_effects) == 1
+    assert len(effect_registry.hand_remove_effects) == 1
     assert len(effect_registry.play_effects) == 1
     assert len(effect_registry.reveal_effects) == 1
     assert len(effect_registry.shuffle_effects) == 1
@@ -175,6 +187,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     effect_registry.unregister_buy_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_discard_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_gain_effects("PlayerCardGameEffectTest")
+    effect_registry.unregister_hand_add_effects("PlayerCardGameEffectTest")
+    effect_registry.unregister_hand_remove_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_play_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_reveal_effects("PlayerCardGameEffectTest")
     effect_registry.unregister_shuffle_effects("PlayerGameEffectTest")
@@ -187,6 +201,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
     assert len(effect_registry.gain_effects) == 0
+    assert len(effect_registry.hand_add_effects) == 0
+    assert len(effect_registry.hand_remove_effects) == 0
     assert len(effect_registry.play_effects) == 0
     assert len(effect_registry.reveal_effects) == 0
     assert len(effect_registry.shuffle_effects) == 0
