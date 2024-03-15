@@ -235,7 +235,7 @@ def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 2
 
 
-def test_order_other(multiplayer_game: Game, monkeypatch):
+def test_order_player_card_game_other(multiplayer_game: Game):
     order_counter = OrderCounter()
     effect_registry = multiplayer_game.effect_registry
     player = multiplayer_game.players[0]
@@ -252,7 +252,7 @@ def test_order_other(multiplayer_game: Game, monkeypatch):
     assert e2.order_count == 1
 
 
-def test_order_other_hand_add(multiplayer_game: Game, monkeypatch):
+def test_order_player_card_game_other_hand_add(multiplayer_game: Game):
     order_counter = OrderCounter()
     effect_registry = multiplayer_game.effect_registry
     player = multiplayer_game.players[0]
@@ -266,8 +266,6 @@ def test_order_other_hand_add(multiplayer_game: Game, monkeypatch):
     e3 = PlayerCardGameEffectTest("e3", EffectAction.HandAddCards, order_counter)
     effect_registry.register_reveal_effect(e3)
 
-    responses = iter(["0"])
-    monkeypatch.setattr("builtins.input", lambda _: next(responses))
     player.reveal(player.hand.cards[0], multiplayer_game)
 
     assert e2.order_count == 0
@@ -275,7 +273,7 @@ def test_order_other_hand_add(multiplayer_game: Game, monkeypatch):
     assert e3.order_count == 2
 
 
-def test_order_hand_add_hand_remove(multiplayer_game: Game, monkeypatch):
+def test_order_player_card_game_hand_add_hand_remove(multiplayer_game: Game, monkeypatch):
     order_counter = OrderCounter()
     effect_registry = multiplayer_game.effect_registry
     player = multiplayer_game.players[0]
@@ -287,6 +285,29 @@ def test_order_hand_add_hand_remove(multiplayer_game: Game, monkeypatch):
     effect_registry.register_reveal_effect(e2)
 
     e3 = PlayerCardGameEffectTest("e3", EffectAction.HandRemoveCards, order_counter)
+    effect_registry.register_reveal_effect(e3)
+
+    responses = iter(["2"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    player.reveal(player.hand.cards[0], multiplayer_game)
+
+    assert e2.order_count == 0
+    assert e3.order_count == 1
+    assert e1.order_count == 2
+
+
+def test_order_player_card_game_hand_add_remove(multiplayer_game: Game, monkeypatch):
+    order_counter = OrderCounter()
+    effect_registry = multiplayer_game.effect_registry
+    player = multiplayer_game.players[0]
+
+    e1 = PlayerCardGameEffectTest("e1", EffectAction.HandAddRemoveCards, order_counter)
+    effect_registry.register_reveal_effect(e1)
+
+    e2 = PlayerCardGameEffectTest("e2", EffectAction.Other, order_counter)
+    effect_registry.register_reveal_effect(e2)
+
+    e3 = PlayerCardGameEffectTest("e3", EffectAction.HandAddRemoveCards, order_counter)
     effect_registry.register_reveal_effect(e3)
 
     responses = iter(["2"])
