@@ -1,5 +1,6 @@
-from pyminion.core import AbstractDeck, Deck
+from pyminion.core import AbstractDeck, Card, Deck
 from pyminion.expansions.base import Copper, Estate, copper, estate
+from typing import List
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
@@ -33,8 +34,40 @@ def test_abstract_deck_move_to():
     assert len(deck_2) == 5
 
 
+def test_abstract_deck_on_add():
+    cards: List[Card] = []
+    deck = AbstractDeck(
+        on_add=lambda c: cards.append(c)
+    )
+    deck.add(copper)
+    deck.add(estate)
+    deck.add(copper)
+
+    assert len(cards) == 3
+    assert cards[0] == copper
+    assert cards[1] == estate
+    assert cards[2] == copper
+
+
+def test_abstract_deck_on_remove():
+    cards: List[Card] = []
+    deck = AbstractDeck(
+        cards=[copper, estate, copper],
+        on_remove=lambda c: cards.append(c)
+    )
+    deck.remove(copper)
+    deck.remove(estate)
+    deck.remove(copper)
+
+    assert len(cards) == 3
+    assert cards[0] == copper
+    assert cards[1] == estate
+    assert cards[2] == copper
+
+
 def test_create_deck():
-    start_cards = [copper for x in range(NUM_COPPER)] + [
+    start_cards: List[Card] = []
+    start_cards += [copper for x in range(NUM_COPPER)] + [
         estate for x in range(NUM_ESTATE)
     ]
     deck = Deck(cards=start_cards)
@@ -72,3 +105,17 @@ def test_deck_remove(deck: Deck):
     assert len(deck) == 10
     deck.remove(copper)
     assert len(deck) == 9
+
+
+def test_deck_on_shuffle():
+    shuffles: List[None] = []
+    deck = Deck(
+        on_shuffle=lambda: shuffles.append(None)
+    )
+
+    assert len(shuffles) == 0
+    deck.shuffle()
+    assert len(shuffles) == 1
+    deck.shuffle()
+    deck.shuffle()
+    assert len(shuffles) == 3

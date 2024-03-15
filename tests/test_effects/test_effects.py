@@ -1,5 +1,5 @@
 from pyminion.core import Card
-from pyminion.effects import Effect, EffectAction, EffectRegistry, AttackEffect, PlayerCardGameEffect, PlayerGameEffect
+from pyminion.effects import AttackEffect, Effect, EffectAction, EffectRegistry, FuncPlayerCardGameEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.expansions.base import gold, smithy, witch
 from pyminion.game import Game
 from pyminion.player import Player
@@ -317,6 +317,25 @@ def test_order_player_card_game_hand_add_remove(multiplayer_game: Game, monkeypa
     assert e2.order_count == 0
     assert e3.order_count == 1
     assert e1.order_count == 2
+
+
+def test_effect_handler_register(multiplayer_game: Game):
+    effect_registry = multiplayer_game.effect_registry
+    player = multiplayer_game.players[0]
+
+    e1 = PlayerCardGameEffectTest("e1", EffectAction.Other)
+
+    # make sure e1 gets handled when e2's handler registers it
+    e2 = FuncPlayerCardGameEffect(
+        "e2",
+        EffectAction.Other,
+        lambda p, c, g: effect_registry.register_reveal_effect(e1),
+    )
+    effect_registry.register_reveal_effect(e2)
+
+    player.reveal(player.hand.cards[0], multiplayer_game)
+
+    assert e1.handler_called
 
 
 @pytest.mark.kingdom_cards([witch])
