@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -222,7 +222,6 @@ class EffectRegistry:
                 if len(order_effects) == 1:
                     effect_index = 0
                 else:
-                    effect_names = [e.get_name() for e in order_effects]
                     if len(grouped_effects) > 1:
                         need_player_decision = True
                     else:
@@ -238,7 +237,7 @@ class EffectRegistry:
                     if need_player_decision:
                         # ask user to specify next effect to execute
                         effect_index = player.decider.effects_order_decision(
-                            effect_names,
+                            order_effects,
                             player,
                             game,
                         )
@@ -298,7 +297,6 @@ class EffectRegistry:
                 if len(order_effects) == 1:
                     effect_index = 0
                 else:
-                    effect_names = [e.get_name() for e in order_effects]
                     if len(grouped_effects) > 1:
                         need_player_decision = True
                     else:
@@ -314,7 +312,7 @@ class EffectRegistry:
                     if need_player_decision:
                         # ask user to specify next effect to execute
                         effect_index = player.decider.effects_order_decision(
-                            effect_names,
+                            order_effects,
                             player,
                             game,
                         )
@@ -390,7 +388,6 @@ class EffectRegistry:
                 if len(order_effects) == 1:
                     effect_index = 0
                 else:
-                    effect_names = [e.get_name() for e in order_effects]
                     if len(grouped_effects) > 1:
                         need_player_decision = True
                     else:
@@ -406,7 +403,7 @@ class EffectRegistry:
                     if need_player_decision:
                         # ask user to specify next effect to execute
                         effect_index = defending_player.decider.effects_order_decision(
-                            effect_names,
+                            order_effects,
                             defending_player,
                             game,
                         )

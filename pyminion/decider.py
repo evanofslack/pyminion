@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, List, Optional, Protocol
+from typing import TYPE_CHECKING, List, Optional, Protocol, Sequence
 
 if TYPE_CHECKING:
     from pyminion.core import Card, Player
+    from pyminion.effects import Effect
     from pyminion.game import Game
 
 
@@ -37,7 +38,7 @@ class Decider(Protocol):
 
     def effects_order_decision(
         self,
-        effect_names: List[str],
+        effects: Sequence["Effect"],
         player: "Player",
         game: "Game",
     ) -> int:

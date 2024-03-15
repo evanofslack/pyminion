@@ -1,9 +1,10 @@
 import functools
 import logging
 from collections import Counter
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Type, Union
 
 from pyminion.core import (CardType, Card, Deck)
+from pyminion.effects import Effect
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
                                  InvalidSingleCardInput, InvalidDeckPositionInput,
@@ -44,7 +45,7 @@ def validate_input(
     return decorator(func) if callable(func) else decorator
 
 
-def effects_order_decision(effect_names: List[str]) -> int:
+def effects_order_decision(effects: Sequence[Effect]) -> int:
     """
     Get user input to select the order in which effects will occur
 
@@ -52,8 +53,8 @@ def effects_order_decision(effect_names: List[str]) -> int:
 
     """
     print("Pick the next effect to occur:")
-    for i, name in enumerate(effect_names):
-        print(f"{i + 1}: {name}")
+    for i, effect in enumerate(effects):
+        print(f"{i + 1}: {effect.get_name()}")
     order_input = input("Effect number: ")
 
     try:
@@ -61,7 +62,7 @@ def effects_order_decision(effect_names: List[str]) -> int:
     except ValueError:
         raise InvalidEffectsOrderInput(f"'{order_input}' is not a valid number")
 
-    if order_num <= 0 or order_num > len(effect_names):
+    if order_num <= 0 or order_num > len(effects):
         raise InvalidEffectsOrderInput(f"'{order_num}' is not a valid option")
 
     order_index = order_num - 1
@@ -290,11 +291,11 @@ class HumanDecider:
     @validate_input(exceptions=InvalidEffectsOrderInput)
     def effects_order_decision(
         self,
-        effect_names: List[str],
+        effects: Sequence[Effect],
         player: "Player",
         game: "Game",
     ) -> int:
-        return effects_order_decision(effect_names)
+        return effects_order_decision(effects)
 
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(
