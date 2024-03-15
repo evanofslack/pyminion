@@ -188,10 +188,10 @@ class EffectRegistry:
 
         handled_ids: Set[int] = set()
 
+        # one effect may change others, so after handling each effect we need to
+        # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
         while not effect_ids.issubset(handled_ids):
-            ask_order_effects: List[PlayerGameEffect] = []
-
             # handle all effects where order doesn't matter
             handled_other = False
             for effect in effects:
@@ -245,9 +245,11 @@ class EffectRegistry:
                     else:
                         effect_index = 0
 
-                order_effects[effect_index].handler(player, game)
+                effect = order_effects[effect_index]
+                effect.handler(player, game)
                 handled_ids.add(effect.get_id())
 
+            # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
 
     def _handle_player_card_game_effects(
@@ -262,10 +264,10 @@ class EffectRegistry:
 
         handled_ids: Set[int] = set()
 
+        # one effect may change others, so after handling each effect we need to
+        # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
         while not effect_ids.issubset(handled_ids):
-            ask_order_effects: List[PlayerCardGameEffect] = []
-
             # handle all effects where order doesn't matter
             handled_other = False
             for effect in effects:
@@ -319,9 +321,11 @@ class EffectRegistry:
                     else:
                         effect_index = 0
 
-                order_effects[effect_index].handler(player, card, game)
+                effect = order_effects[effect_index]
+                effect.handler(player, card, game)
                 handled_ids.add(effect.get_id())
 
+            # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
 
     def _unregister_effects(
@@ -352,10 +356,10 @@ class EffectRegistry:
 
         handled_ids: Set[int] = set()
 
+        # one effect may change others, so after handling each effect we need to
+        # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
         while not effect_ids.issubset(handled_ids):
-            ask_order_effects: List[AttackEffect] = []
-
             # handle all effects where order doesn't matter
             handled_other = False
             for effect in self.attack_effects:
@@ -409,9 +413,11 @@ class EffectRegistry:
                     else:
                         effect_index = 0
 
-                attacked &= order_effects[effect_index].handler(attacking_player, defending_player, attack_card, game)
+                effect = order_effects[effect_index]
+                attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
                 handled_ids.add(effect.get_id())
 
+            # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
 
         return attacked
