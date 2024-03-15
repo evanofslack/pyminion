@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Set, Union
 
 if TYPE_CHECKING:
     from pyminion.core import Card
@@ -177,6 +177,29 @@ class EffectRegistry:
         self.turn_end_effects.clear()
         self.cleanup_start_effects.clear()
 
+    def _need_player_order(self, effects: Sequence[Effect]) -> bool:
+        # if there is only one effect left, no need to prompt player
+        if len(effects) == 1:
+            return False
+
+        grouped_effects: Dict[EffectAction, List[Effect]] = {}
+        for effect in effects:
+            action = effect.get_action()
+            if action in grouped_effects:
+                grouped_effects[action].append(effect)
+            else:
+                grouped_effects[action] = [effect]
+
+        if len(grouped_effects) > 1:
+            return True
+
+        if EffectAction.HandAddRemoveCards in grouped_effects:
+            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
+            if len(unique_names) > 1:
+                return True
+
+        return False
+
     def _handle_player_game_effects(
             self,
             effects: List[PlayerGameEffect],
@@ -204,45 +227,23 @@ class EffectRegistry:
             # if there were no "other" effects to handle, check if there were non-"other" effects
             if not handled_other:
                 # build data structures of non-"other" effects that are triggered
-                order_effects: List[PlayerGameEffect] = []
-                grouped_effects: Dict[EffectAction, List[PlayerGameEffect]] = {}
-                for effect in effects:
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, game):
-                        order_effects.append(effect)
-                        action = effect.get_action()
-                        if action in grouped_effects:
-                            grouped_effects[action].append(effect)
-                        else:
-                            grouped_effects[action] = [effect]
+                order_effects: List[PlayerGameEffect] = [
+                    effect for effect in effects
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, game)
+                ]
 
                 # if there were no more effects to handle we should have exited the loop by now
                 assert len(order_effects) > 0
 
-                # if there is only one effect left, handle it
-                if len(order_effects) == 1:
-                    effect_index = 0
+                if self._need_player_order(order_effects):
+                    # ask user to specify next effect to execute
+                    effect_index = player.decider.effects_order_decision(
+                        order_effects,
+                        player,
+                        game,
+                    )
                 else:
-                    if len(grouped_effects) > 1:
-                        need_player_decision = True
-                    else:
-                        if EffectAction.HandAddRemoveCards in grouped_effects:
-                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
-                            if len(unique_names) > 1:
-                                need_player_decision = True
-                            else:
-                                need_player_decision = False
-                        else:
-                            need_player_decision = False
-
-                    if need_player_decision:
-                        # ask user to specify next effect to execute
-                        effect_index = player.decider.effects_order_decision(
-                            order_effects,
-                            player,
-                            game,
-                        )
-                    else:
-                        effect_index = 0
+                    effect_index = 0
 
                 effect = order_effects[effect_index]
                 effect.handler(player, game)
@@ -279,45 +280,23 @@ class EffectRegistry:
             # if there were no "other" effects to handle, check if there were non-"other" effects
             if not handled_other:
                 # build data structures of non-"other" effects that are triggered
-                order_effects: List[PlayerCardGameEffect] = []
-                grouped_effects: Dict[EffectAction, List[PlayerCardGameEffect]] = {}
-                for effect in effects:
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, card, game):
-                        order_effects.append(effect)
-                        action = effect.get_action()
-                        if action in grouped_effects:
-                            grouped_effects[action].append(effect)
-                        else:
-                            grouped_effects[action] = [effect]
+                order_effects: List[PlayerCardGameEffect] = [
+                    effect for effect in effects
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, card, game)
+                ]
 
                 # if there were no more effects to handle we should have exited the loop by now
                 assert len(order_effects) > 0
 
-                # if there is only one effect left, handle it
-                if len(order_effects) == 1:
-                    effect_index = 0
+                if self._need_player_order(order_effects):
+                    # ask user to specify next effect to execute
+                    effect_index = player.decider.effects_order_decision(
+                        order_effects,
+                        player,
+                        game,
+                    )
                 else:
-                    if len(grouped_effects) > 1:
-                        need_player_decision = True
-                    else:
-                        if EffectAction.HandAddRemoveCards in grouped_effects:
-                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
-                            if len(unique_names) > 1:
-                                need_player_decision = True
-                            else:
-                                need_player_decision = False
-                        else:
-                            need_player_decision = False
-
-                    if need_player_decision:
-                        # ask user to specify next effect to execute
-                        effect_index = player.decider.effects_order_decision(
-                            order_effects,
-                            player,
-                            game,
-                        )
-                    else:
-                        effect_index = 0
+                    effect_index = 0
 
                 effect = order_effects[effect_index]
                 effect.handler(player, card, game)
@@ -370,45 +349,23 @@ class EffectRegistry:
             # if there were no "other" effects to handle, check if there were non-"other" effects
             if not handled_other:
                 # build data structures of non-"other" effects that are triggered
-                order_effects: List[AttackEffect] = []
-                grouped_effects: Dict[EffectAction, List[AttackEffect]] = {}
-                for effect in self.attack_effects:
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game):
-                        order_effects.append(effect)
-                        action = effect.get_action()
-                        if action in grouped_effects:
-                            grouped_effects[action].append(effect)
-                        else:
-                            grouped_effects[action] = [effect]
+                order_effects: List[AttackEffect] = [
+                    effect for effect in self.attack_effects
+                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game)
+                ]
 
                 # if there were no more effects to handle we should have exited the loop by now
                 assert len(order_effects) > 0
 
-                # if there is only one effect left, handle it
-                if len(order_effects) == 1:
-                    effect_index = 0
+                if self._need_player_order(order_effects):
+                    # ask user to specify next effect to execute
+                    effect_index = defending_player.decider.effects_order_decision(
+                        order_effects,
+                        defending_player,
+                        game,
+                    )
                 else:
-                    if len(grouped_effects) > 1:
-                        need_player_decision = True
-                    else:
-                        if EffectAction.HandAddRemoveCards in grouped_effects:
-                            unique_names = set(grouped_effects[EffectAction.HandAddRemoveCards])
-                            if len(unique_names) > 1:
-                                need_player_decision = True
-                            else:
-                                need_player_decision = False
-                        else:
-                            need_player_decision = False
-
-                    if need_player_decision:
-                        # ask user to specify next effect to execute
-                        effect_index = defending_player.decider.effects_order_decision(
-                            order_effects,
-                            defending_player,
-                            game,
-                        )
-                    else:
-                        effect_index = 0
+                    effect_index = 0
 
                 effect = order_effects[effect_index]
                 attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
