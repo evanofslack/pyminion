@@ -400,3 +400,109 @@ def test_on_gain(game: Game):
 
     assert not buy_effect.handler_called
     assert gain_effect.handler_called
+
+
+def test_on_hand_add(game: Game):
+    reg = game.effect_registry
+
+    hand_add_effect = PlayerCardGameEffectTest()
+    reg.register_hand_add_effect(hand_add_effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+
+    assert hand_add_effect.handler_called
+
+
+def test_on_hand_remove(game: Game):
+    reg = game.effect_registry
+
+    hand_remove_effect = PlayerCardGameEffectTest()
+    reg.register_hand_remove_effect(hand_remove_effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+    player.hand.remove(gold)
+
+    assert hand_remove_effect.handler_called
+
+
+def test_on_play(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerCardGameEffectTest()
+    reg.register_play_effect(effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+    player.play(gold, game)
+
+    assert effect.handler_called
+
+
+def test_on_reveal(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerCardGameEffectTest()
+    reg.register_reveal_effect(effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+    player.reveal(player.hand.cards[0], game)
+
+    assert effect.handler_called
+
+
+@pytest.mark.kingdom_cards([smithy])
+def test_on_shuffle(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerGameEffectTest()
+    reg.register_shuffle_effect(effect)
+
+    player = game.players[0]
+    player.deck.move_to(player.discard_pile)
+    player.hand.add(smithy)
+    player.play(smithy, game)
+
+    assert effect.handler_called
+
+
+def test_on_trash(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerCardGameEffectTest()
+    reg.register_trash_effect(effect)
+
+    player = game.players[0]
+    player.hand.add(gold)
+    player.trash(gold, game)
+
+    assert effect.handler_called
+
+
+def test_on_turn_start_end(game: Game):
+    reg = game.effect_registry
+
+    turn_start_effect = PlayerGameEffectTest()
+    turn_end_effect = PlayerGameEffectTest()
+    reg.register_turn_start_effect(turn_start_effect)
+    reg.register_turn_end_effect(turn_end_effect)
+
+    player = game.players[0]
+    player.take_turn(game)
+
+    assert turn_start_effect.handler_called
+    assert turn_end_effect.handler_called
+
+
+def test_on_cleanup_start(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerGameEffectTest()
+    reg.register_cleanup_start_effect(effect)
+
+    player = game.players[0]
+    player.start_cleanup_phase(game)
+
+    assert effect.handler_called

@@ -32,6 +32,14 @@ def pytest_configure(config):
 
 
 class TestDecider:
+    def buy_phase_decision(
+        self,
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+    ) -> Optional["Card"]:
+        return None
+
     def binary_decision(
         self,
         prompt: str,
@@ -143,6 +151,7 @@ def game(request, player):
         card.set_up(game)
     player.hand.on_add = lambda card, player=player: game.effect_registry.on_hand_add(player, card, game)
     player.hand.on_remove = lambda card, player=player: game.effect_registry.on_hand_remove(player, card, game)
+    player.deck.on_shuffle = lambda player=player: game.effect_registry.on_shuffle(player, game)
 
     return game
 
