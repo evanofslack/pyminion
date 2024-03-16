@@ -155,7 +155,12 @@ class Game:
         kingdom_ten = random.sample(kingdom_options, KINGDOM_PILES - chosen_cards)
         random_piles = [Pile([card] * card.get_pile_starting_count(self)) for card in kingdom_ten]
 
-        return chosen_piles + random_piles
+        piles = chosen_piles + random_piles
+
+        # sort piles by cost and name
+        piles.sort(key=lambda pile: (pile.cards[0].get_cost(self.players[0], self), pile.name))
+
+        return piles
 
     def _create_supply(self) -> Supply:
         """
@@ -178,7 +183,7 @@ class Game:
         self.effect_registry.reset()
 
         self.supply = self._create_supply()
-        logger.info(f"{self.supply}")
+        logger.info(self.supply.get_pretty_string(self.players[0], self))
 
         for card in self.all_game_cards:
             card.set_up(self)
