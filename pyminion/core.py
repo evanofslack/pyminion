@@ -244,7 +244,7 @@ class Pile(AbstractDeck):
         elif cards:
             self.name = "Mixed"
         else:
-            self.name = None
+            self.name = ""
 
     def remove(self, card: Card) -> Card:
         if len(self.cards) < 1:
@@ -269,14 +269,27 @@ class Supply:
 
     """
 
-    def __init__(self, piles: Optional[List[Pile]] = None):
-        if piles:
-            self.piles = piles
-        else:
-            self.piles = []
+    def __init__(
+            self,
+            basic_score_piles: List[Pile],
+            basic_treasure_piles: List[Pile],
+            kingdom_piles: List[Pile],
+    ):
+        self.basic_score_piles = basic_score_piles
+        self.basic_treasure_piles = basic_treasure_piles
+        self.kingdom_piles = kingdom_piles
+        self.piles = basic_score_piles + basic_treasure_piles + kingdom_piles
 
     def __repr__(self):
-        return str(self.available_cards())
+        max_name_len = max(len(c.name) for c in self.piles)
+        kingdom_top = self.kingdom_piles[:5]
+        kingdom_bottom = self.kingdom_piles[5:]
+        s = "\nSupply:\n"
+        s += " ".join(f'{c.name:<{max_name_len}}' for c in self.basic_score_piles) + "\n"
+        s += " ".join(f'{c.name:<{max_name_len}}' for c in self.basic_treasure_piles) + "\n"
+        s += " ".join(f'{c.name:<{max_name_len}}' for c in kingdom_top) + "\n"
+        s += " ".join(f'{c.name:<{max_name_len}}' for c in kingdom_bottom) + "\n"
+        return s
 
     def __len__(self):
         return len(self.piles)

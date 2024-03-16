@@ -80,9 +80,29 @@ class Game:
             f_handler.setFormatter(f_format)
             logger.addHandler(f_handler)
 
-    def _create_basic_piles(self) -> List[Pile]:
+    def _create_basic_score_piles(self) -> List[Pile]:
         """
-        Create the basic piles that are applicable to almost all games of Dominion.
+        Create the basic victory and curse piles that are applicable to almost all games of Dominion.
+
+        """
+
+        basic_cards: List[Card] = [
+            estate,
+            duchy,
+            province,
+            curse,
+        ]
+
+        basic_piles = [
+            Pile([card] * card.get_pile_starting_count(self))
+            for card in basic_cards
+        ]
+
+        return basic_piles
+
+    def _create_basic_treasure_piles(self) -> List[Pile]:
+        """
+        Create the basic treasure piles that are applicable to almost all games of Dominion.
 
         """
 
@@ -90,10 +110,6 @@ class Game:
             copper,
             silver,
             gold,
-            estate,
-            duchy,
-            province,
-            curse,
         ]
 
         basic_piles = [
@@ -149,11 +165,12 @@ class Game:
 
         """
 
-        basic_piles = self._create_basic_piles()
+        basic_score_piles = self._create_basic_score_piles()
+        basic_treasure_piles = self._create_basic_treasure_piles()
         kingdom_piles = self._create_kingdom_piles()
-        all_piles = basic_piles + kingdom_piles
+        all_piles = basic_score_piles + basic_treasure_piles + kingdom_piles
         self.all_game_cards = [pile.cards[0] for pile in all_piles]
-        return Supply(all_piles)
+        return Supply(basic_score_piles, basic_treasure_piles, kingdom_piles)
 
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
@@ -161,7 +178,7 @@ class Game:
         self.effect_registry.reset()
 
         self.supply = self._create_supply()
-        logger.info(f"Supply: \n{self.supply}")
+        logger.info(f"{self.supply}")
 
         for card in self.all_game_cards:
             card.set_up(self)
