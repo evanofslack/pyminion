@@ -2,8 +2,10 @@ from pyminion.expansions.base import Smithy, smithy
 from pyminion.expansions.intrigue import lurker
 from pyminion.game import Game
 from pyminion.human import Human
+import pytest
 
 
+@pytest.mark.kingdom_cards([smithy])
 def test_lurker_trash(human: Human, game: Game, monkeypatch):
     human.hand.add(lurker)
     assert len(human.hand) == 1
@@ -14,7 +16,7 @@ def test_lurker_trash(human: Human, game: Game, monkeypatch):
     responses = iter(["1", smithy.name])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
-    human.hand.cards[0].play(human, game)
+    human.play(lurker, game)
     assert human.state.actions == 1
     assert len(human.hand) == 0
     assert len(human.playmat) == 1
@@ -22,6 +24,7 @@ def test_lurker_trash(human: Human, game: Game, monkeypatch):
     assert len(game.trash) == 1
 
 
+@pytest.mark.kingdom_cards([smithy])
 def test_lurker_gain(human: Human, game: Game, monkeypatch):
     human.hand.add(lurker)
     game.trash.add(smithy)
@@ -32,7 +35,7 @@ def test_lurker_gain(human: Human, game: Game, monkeypatch):
     responses = iter(["2", smithy.name])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
-    human.hand.cards[0].play(human, game)
+    human.play(lurker, game)
     assert human.state.actions == 1
     assert len(human.hand) == 0
     assert len(human.playmat) == 1

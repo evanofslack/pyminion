@@ -1,6 +1,7 @@
 from pyminion.expansions.base import copper, moat, witch
 from pyminion.game import Game
 from pyminion.human import Human
+import pytest
 
 
 def test_yes_input(human: Human, game: Game, monkeypatch):
@@ -17,14 +18,21 @@ def test_no_input(human: Human, game: Game, monkeypatch):
     assert human.decider.binary_decision(prompt="test", card=copper, player=human, game=game) is False
 
 
-def test_is_attacked_no_moat(human: Human, game: Game, monkeypatch):
-    assert human.is_attacked(player=human, attack_card=witch, game=game)
+@pytest.mark.kingdom_cards([moat])
+def test_is_attacked_no_moat(multiplayer_game: Game, monkeypatch):
+    human = multiplayer_game.players[0]
+    assert isinstance(human, Human)
+    assert human.is_attacked(attacking_player=human, attack_card=witch, game=multiplayer_game)
 
 
-def test_is_attacked_yes_moat(human: Human, game: Game, monkeypatch):
-    human.hand.add(card=moat)
+@pytest.mark.kingdom_cards([moat])
+def test_is_attacked_yes_moat(multiplayer_game: Game, monkeypatch):
+    human = multiplayer_game.players[0]
+    assert isinstance(human, Human)
+    human.deck.add(card=moat)
+    human.draw()
     monkeypatch.setattr("builtins.input", lambda _: "yes")
-    assert not human.is_attacked(player=human, attack_card=witch, game=game)
+    assert not human.is_attacked(attacking_player=human, attack_card=witch, game=multiplayer_game)
 
 
 def test_action_phase_no_actions(human: Human, game: Game):

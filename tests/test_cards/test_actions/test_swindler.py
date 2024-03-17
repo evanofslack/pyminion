@@ -1,6 +1,7 @@
 from pyminion.expansions.base import copper, moat
 from pyminion.expansions.intrigue import Swindler, swindler
 from pyminion.game import Game
+import pytest
 
 
 def test_swindler(multiplayer_game: Game, monkeypatch):
@@ -24,14 +25,16 @@ def test_swindler(multiplayer_game: Game, monkeypatch):
     assert p2.discard_pile.cards[-1].name == "Curse"
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_swindler_moat(multiplayer_game: Game, monkeypatch):
     players = multiplayer_game.players
     p1 = players[0]
     p2 = players[1]
 
     p1.hand.add(swindler)
-    p2.hand.add(moat)
     p2.deck.add(moat)
+    p2.deck.add(moat)
+    p2.draw()
 
     monkeypatch.setattr("builtins.input", lambda _: "y")
 

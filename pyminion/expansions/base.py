@@ -3,6 +3,7 @@ import math
 from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
@@ -47,14 +48,6 @@ class Silver(Treasure):
         return 40
 
     def play(self, player: Player, game: "Game") -> None:
-
-        # check if this is the first silver played and if there are any merchants in play
-        if self not in player.playmat.cards:
-            if num_merchants := len(
-                [card for card in player.playmat.cards if card.name == "Merchant"]
-            ):
-                player.state.money += num_merchants
-
         player.playmat.add(self)
         player.hand.remove(self)
         player.state.money += self.money
@@ -320,7 +313,7 @@ class Moneylender(Action):
         )
 
         if response:
-            player.trash(target_card=copper, trash=game.trash)
+            player.trash(target_card=copper, game=game)
             player.state.money += 3
 
 
@@ -367,7 +360,7 @@ class Cellar(Action):
         )
 
         for card in discard_cards:
-            player.discard(card)
+            player.discard(game, card)
         player.draw(len(discard_cards))
 
 
@@ -408,7 +401,7 @@ class Chapel(Action):
         assert len(trash_cards) <= 4
 
         for card in trash_cards:
-            player.trash(card, game.trash)
+            player.trash(card, game)
 
 
 class Workshop(Action):
@@ -447,7 +440,7 @@ class Workshop(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 4
 
-        player.gain(gain_card, game.supply)
+        player.gain(gain_card, game)
 
 
 class Festival(Action):
@@ -558,20 +551,22 @@ class Vassal(Action):
             super().generic_play(player)
 
         player.state.money += 2
-        player.draw(destination=player.discard_pile, silent=True)
 
-        if not player.discard_pile:
+        temp = AbstractDeck()
+        player.draw(destination=temp, silent=True)
+
+        if len(temp) == 0:
             return
 
-        discard_card = player.discard_pile.cards[-1]
+        discard_card = temp.cards[0]
 
-        logger.info(f"{player} discards {discard_card}")
+        player.discard(game, discard_card, temp)
 
         if CardType.Action not in discard_card.type:
             return
 
         decision = player.decider.binary_decision(
-            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n):  ",
+            prompt=f"You discarded {discard_card.name}, would you like to play it? (y/n): ",
             card=self,
             player=player,
             game=game,
@@ -583,7 +578,6 @@ class Vassal(Action):
         played_card = player.discard_pile.cards.pop()
         player.playmat.add(played_card)
         player.exact_play(card=player.playmat.cards[-1], game=game, generic_play=False)
-        return
 
 
 class Artisan(Action):
@@ -626,7 +620,7 @@ class Artisan(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 5
 
-        player.gain(card=gain_card, supply=game.supply, destination=player.hand)
+        player.gain(card=gain_card, game=game, destination=player.hand)
 
         topdeck_cards = player.decider.topdeck_decision(
             prompt="Put a card from your hand onto your deck: ",
@@ -697,7 +691,7 @@ class Poacher(Action):
         assert len(discard_cards) == discard_num
 
         for discard_card in discard_cards:
-            player.discard(discard_card)
+            player.discard(game, discard_card)
 
 
 class CouncilRoom(Action):
@@ -764,13 +758,13 @@ class Witch(Action):
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self, game=game):
+                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
                         opponent.gain(
                             card=curse,
-                            supply=game.supply,
+                            game=game,
                         )
                     except EmptyPile:
                         pass
@@ -784,6 +778,28 @@ class Moat(Action):
     reveal this from your hand, to be unaffected by it
 
     """
+
+    class MoatAttackEffect(AttackEffect):
+        def __init__(self, player: Player):
+            super().__init__(f"Moat: {player.player_id} block attack", EffectAction.Other)
+            self.player = player
+
+        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return self.player.player_id == defending_player.player_id
+
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            block = defending_player.decider.binary_decision(
+                prompt=f"Would you like to block {attacking_player.player_id}'s {attack_card} with your Moat? y/n: ",
+                card=moat,
+                player=defending_player,
+                game=game,
+                relevant_cards=[attack_card],
+            )
+            if block:
+                defending_player.reveal(moat, game)
+                logger.info(f"{defending_player} blocks {attack_card} with Moat")
+
+            return not block
 
     def __init__(
         self,
@@ -805,6 +821,30 @@ class Moat(Action):
 
         player.draw(2)
 
+    def set_up(self, game: "Game") -> None:
+        hand_add_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Add",
+            EffectAction.Other,
+            self.on_hand_add,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_add_effect(hand_add_effect)
+
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Remove",
+            EffectAction.Other,
+            self.on_hand_remove,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
+
+    def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
+        effect = Moat.MoatAttackEffect(player)
+        game.effect_registry.register_attack_effect(effect)
+
+    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
+        game.effect_registry.unregister_attack_effects(f"Moat: {player.player_id} block attack")
+
 
 class Merchant(Action):
     """
@@ -813,6 +853,23 @@ class Merchant(Action):
     The first time you play a Silver this turn, +1 money
 
     """
+
+    MONEY_EFFECT_NAME = "Merchant: +$1"
+
+    class MoneyEffect(PlayerCardGameEffect):
+        def __init__(self):
+            super().__init__(Merchant.MONEY_EFFECT_NAME)
+            self.first_play = True
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return card.name == "Silver" and self.first_play
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            player.state.money += 1
+            self.first_play = False
 
     def __init__(
         self,
@@ -835,6 +892,15 @@ class Merchant(Action):
 
         player.draw(1)
         player.state.actions += 1
+
+        money_effect = Merchant.MoneyEffect()
+        game.effect_registry.register_play_effect(money_effect)
+
+        reset_effect = FuncPlayerGameEffect("Merchant: reset", EffectAction.Other, self.remove_play_handlers)
+        game.effect_registry.register_turn_end_effect(reset_effect)
+
+    def remove_play_handlers(self, player: "Player", game: "Game") -> None:
+        game.effect_registry.unregister_play_effects(self.MONEY_EFFECT_NAME)
 
 
 class Bandit(Action):
@@ -863,18 +929,18 @@ class Bandit(Action):
 
         # attempt to gain a gold. if gold pile is empty, proceed
         try:
-            player.gain(card=gold, supply=game.supply)
+            player.gain(card=gold, game=game)
         except EmptyPile:
             pass
 
         for opponent in game.players:
             if opponent is not player:
-                if opponent.is_attacked(player=player, attack_card=self, game=game):
+                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
                     revealed_cards = AbstractDeck()
                     opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
 
-                    logger.info(f"{opponent} reveals {revealed_cards}")
+                    opponent.reveal(revealed_cards.cards, game)
 
                     trash_card = None
                     for card in revealed_cards.cards:
@@ -892,8 +958,9 @@ class Bandit(Action):
                     if trash_card:
                         game.trash.add(revealed_cards.remove(trash_card))
 
-                    revealed_cards.move_to(opponent.discard_pile)
-                    del revealed_cards
+                    revealed_cards_copy = revealed_cards.cards[:]
+                    for card in revealed_cards_copy:
+                        opponent.discard(game, card, revealed_cards)
 
 
 class Bureaucrat(Action):
@@ -922,13 +989,13 @@ class Bureaucrat(Action):
 
         # attempt to gain a silver. if silver pile is empty, proceed
         try:
-            player.gain(card=silver, supply=game.supply, destination=player.deck)
+            player.gain(card=silver, game=game, destination=player.deck)
         except EmptyPile:
             pass
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self, game=game
+                attacking_player=player, attack_card=self, game=game
             ):
 
                 victory_cards = []
@@ -937,7 +1004,7 @@ class Bureaucrat(Action):
                         victory_cards.append(card)
 
                 if not victory_cards:
-                    logger.info(f"{opponent} reveals hand: {opponent.hand}")
+                    opponent.reveal(opponent.hand.cards, game, f"{opponent} reveals hand: ")
                     continue
 
                 topdeck_cards = opponent.decider.topdeck_decision(
@@ -953,7 +1020,7 @@ class Bureaucrat(Action):
                 topdeck_card = topdeck_cards[0]
 
                 opponent.deck.add(opponent.hand.remove(topdeck_card))
-                logger.info(f"{opponent} topdecks {topdeck_card}")
+                opponent.reveal(topdeck_card, game, f"{opponent} reveals and topdecks ")
 
 
 class ThroneRoom(Action):
@@ -1056,8 +1123,8 @@ class Remodel(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
-        player.gain(gain_card, game.supply)
+        player.trash(trash_card, game=game)
+        player.gain(gain_card, game)
 
 
 class Mine(Action):
@@ -1123,8 +1190,8 @@ class Mine(Action):
         assert CardType.Treasure in gain_card.type
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
-        player.gain(gain_card, game.supply, destination=player.hand)
+        player.trash(trash_card, game=game)
+        player.gain(gain_card, game, destination=player.hand)
 
 
 class Militia(Action):
@@ -1157,7 +1224,7 @@ class Militia(Action):
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
-                player=player, attack_card=self, game=game
+                attacking_player=player, attack_card=self, game=game
             ):
 
                 num_discard = len(opponent.hand) - 3
@@ -1176,7 +1243,7 @@ class Militia(Action):
                 assert len(discard_cards) == num_discard
 
                 for card in discard_cards:
-                    opponent.discard(target_card=card)
+                    opponent.discard(game, target_card=card)
 
 
 class Sentry(Action):
@@ -1209,14 +1276,13 @@ class Sentry(Action):
         player.draw()
         player.state.actions += 1
 
-        revealed = AbstractDeck()
-        player.draw(num_cards=2, destination=revealed, silent=True)
-        logger.info(f"{player} looks at {revealed}")
+        looked_at = AbstractDeck()
+        player.draw(num_cards=2, destination=looked_at, silent=True)
 
         trash_cards = player.decider.trash_decision(
             prompt="Enter the cards you would like to trash: ",
             card=self,
-            valid_cards=revealed.cards,
+            valid_cards=looked_at.cards,
             player=player,
             game=game,
             min_num_trash=0,
@@ -1224,24 +1290,24 @@ class Sentry(Action):
         )
 
         for card in trash_cards:
-            revealed.remove(card)
+            looked_at.remove(card)
 
         discard_cards: List[Card] = []
-        if len(revealed.cards) > 0:
+        if len(looked_at.cards) > 0:
             discard_cards = player.decider.discard_decision(
                 prompt="Enter the cards you would like to discard: ",
                 card=self,
-                valid_cards=revealed.cards,
+                valid_cards=looked_at.cards,
                 player=player,
                 game=game,
             )
             for card in discard_cards:
-                revealed.remove(card)
+                looked_at.remove(card)
 
         reorder = False
-        if len(revealed.cards) == 2:
+        if len(looked_at.cards) == 2:
             logger.info(
-                f"Current order: {revealed.cards[0]} (Top), {revealed.cards[1]} (Bottom)"
+                f"Current order: {looked_at.cards[0]} (Top), {looked_at.cards[1]} (Bottom)"
             )
             reorder = player.decider.binary_decision(
                 prompt="Would you like to switch the order of the cards?",
@@ -1250,20 +1316,22 @@ class Sentry(Action):
                 game=game,
             )
 
+        to_trash = AbstractDeck(trash_cards[:])
         for card in trash_cards:
-            game.trash.add(card)
-            logger.info(f"{player} trashes {card}")
+            player.trash(card, game, to_trash)
+
+        to_discard = AbstractDeck(discard_cards[:])
         for card in discard_cards:
-            player.discard_pile.add(card)
-            logger.info(f"{player} discards {card}")
-        if revealed.cards:
+            player.discard(game, card, to_discard)
+
+        if looked_at.cards:
             if reorder:
-                for card in revealed.cards:
+                for card in looked_at.cards:
                     player.deck.add(card)
             else:
-                for card in reversed(revealed.cards):
+                for card in reversed(looked_at.cards):
                     player.deck.add(card)
-            logger.info(f"{player} topdecks {len(revealed.cards)} cards")
+            logger.info(f"{player} topdecks {len(looked_at.cards)} cards")
 
 
 class Library(Action):
@@ -1312,9 +1380,8 @@ class Library(Action):
             else:
                 player.hand.add(set_aside.remove(drawn_card))
 
-        if set_aside.cards:
-            logger.info(f"{player} discards {set_aside}")
-            set_aside.move_to(destination=player.discard_pile)
+        for card in set_aside.cards[:]:
+            player.discard(game, card, set_aside)
 
 
 copper = Copper()

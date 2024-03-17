@@ -1,12 +1,14 @@
 import functools
 import logging
 from collections import Counter
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Type, Union
 
 from pyminion.core import (CardType, Card, Deck)
+from pyminion.effects import Effect
 from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
-                                 InvalidSingleCardInput, InvalidDeckPositionInput)
+                                 InvalidSingleCardInput, InvalidDeckPositionInput,
+                                 InvalidEffectsOrderInput)
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -41,6 +43,31 @@ def validate_input(
         return wrapper
 
     return decorator(func) if callable(func) else decorator
+
+
+def effects_order_decision(effects: Sequence[Effect]) -> int:
+    """
+    Get user input to select the order in which effects will occur
+
+    Raise exception if user provided selection is not a valid option
+
+    """
+    print("Pick the next effect to occur:")
+    for i, effect in enumerate(effects):
+        print(f"{i + 1}: {effect.get_name()}")
+    order_input = input("Effect number: ")
+
+    try:
+        order_num = int(order_input)
+    except ValueError:
+        raise InvalidEffectsOrderInput(f"'{order_input}' is not a valid number")
+
+    if order_num <= 0 or order_num > len(effects):
+        raise InvalidEffectsOrderInput(f"'{order_num}' is not a valid option")
+
+    order_index = order_num - 1
+
+    return order_index
 
 
 def binary_decision(prompt: str) -> bool:
@@ -260,6 +287,15 @@ class HumanDecider:
             raise InvalidSingleCardInput("You must choose a valid card")
 
         return card
+
+    @validate_input(exceptions=InvalidEffectsOrderInput)
+    def effects_order_decision(
+        self,
+        effects: Sequence[Effect],
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        return effects_order_decision(effects)
 
     @validate_input(exceptions=InvalidBinaryInput)
     def binary_decision(

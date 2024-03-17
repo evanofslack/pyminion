@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -93,31 +93,40 @@ class Player:
             # Both deck and discard empty -> do nothing
             if len(self.discard_pile) == 0 and len(self.deck) == 0:
                 pass
-            # Deck is empty -> shuffle discard pile into deck
-            elif len(self.deck) == 0:
-                logger.info(f"{self} shuffles their deck")
-                self.discard_pile.move_to(self.deck)
-                self.deck.shuffle()
-                self.shuffles += 1
-                draw_card = self.deck.draw()
-                destination.add(draw_card)
-                drawn_cards.add(draw_card)
             else:
+                # Deck is empty -> shuffle discard pile into deck
+                if len(self.deck) == 0:
+                    logger.info(f"{self} shuffles their deck")
+                    self.discard_pile.move_to(self.deck)
+                    self.deck.shuffle()
+                    self.shuffles += 1
+
                 draw_card = self.deck.draw()
                 destination.add(draw_card)
                 drawn_cards.add(draw_card)
+
         if not silent:
             logger.info(f"{self} draws {drawn_cards}")
 
-    def discard(self, target_card: Card) -> None:
+    def discard(
+            self,
+            game: "Game",
+            target_card: Card,
+            source: Optional[AbstractDeck] = None,
+            silent: bool = False,
+    ) -> None:
         """
         Move specified card from the player's hand to the player's discard pile.
 
         """
-        for card in self.hand.cards:
+        if source is None:
+            source = self.hand
+        for card in source.cards:
             if card == target_card:
-                self.discard_pile.add(self.hand.remove(card))
-                logger.info(f"{self} discards {card}")
+                self.discard_pile.add(source.remove(card))
+                if not silent:
+                    logger.info(f"{self} discards {card}")
+                game.effect_registry.on_discard(self, card, game)
                 return
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:
@@ -137,10 +146,12 @@ class Player:
                     assert isinstance(card, Action)
                     self.actions_played_this_turn += 1
                     card.play(player=self, game=game, generic_play=generic_play)
+                    game.effect_registry.on_play(self, card, game)
                     return
                 if CardType.Treasure in card.type:
                     assert isinstance(card, Treasure)
                     card.play(player=self, game=game)
+                    game.effect_registry.on_play(self, card, game)
                     return
         raise InvalidCardPlay(f"Invalid play, {target_card} could not be played")
 
@@ -154,22 +165,25 @@ class Player:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
             card.play(player=self, game=game, generic_play=generic_play)
+            game.effect_registry.on_play(self, card, game)
         elif CardType.Treasure in card.type:
             assert isinstance(card, Treasure)
             card.play(player=self, game=game)
+            game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
     def multi_play(self, card: Card, game: "Game", state: Any, generic_play: bool = True) -> Any:
         """
         Similar to previous exact_play method, except card's multi_play method is called.
-        This is method is necessary when playing "Throne Room variants".
+        This method is necessary when playing "Throne Room variants".
 
         """
         if CardType.Action in card.type:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
             state = card.multi_play(player=self, game=game, state=state, generic_play=generic_play)
+            game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
         return state
@@ -196,10 +210,15 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
+        game.effect_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
     def gain(
-        self, card: Card, supply: "Supply", destination: Optional[AbstractDeck] = None
+        self,
+        card: Card,
+        game: "Game",
+        destination: Optional[AbstractDeck] = None,
+        source: Optional[AbstractDeck] = None,
     ) -> None:
         """
         Gain a card from the supply and add to destination.
@@ -208,13 +227,16 @@ class Player:
         """
         if destination is None:
             destination = self.discard_pile
+        if source is None:
+            source = game.supply.get_pile(card.name)
 
-        gain_card = supply.gain_card(card)
+        gain_card = source.remove(card)
         destination.add(gain_card)
+        game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
 
     def trash(
-        self, target_card: Card, trash: "Trash", source: Optional[AbstractDeck] = None
+        self, target_card: Card, game: "Game", source: Optional[AbstractDeck] = None
     ) -> None:
         """
         Move a card from source to the trash.
@@ -226,10 +248,25 @@ class Player:
 
         for card in source.cards:
             if card == target_card:
-                trash.add(source.remove(card))
+                game.trash.add(source.remove(card))
+                game.effect_registry.on_trash(self, card, game)
                 logger.info(f"{self} trashes {card}")
 
                 break
+
+    def reveal(self, cards: Union[Card, List[Card]], game: "Game", message: Optional[str] = None) -> None:
+        """
+        Reveal cards.
+
+        """
+        if isinstance(cards, Card):
+            cards = [cards]
+        if message is None:
+            message = f"{self} reveals "
+
+        logger.info(message + ", ".join(card.name for card in cards))
+        for card in cards:
+            game.effect_registry.on_reveal(self, card, game)
 
     def start_turn(self) -> None:
         """
@@ -243,6 +280,8 @@ class Player:
         self.state.buys = 1
 
     def start_action_phase(self, game: "Game") -> None:
+        game.current_phase = game.Phase.Action
+
         while self.state.actions > 0:
             logger.info(f"{self.player_id}'s hand: {self.hand}")
 
@@ -257,6 +296,8 @@ class Player:
             self.play(card, game)
 
     def start_treasure_phase(self, game: "Game") -> None:
+        game.current_phase = game.Phase.Buy
+
         viable_treasures = [card for card in self.hand.cards if CardType.Treasure in card.type]
         while len(viable_treasures) > 0:
             logger.info(f"Hand: {self.hand}")
@@ -295,27 +336,36 @@ class Player:
 
             self.buy(card, game)
 
-    def start_cleanup_phase(self) -> None:
+    def start_cleanup_phase(self, game: "Game") -> None:
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
 
         """
-        self.discard_pile.cards += self.hand.cards
-        self.discard_pile.cards += self.playmat.cards
-        self.hand.cards = []
-        self.playmat.cards = []
+        game.current_phase = game.Phase.CleanUp
+        game.effect_registry.on_cleanup_start(self, game)
+
+        hand_copy = self.hand.cards[:]
+        for card in hand_copy:
+            self.discard(game, card, silent=True)
+        playmat_copy = self.playmat.cards[:]
+        for card in playmat_copy:
+            self.discard(game, card, self.playmat, silent=True)
         self.draw(5)
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
 
     def take_turn(self, game: "Game") -> None:
+        game.effect_registry.on_turn_start(self, game)
+
         self.start_turn()
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
-        self.start_cleanup_phase()
+        self.start_cleanup_phase(game)
+
+        game.effect_registry.on_turn_end(self, game)
 
     def get_all_cards(self) -> List[Card]:
         """
@@ -376,19 +426,6 @@ class Player:
         action_money = self.get_action_money()
         return treasure_money + action_money
 
-    def is_attacked(self, player: "Player", attack_card: Card, game: "Game") -> bool:
-        attacked = True
-        for card in self.hand.cards:
-            if card.name == "Moat":
-                block = self.decider.binary_decision(
-                    prompt=f"Would you like to block {player.player_id}'s {attack_card} with your Moat? y/n: ",
-                    card=card,
-                    player=self,
-                    game=game,
-                    relevant_cards=[attack_card],
-                )
-                attacked &= not block
-            elif card.name == "Diplomat":
-                card.on_attack(self, attack_card, game)
-
+    def is_attacked(self, attacking_player: "Player", attack_card: Card, game: "Game") -> bool:
+        attacked = game.effect_registry.on_attack(attacking_player, self, attack_card, game)
         return attacked

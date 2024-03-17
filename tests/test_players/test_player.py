@@ -1,5 +1,5 @@
 import pytest
-from pyminion.core import DiscardPile, Hand, Playmat, Supply, Trash
+from pyminion.core import DiscardPile, Hand, Playmat
 from pyminion.exceptions import (
     CardNotFound,
     InsufficientActions,
@@ -36,7 +36,7 @@ def test_create_player(decider, deck):
     assert len(player.playmat) == 0
 
 
-def test_draw_normal(player: Player):
+def test_draw_normal(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
     player.draw()
@@ -44,7 +44,7 @@ def test_draw_normal(player: Player):
     assert len(player.deck) == 9
 
 
-def test_draw_empty_deck(player: Player):
+def test_draw_empty_deck(player: Player, game: Game):
     player.deck.move_to(player.discard_pile)
     assert len(player.hand) == 0
     assert len(player.deck) == 0
@@ -55,7 +55,7 @@ def test_draw_empty_deck(player: Player):
     assert len(player.discard_pile) == 0
 
 
-def test_draw_empty_deck_empty_discard_pile(player: Player):
+def test_draw_empty_deck_empty_discard_pile(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
     assert len(player.discard_pile) == 0
@@ -70,7 +70,7 @@ def test_draw_empty_deck_empty_discard_pile(player: Player):
     assert len(player.discard_pile) == 0
 
 
-def test_draw_multiple(player: Player):
+def test_draw_multiple(player: Player, game: Game):
     assert len(player.hand) == 0
     assert len(player.deck) == 10
     player.draw(num_cards=3)
@@ -129,24 +129,24 @@ def test_buy_insufficient_money(player: Player, game: Game):
         player.buy(estate, game)
 
 
-def test_player_trash(player: Player, trash: Trash):
+def test_player_trash(player: Player, game: Game):
     player.hand.add(copper)
     player.hand.add(estate)
-    assert len(trash) == 0
+    assert len(game.trash) == 0
     assert len(player.hand) == 2
-    player.trash(copper, trash)
+    player.trash(copper, game)
     assert len(player.hand) == 1
     assert type(player.hand.cards[0]) is Estate
-    assert len(trash) == 1
-    assert type(trash.cards[0]) is Copper
+    assert len(game.trash) == 1
+    assert type(game.trash.cards[0]) is Copper
 
 
-def test_player_discard(player: Player):
+def test_player_discard(player: Player, game: Game):
     player.hand.add(copper)
     player.hand.add(estate)
     assert len(player.discard_pile) == 0
     assert len(player.hand) == 2
-    player.discard(copper)
+    player.discard(game, copper)
     assert len(player.hand) == 1
     assert type(player.hand.cards[0]) is Estate
     assert len(player.discard_pile) == 1
@@ -203,19 +203,19 @@ def test_insufficient_actions(player: Player, game: Game):
         player.hand.cards[0].play(player, game)
 
 
-def test_player_gain_card(player: Player, supply: Supply):
-    player.gain(card=copper, supply=supply)
+def test_player_gain_card(player: Player, game: Game):
+    player.gain(card=copper, game=game)
     assert player.discard_pile.cards[0] == copper
     assert len(player.discard_pile) == 1
 
 
-def test_player_draw_to_discard(player: Player):
+def test_player_draw_to_discard(player: Player, game: Game):
     assert len(player.discard_pile) == 0
     player.draw(num_cards=1, destination=player.discard_pile)
     assert len(player.discard_pile) == 1
 
 
-def test_shuffle_count(player: Player):
+def test_shuffle_count(player: Player, game: Game):
     assert player.shuffles == 0
     player.discard_pile.add(copper)
     player.draw(11)
@@ -277,9 +277,9 @@ def test_start_turn(player: Player):
     assert player.state.buys == 1
 
 
-def test_cleanup_phase(player: Player):
+def test_cleanup_phase(player: Player, game: Game):
     player.hand.add(copper)
     player.playmat.add(copper)
-    player.start_cleanup_phase()
+    player.start_cleanup_phase(game)
     assert len(player.hand) == 5
     assert len(player.playmat) == 0

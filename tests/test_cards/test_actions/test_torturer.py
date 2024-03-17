@@ -4,6 +4,7 @@ from pyminion.core import Card, CardType
 from pyminion.expansions.base import moat
 from pyminion.expansions.intrigue import Torturer, torturer
 from pyminion.game import Game
+import pytest
 
 
 def test_torturer_discard(multiplayer_game: Game, monkeypatch):
@@ -88,6 +89,7 @@ def test_torturer_gain_curse_no_curses(multiplayer_game: Game, monkeypatch):
     assert len(p2.discard_pile) == 0
 
 
+@pytest.mark.kingdom_cards([moat])
 def test_torturer_moat(multiplayer_game: Game, monkeypatch):
     players = multiplayer_game.players
     p1 = players[0]
@@ -98,7 +100,8 @@ def test_torturer_moat(multiplayer_game: Game, monkeypatch):
 
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
-    p2.hand.cards.append(moat)
+    p2.deck.add(moat)
+    p2.draw()
 
     p1.play(torturer, multiplayer_game)
     assert len(p1.hand) == 3

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
@@ -53,10 +54,10 @@ class Baron(Action):
             discard_estate = (response == Baron.Choice.DiscardEstate)
 
         if discard_estate:
-            player.discard(estate)
+            player.discard(game, estate)
             player.state.money += 4
         elif game.supply.pile_length(estate.name) > 0:
-            player.gain(estate, game.supply)
+            player.gain(estate, game)
 
 
 class Bridge(Action):
@@ -150,13 +151,13 @@ class Courtier(Action):
                 valid_cards=player.hand.cards,
                 player=player,
                 game=game,
-                min_num_reveal = 1,
-                max_num_reveal = 1,
+                min_num_reveal=1,
+                max_num_reveal=1,
             )
             assert len(reveal_cards) == 1
             reveal_card = reveal_cards[0]
 
-        logger.info(f"{player} reveals {reveal_card}")
+        player.reveal(reveal_card, game)
 
         num_choices = min(len(reveal_card.type), 4)
 
@@ -177,7 +178,7 @@ class Courtier(Action):
                 num_choices=num_choices,
                 unique=True,
             )
-            assert len(set(choices)) == num_choices # ensure number of unique choices is correct
+            assert len(set(choices)) == num_choices  # ensure number of unique choices is correct
 
         for choice in choices:
             if choice == Courtier.Choice.Action:
@@ -187,7 +188,7 @@ class Courtier(Action):
             elif choice == Courtier.Choice.Money:
                 player.state.money += 3
             elif choice == Courtier.Choice.GainGold:
-                player.gain(gold, game.supply)
+                player.gain(gold, game)
             else:
                 raise ValueError(f"Unknown courtier choice '{choice}'")
 
@@ -240,6 +241,45 @@ class Diplomat(Action):
 
     """
 
+    class DiplomatAttackEffect(AttackEffect):
+        def __init__(self, player: Player):
+            super().__init__(f"Diplomat: {player.player_id} attack reaction", EffectAction.HandAddRemoveCards)
+            self.player = player
+
+        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return self.player.player_id == defending_player.player_id and len(defending_player.hand) >= 5
+
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            reveal = defending_player.decider.binary_decision(
+                prompt=f"Reveal {diplomat} to draw 2 cards then discard 3? y/n: ",
+                card=diplomat,
+                player=defending_player,
+                game=game,
+                relevant_cards=[attack_card],
+            )
+            if not reveal:
+                return True
+
+            defending_player.reveal(diplomat, game)
+
+            defending_player.draw(2)
+
+            discard_cards = defending_player.decider.discard_decision(
+                prompt="Enter the cards you would like to discard: ",
+                card=diplomat,
+                valid_cards=defending_player.hand.cards,
+                player=defending_player,
+                game=game,
+                min_num_discard=3,
+                max_num_discard=3,
+            )
+            assert len(discard_cards) == 3
+
+            for card in discard_cards:
+                defending_player.discard(game, card)
+
+            return True
+
     def __init__(self):
         super().__init__("Diplomat", 4, (CardType.Action, CardType.Reaction), draw=2)
 
@@ -255,37 +295,29 @@ class Diplomat(Action):
         if len(player.hand) <= 5:
             player.state.actions += 2
 
-    def on_attack(self, player: "Player", attack_card: Card, game: "Game") -> None:
-        if len(player.hand) < 5:
-            return
-
-        reveal = player.decider.binary_decision(
-            prompt=f"Reveal {self} to draw 2 cards then discard 3? y/n: ",
-            card=self,
-            player=player,
-            game=game,
-            relevant_cards=[attack_card],
+    def set_up(self, game: "Game") -> None:
+        hand_add_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Add",
+            EffectAction.Other,
+            self.on_hand_add,
+            lambda p, c, g: c.name == self.name,
         )
-        if not reveal:
-            return
+        game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        logger.info(f"{player} reveals {self}")
-
-        player.draw(2)
-
-        discard_cards = player.decider.discard_decision(
-            prompt="Enter the cards you would like to discard: ",
-            card=self,
-            valid_cards=player.hand.cards,
-            player=player,
-            game=game,
-            min_num_discard=3,
-            max_num_discard=3,
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Remove",
+            EffectAction.Other,
+            self.on_hand_remove,
+            lambda p, c, g: c.name == self.name,
         )
-        assert len(discard_cards) == 3
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
-        for card in discard_cards:
-            player.discard(card)
+    def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
+        effect = Diplomat.DiplomatAttackEffect(player)
+        game.effect_registry.register_attack_effect(effect)
+
+    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
+        game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} attack reaction")
 
 
 class Duke(Victory):
@@ -362,7 +394,7 @@ class Ironworks(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= 4
 
-        player.gain(card=gain_card, supply=game.supply)
+        player.gain(card=gain_card, game=game)
 
         if CardType.Action in gain_card.type:
             player.state.actions += 1
@@ -439,7 +471,8 @@ class Lurker(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-            game.supply.trash_card(trash_card, game.trash)
+            pile = game.supply.get_pile(trash_card.name)
+            player.trash(trash_card, game, pile)
 
         elif choice == Lurker.Choice.GainAction:
             if len(trash_action_cards) == 0:
@@ -457,8 +490,7 @@ class Lurker(Action):
             assert len(gain_cards) == 1
             gain_card = gain_cards[0]
 
-            game.trash.remove(gain_card)
-            player.discard_pile.add(gain_card)
+            player.gain(gain_card, game, source=game.trash)
 
         else:
             raise ValueError(f"Unknown lurker choice '{choice}'")
@@ -539,7 +571,7 @@ class Masquerade(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-            player.trash(trash_card, game.trash)
+            player.trash(trash_card, game)
 
 
 class Mill(Action, Victory):
@@ -592,7 +624,7 @@ class Mill(Action, Victory):
                 player.state.money += 2
 
             for c in discard_cards:
-                player.discard(c)
+                player.discard(game, c)
 
     def score(self, player: Player) -> int:
         vp = 1
@@ -646,7 +678,7 @@ class MiningVillage(Action):
 
             if trashed:
                 player.state.money += 2
-                player.trash(self, game.trash, source=player.playmat)
+                player.trash(self, game, source=player.playmat)
 
         return trashed
 
@@ -703,7 +735,7 @@ class Minion(Action):
             player.state.money += 2
         elif choice == Minion.Choice.DiscardDrawAttack:
             for _ in range(len(player.hand.cards)):
-                player.discard(player.hand.cards[0])
+                player.discard(game, player.hand.cards[0])
             player.draw(4)
 
             i = 0
@@ -711,7 +743,7 @@ class Minion(Action):
                 if opponent is not player and is_attacked[i]:
                     if len(opponent.hand) >= 5:
                         for _ in range(len(opponent.hand.cards)):
-                            opponent.discard(opponent.hand.cards[0])
+                            opponent.discard(game, opponent.hand.cards[0])
                         opponent.draw(4)
                     i += 1
         else:
@@ -791,7 +823,7 @@ class Patrol(Action):
 
         revealed = AbstractDeck()
         player.draw(num_cards=4, destination=revealed, silent=True)
-        logger.info(f"{player} reveals {revealed}")
+        player.reveal(revealed.cards, game)
 
         victory_curse_cards = list(get_score_cards(revealed.cards))
         for card in victory_curse_cards:
@@ -920,19 +952,19 @@ class Replace(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) <= max_cost
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
 
         if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
-            player.gain(gain_card, game.supply, destination=player.deck)
+            player.gain(gain_card, game, destination=player.deck)
         else:
-            player.gain(gain_card, game.supply)
+            player.gain(gain_card, game)
 
         if CardType.Victory in gain_card.type:
             for opponent in game.players:
                 if opponent is not player and opponent.is_attacked(player, self, game):
                     # attempt to gain a curse. if curse pile is empty, proceed
                     try:
-                        opponent.gain(curse, game.supply)
+                        opponent.gain(curse, game)
                     except EmptyPile:
                         pass
 
@@ -1013,6 +1045,8 @@ class ShantyTown(Action):
 
         player.state.actions += 2
 
+        player.reveal(player.hand.cards, game)
+
         if not any(CardType.Action in c.type for c in player.hand.cards):
             player.draw(2)
 
@@ -1062,7 +1096,7 @@ class Steward(Action):
         elif choice == Steward.Choice.Trash:
             trash_cards = self._get_trash_cards(player, game)
             for card in trash_cards:
-                player.trash(card, game.trash)
+                player.trash(card, game)
         else:
             raise ValueError(f"Unknown steward choice '{choice}'")
 
@@ -1113,10 +1147,8 @@ class Swindler(Action):
                 revealed_cards = AbstractDeck()
                 opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
-                game.trash.add(trashed_card)
+                opponent.trash(trashed_card, game, source=revealed_cards)
                 trashed_cost = trashed_card.get_cost(player, game)
-
-                logger.info(f"{opponent} trashes {trashed_card}")
 
                 valid_cards = [
                     c
@@ -1137,9 +1169,7 @@ class Swindler(Action):
                 )
                 assert len(gain_cards) == 1
                 gain_card = gain_cards[0]
-                opponent.discard_pile.add(gain_card)
-
-                logger.info(f"{opponent} gains {gain_card}")
+                opponent.gain(gain_card, game)
 
 
 class Torturer(Action):
@@ -1209,13 +1239,13 @@ class Torturer(Action):
         assert len(discard_cards) == num_discard
 
         for card in discard_cards:
-            opponent.discard(target_card=card)
+            opponent.discard(game, target_card=card)
 
     def _gain_curse(self, opponent: Player, game: "Game") -> None:
         try:
             opponent.gain(
                 card=curse,
-                supply=game.supply,
+                game=game,
                 destination=opponent.hand,
             )
         except EmptyPile:
@@ -1258,13 +1288,13 @@ class TradingPost(Action):
             assert len(trash_cards) == 2
 
         for card in trash_cards:
-            player.trash(card, game.trash)
+            player.trash(card, game)
 
         if len(trash_cards) == 2:
             # attempt to gain a silver to player's hand.
             # if silver pile is empty, proceed
             try:
-                player.gain(silver, game.supply, player.hand)
+                player.gain(silver, game, player.hand)
             except EmptyPile:
                 pass
 
@@ -1303,7 +1333,7 @@ class Upgrade(Action):
         assert len(trash_cards) == 1
         trash_card = trash_cards[0]
 
-        player.trash(trash_card, trash=game.trash)
+        player.trash(trash_card, game=game)
 
         new_cost = trash_card.get_cost(player, game) + 1
         valid_cards = [
@@ -1328,7 +1358,7 @@ class Upgrade(Action):
         gain_card = gain_cards[0]
         assert gain_card.get_cost(player, game) == new_cost
 
-        player.gain(gain_card, game.supply)
+        player.gain(gain_card, game)
 
 
 class WishingWell(Action):
@@ -1374,15 +1404,15 @@ class WishingWell(Action):
         revealed_card = revealed.cards[0]
         revealed_name = revealed_card.name
 
-        msg = f"{player} reveals {revealed_name} and "
+        msg = f"{player} reveals and "
         if revealed_name == name:
             player.hand.add(revealed_card)
-            msg += "puts it into their hand"
+            msg += "puts into their hand "
         else:
             player.deck.add(revealed_card)
-            msg += "topdecks it"
+            msg += "topdecks "
 
-        logger.info(msg)
+        player.reveal(revealed_card, game, msg)
 
 
 baron = Baron()

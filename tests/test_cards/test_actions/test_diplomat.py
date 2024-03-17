@@ -2,6 +2,7 @@ from pyminion.expansions.base import Copper, Curse, copper, witch
 from pyminion.expansions.intrigue import Diplomat, diplomat
 from pyminion.player import Player
 from pyminion.game import Game
+import pytest
 
 
 def test_diplomat_actions(player: Player, game: Game):
@@ -28,6 +29,7 @@ def test_diplomat_no_actions(player: Player, game: Game):
     assert player.state.actions == 0
 
 
+@pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
@@ -35,7 +37,8 @@ def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     p1.hand.cards.clear()
     for _ in range(4):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw()
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -52,6 +55,7 @@ def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     assert type(p1.discard_pile.cards[-1]) is Curse
 
 
+@pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
@@ -59,7 +63,8 @@ def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     p1.hand.cards.clear()
     for _ in range(4):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw()
     assert len(p1.hand) == 5
 
     p2.hand.add(witch)
@@ -73,14 +78,16 @@ def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     assert type(p1.discard_pile.cards[-1]) is Curse
 
 
-def test_diplomat_cannot_block_witch(multiplayer_game: Game, monkeypatch):
+@pytest.mark.kingdom_cards([diplomat])
+def test_diplomat_cannot_block_witch(multiplayer_game: Game):
     p1 = multiplayer_game.players[0]
     p2 = multiplayer_game.players[1]
 
     p1.hand.cards.clear()
     for _ in range(3):
         p1.hand.add(copper)
-    p1.hand.add(diplomat)
+    p1.deck.add(diplomat)
+    p1.draw()
     assert len(p1.hand) == 4
 
     p2.hand.add(witch)

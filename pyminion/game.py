@@ -1,8 +1,10 @@
+from enum import IntEnum, unique
 import logging
 import random
 from typing import List, Optional
 
-from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
+from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
+from pyminion.effects import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
@@ -28,6 +30,12 @@ class Game:
 
     """
 
+    @unique
+    class Phase(IntEnum):
+        Action = 0
+        Buy = 1
+        CleanUp = 2
+
     def __init__(
         self,
         players: List[Player],
@@ -52,6 +60,9 @@ class Game:
         self.start_deck = start_deck
         self.random_order = random_order
         self.trash = Trash()
+        self.current_phase: Game.Phase = Game.Phase.Action
+
+        self.effect_registry = EffectRegistry()
 
         if log_stdout:
             # Set up a handler that logs to stdout
@@ -147,8 +158,13 @@ class Game:
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
 
+        self.effect_registry.reset()
+
         self.supply = self._create_supply()
         logger.info(f"Supply: \n{self.supply}")
+
+        for card in self.all_game_cards:
+            card.set_up(self)
 
         if self.random_order:
             random.shuffle(self.players)
@@ -161,6 +177,9 @@ class Game:
 
         for player in self.players:
             player.reset()
+            player.hand.on_add = lambda card, player=player: self.effect_registry.on_hand_add(player, card, self)
+            player.hand.on_remove = lambda card, player=player: self.effect_registry.on_hand_remove(player, card, self)
+            player.deck.on_shuffle = lambda player=player: self.effect_registry.on_shuffle(player, self)
             player.discard_pile = DiscardPile(self.start_deck[:])
             logger.info(f"\n{player} starts with {player.discard_pile}")
             player.draw(5)

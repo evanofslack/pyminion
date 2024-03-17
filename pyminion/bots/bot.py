@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, Iterator, List, Optional
+from typing import TYPE_CHECKING, Iterator, List, Optional, Sequence
 
 from pyminion.core import Card
 from pyminion.decider import Decider
 from pyminion.player import Player
 
 if TYPE_CHECKING:
+    from pyminion.effects import Effect
     from pyminion.game import Game
 
 
@@ -74,6 +75,14 @@ class BotDecider:
                 return card
 
         return None
+
+    def effects_order_decision(
+        self,
+        effects: Sequence["Effect"],
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        return 0
 
     def binary_decision(
         self,
