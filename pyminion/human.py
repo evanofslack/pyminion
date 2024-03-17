@@ -18,6 +18,20 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
+def get_matches(input_str: str, options: List[str]) -> List[str]:
+    matches: List[str] = []
+
+    in_folded = input_str.casefold()
+    for option in options:
+        o_folded = option.casefold()
+        if in_folded == o_folded:
+            return [option]
+        elif o_folded.startswith(in_folded):
+            matches.append(option)
+
+    return matches
+
+
 def validate_input(
     func: Optional[Callable] = None,
     exceptions: Union[Tuple[Type[Exception], ...], Type[Exception]] = (),
@@ -87,8 +101,8 @@ def binary_decision(prompt: str) -> bool:
 
 
 def single_card_decision(
-    prompt: str, valid_cards: List[Card], valid_mixin: str = "placeholder"
-) -> Optional[Union[Card, str]]:
+    prompt: str, valid_cards: List[Card]
+) -> Optional[Card]:
     """
     Get user input when given the option to select one card
 
@@ -107,16 +121,19 @@ def single_card_decision(
     if not card_input:
         return None
 
-    if card_input == valid_mixin:
-        return valid_mixin
+    cards_dict = {card.name: card for card in valid_cards}
 
-    for card in valid_cards:
-        if card_input.casefold() == card.name.casefold():
-            return card
-
-    raise InvalidSingleCardInput(
-        f"Invalid input, {card_input} is not a valid selection"
-    )
+    matches = get_matches(card_input, list(cards_dict.keys()))
+    if len(matches) == 0:
+        raise InvalidSingleCardInput(
+            f"Invalid input, {card_input} is not a valid selection"
+        )
+    elif len(matches) == 1:
+        return cards_dict[matches[0]]
+    else:
+        raise InvalidSingleCardInput(
+            f"Invalid input, multiple matches for {card_input}: " + ", ".join(matches)
+        )
 
 
 def multiple_card_decision(
@@ -141,19 +158,23 @@ def multiple_card_decision(
     if not card_input:
         return []
 
-    if allow_all and card_input == "all":
+    if allow_all and card_input.strip().casefold() == "all":
         return valid_cards
 
+    cards_dict = {card.name: card for card in valid_cards}
     card_strings = [x.strip() for x in card_input.split(",")]
     selected_cards = []
     for card_string in card_strings:
-        for card in valid_cards:
-            if card_string.casefold() == card.name.casefold():
-                selected_cards.append(card)
-                break
-        else:
+        matches = get_matches(card_string, list(cards_dict.keys()))
+        if len(matches) == 0:
             raise InvalidMultiCardInput(
                 f"Invalid input, {card_string} is not a valid card"
+            )
+        elif len(matches) == 1:
+            selected_cards.append(cards_dict[matches[0]])
+        else:
+            raise InvalidMultiCardInput(
+                f"Invalid input, multiple matches for {card_string}: " + ", ".join(matches)
             )
 
     selected_count = Counter(selected_cards)
@@ -253,8 +274,6 @@ class HumanDecider:
             prompt="Choose an action card to play: ",
             valid_cards=valid_actions,
         )
-        if isinstance(card, str):
-            raise InvalidSingleCardInput("You must choose a valid card")
 
         return card
 
@@ -283,8 +302,6 @@ class HumanDecider:
             prompt="Choose a card to buy: ",
             valid_cards=valid_cards,
         )
-        if isinstance(card, str):
-            raise InvalidSingleCardInput("You must choose a valid card")
 
         return card
 
@@ -535,11 +552,7 @@ class HumanDecider:
     ) -> Optional["Card"]:
         result = single_card_decision(prompt, valid_cards)
 
-        if isinstance(result, str):
-            raise InvalidSingleCardInput(
-                f"Invalid response, you must name a valid card"
-            )
-        elif required and result is None:
+        if required and result is None:
             raise InvalidSingleCardInput(
                 f"Invalid response, you must name a valid card"
             )

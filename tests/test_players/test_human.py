@@ -1,7 +1,25 @@
 from pyminion.expansions.base import copper, moat, witch
 from pyminion.game import Game
-from pyminion.human import Human
+from pyminion.human import Human, get_matches
 import pytest
+
+
+def test_get_matches_all_match():
+    names = ["Market", "Masquerade", "Merchant"]
+    matches = get_matches("m", names)
+    assert matches == ["Market", "Masquerade", "Merchant"]
+
+
+def test_get_matches_partial_match():
+    names = ["Market", "Masquerade", "Merchant"]
+    matches = get_matches("ma", names)
+    assert matches == ["Market", "Masquerade"]
+
+
+def test_get_matches_no_match():
+    names = ["Market", "Masquerade", "Merchant"]
+    matches = get_matches("x", names)
+    assert matches == []
 
 
 def test_yes_input(human: Human, game: Game, monkeypatch):
