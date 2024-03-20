@@ -21,13 +21,19 @@ logger = logging.getLogger()
 def get_matches(input_str: str, options: List[str]) -> List[str]:
     matches: List[str] = []
 
-    in_folded = input_str.casefold()
+    input_split = input_str.casefold().split()
+    input_formatted = ' '.join(input_split)
     for option in options:
-        o_folded = option.casefold()
-        if in_folded == o_folded:
+        option_folded = option.casefold()
+        option_split = option_folded.split()
+        if input_formatted == option_folded:
             return [option]
-        elif o_folded.startswith(in_folded):
-            matches.append(option)
+        elif len(input_split) <= len(option_split):
+            for i in range(len(input_split)):
+                if not option_split[i].startswith(input_split[i]):
+                    break
+            else:
+                matches.append(option)
 
     return matches
 

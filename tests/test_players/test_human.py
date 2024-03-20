@@ -9,6 +9,10 @@ def test_get_matches_all_match():
     matches = get_matches("m", names)
     assert matches == ["Market", "Masquerade", "Merchant"]
 
+    names = ["Market", "Masquerade", "Merchant"]
+    matches = get_matches("M", names)
+    assert matches == ["Market", "Masquerade", "Merchant"]
+
 
 def test_get_matches_partial_match():
     names = ["Market", "Masquerade", "Merchant"]
@@ -20,6 +24,34 @@ def test_get_matches_no_match():
     names = ["Market", "Masquerade", "Merchant"]
     matches = get_matches("x", names)
     assert matches == []
+
+
+def test_get_matches_multi_word():
+    names = ["King's Cache", "King's Castle", "King's Court"]
+    matches = get_matches("k", names)
+    assert matches == ["King's Cache", "King's Castle", "King's Court"]
+
+    names = ["King's Cache", "King's Castle", "King's Court"]
+    matches = get_matches("king's ca", names)
+    assert matches == ["King's Cache", "King's Castle"]
+
+    names = ["King's Cache", "King's Castle", "King's Court"]
+    matches = get_matches("k ca", names)
+    assert matches == ["King's Cache", "King's Castle"]
+
+    names = ["King's Cache", "King's Castle", "King's Court"]
+    matches = get_matches("k cas", names)
+    assert matches == ["King's Castle"]
+
+
+def test_get_matches_multi_word_exact_match():
+    names = ["Market", "Market Square"]
+    matches = get_matches("marke", names)
+    assert matches == ["Market", "Market Square"]
+
+    names = ["Market", "Market Square"]
+    matches = get_matches("market", names)
+    assert matches == ["Market"]
 
 
 def test_yes_input(human: Human, game: Game, monkeypatch):
