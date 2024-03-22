@@ -19,6 +19,10 @@ logger = logging.getLogger()
 
 
 def get_matches(input_str: str, options: List[str]) -> List[str]:
+    """
+    Find matches in a list of options for a user input string
+
+    """
     matches: List[str] = []
 
     input_split = input_str.casefold().split()
@@ -26,9 +30,10 @@ def get_matches(input_str: str, options: List[str]) -> List[str]:
     for option in options:
         option_folded = option.casefold()
         option_split = option_folded.split()
-        if input_formatted == option_folded:
+        if input_formatted == option_folded: # check for an exact match
             return [option]
         elif len(input_split) <= len(option_split):
+            # check if each part of the option starts with the corresponding input part
             for i in range(len(input_split)):
                 if not option_split[i].startswith(input_split[i]):
                     break
