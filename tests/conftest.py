@@ -120,7 +120,7 @@ def supply():
     silvers = Pile(silver_cards)
     gold_cards: List["Card"] = [gold] * 30
     golds = Pile(gold_cards)
-    supply = Supply([estates, duchies, provinces, coppers, silvers, golds])
+    supply = Supply([estates, duchies, provinces], [coppers, silvers, golds], [])
     return supply
 
 

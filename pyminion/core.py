@@ -1,7 +1,7 @@
 import logging
 import random
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Set, Tuple
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -237,14 +237,19 @@ class Hand(AbstractDeck):
 
 
 class Pile(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
+    def __init__(self, cards: List[Card]):
         super().__init__(cards)
-        if cards and len(set(cards)) == 1:
-            self.name = cards[0].name
-        elif cards:
-            self.name = "Mixed"
-        else:
-            self.name = None
+        assert len(cards) > 0
+
+        all_names: Set[str] = set()
+        unique_names: List[str] = []
+        for card in cards:
+            name = card.name
+            if name not in all_names:
+                unique_names.append(name)
+                all_names.add(name)
+
+        self.name = "/".join(unique_names)
 
     def remove(self, card: Card) -> Card:
         if len(self.cards) < 1:
@@ -269,17 +274,43 @@ class Supply:
 
     """
 
-    def __init__(self, piles: Optional[List[Pile]] = None):
-        if piles:
-            self.piles = piles
-        else:
-            self.piles = []
+    def __init__(
+            self,
+            basic_score_piles: List[Pile],
+            basic_treasure_piles: List[Pile],
+            kingdom_piles: List[Pile],
+    ):
+        self.basic_score_piles = basic_score_piles
+        self.basic_treasure_piles = basic_treasure_piles
+        self.kingdom_piles = kingdom_piles
+        self.piles = basic_score_piles + basic_treasure_piles + kingdom_piles
 
     def __repr__(self):
         return str(self.available_cards())
 
     def __len__(self):
         return len(self.piles)
+
+    def _get_pile_str(self, pile: Pile, name_padding: int, player: "Player", game: "Game") -> str:
+        count_str = f"({len(pile)})"
+        s = f"{count_str:>4}"
+        if len(pile) == 0:
+            s += " $-"
+        else:
+            s += f" ${pile.cards[0].get_cost(player, game)}"
+        s += f" {pile.name:{name_padding}}"
+        return s
+
+    def get_pretty_string(self, player: "Player", game: "Game") -> str:
+        max_len = max(len(pile.name) for pile in self.piles)
+        kingdom_top = self.kingdom_piles[5:]
+        kingdom_bottom = self.kingdom_piles[:5]
+        s = "\nSupply:\n"
+        s += "  ".join(f'{self._get_pile_str(pile, max_len, player, game)}' for pile in self.basic_score_piles) + "\n"
+        s += "  ".join(f'{self._get_pile_str(pile, max_len, player, game)}' for pile in self.basic_treasure_piles) + "\n"
+        s += "  ".join(f'{self._get_pile_str(pile, max_len, player, game)}' for pile in kingdom_top) + "\n"
+        s += "  ".join(f'{self._get_pile_str(pile, max_len, player, game)}' for pile in kingdom_bottom) + "\n"
+        return s
 
     def get_pile(self, pile_name: str) -> Pile:
         """

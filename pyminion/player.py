@@ -315,7 +315,7 @@ class Player:
 
     def start_buy_phase(self, game: "Game") -> None:
         while self.state.buys > 0:
-            logger.info(f"\nSupply:{game.supply}")
+            logger.info(game.supply.get_pretty_string(self, game))
             logger.info(f"Money: {self.state.money}")
             logger.info(f"Buys: {self.state.buys}")
 
