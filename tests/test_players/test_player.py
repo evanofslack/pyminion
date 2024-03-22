@@ -265,12 +265,12 @@ def test_card_count(player: Player):
     assert player.get_card_count(card=smithy) == 1
 
 
-def test_start_turn(player: Player):
+def test_start_turn(player: Player, game: Game):
     player.turns = 2
     player.state.money = 2
     player.state.actions = 2
     player.state.buys = 2
-    player.start_turn()
+    player.start_turn(game)
     assert player.turns == 3
     assert player.state.money == 0
     assert player.state.actions == 1

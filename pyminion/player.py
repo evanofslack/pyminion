@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -55,6 +55,7 @@ class Player:
         self.turns: int = 0
         self.shuffles: int = 0
         self.actions_played_this_turn: int = 0
+        self.playmat_persist_counts: Dict[str, int] = {}
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -71,6 +72,18 @@ class Player:
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
+        self.playmat_persist_counts = {}
+
+    def add_playmat_persistent_card(self, card: Card) -> None:
+        name = card.name
+        if name in self.playmat_persist_counts:
+            self.playmat_persist_counts[name] += 1
+        else:
+            self.playmat_persist_counts[name] = 1
+
+    def remove_playmat_persistent_card(self, card: Card) -> None:
+        name = card.name
+        self.playmat_persist_counts[name] -= 1
 
     def draw(
         self,
@@ -268,7 +281,7 @@ class Player:
         for card in cards:
             game.effect_registry.on_reveal(self, card, game)
 
-    def start_turn(self) -> None:
+    def start_turn(self, game: "Game") -> None:
         """
         Increase turn counter and reset state
 
@@ -278,6 +291,10 @@ class Player:
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
+
+        logger.info(f"\nTurn {self.turns} - {self.player_id}")
+
+        game.effect_registry.on_turn_start(self, game)
 
     def start_action_phase(self, game: "Game") -> None:
         game.current_phase = game.Phase.Action
@@ -347,25 +364,35 @@ class Player:
         hand_copy = self.hand.cards[:]
         for card in hand_copy:
             self.discard(game, card, silent=True)
+
+        persist_counts: Dict[str, int] = {}
         playmat_copy = self.playmat.cards[:]
         for card in playmat_copy:
-            self.discard(game, card, self.playmat, silent=True)
+            persist_count = persist_counts.get(card.name, 0)
+            target_persist_count = self.playmat_persist_counts.get(card.name, 0)
+            if persist_count < target_persist_count:
+                if card.name in persist_counts:
+                    persist_counts[card.name] += 1
+                else:
+                    persist_counts[card.name] = 1
+            else:
+                self.discard(game, card, self.playmat, silent=True)
+
         self.draw(5)
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
 
-    def take_turn(self, game: "Game") -> None:
-        game.effect_registry.on_turn_start(self, game)
+    def end_turn(self, game: "Game") -> None:
+        game.effect_registry.on_turn_end(self, game)
 
-        self.start_turn()
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
+    def take_turn(self, game: "Game") -> None:
+        self.start_turn(game)
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase(game)
-
-        game.effect_registry.on_turn_end(self, game)
+        self.end_turn(game)
 
     def get_all_cards(self) -> List[Card]:
         """

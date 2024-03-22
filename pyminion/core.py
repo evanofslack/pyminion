@@ -1,19 +1,20 @@
+from collections import Counter
+from enum import Enum, unique
 import logging
 import random
-from collections import Counter
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Tuple
+
+from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
 
 if TYPE_CHECKING:
     from pyminion.game import Game
     from pyminion.player import Player
 
-from enum import Enum
-from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
-
 
 logger = logging.getLogger()
 
 
+@unique
 class CardType(Enum):
     """
     Enum class for all card types that are currently used in the implemented expansions
@@ -25,6 +26,7 @@ class CardType(Enum):
     Action = 4
     Attack = 5
     Reaction = 6
+    Duration = 7
 
 
 class Card:
