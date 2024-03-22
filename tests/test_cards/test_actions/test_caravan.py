@@ -11,6 +11,7 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 0
     assert player.state.actions == 1
+    assert len(game.effect_registry.turn_start_effects) == 1
 
     player.start_cleanup_phase(game)
 
@@ -19,6 +20,7 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 1
     assert type(player.discard_pile.cards[0]) is not Caravan
+    assert len(game.effect_registry.turn_start_effects) == 1
 
     player.start_turn(game)
 
@@ -27,8 +29,10 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 1
     assert type(player.discard_pile.cards[0]) is not Caravan
+    assert len(game.effect_registry.turn_start_effects) == 0
 
     player.start_cleanup_phase(game)
 
     assert len(player.hand) == 5
     assert len(player.playmat) == 0
+    assert len(game.effect_registry.turn_start_effects) == 0

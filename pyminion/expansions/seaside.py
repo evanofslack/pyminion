@@ -76,6 +76,7 @@ class BasicNextTurnEffect(PlayerGameEffect):
                 player.discard(game, discard_card)
 
         self.player.remove_playmat_persistent_card(self.card)
+        game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
 class Bazaar(Action):
