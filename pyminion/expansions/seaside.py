@@ -97,6 +97,27 @@ class RemovePersistentMultiPlayEffect(PlayerGameEffect):
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
+class Astrolabe(Treasure):
+    """
+    Now and at the start of your next turn:
+    $1
+    +1 Buy
+
+    """
+
+    def __init__(self):
+        super().__init__("Astrolabe", 3, (CardType.Treasure, CardType.Duration), 1)
+
+    def play(self, player: Player, game: "Game") -> None:
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
+        player.state.buys += 1
+
+        effect = BasicNextTurnEffect(f"{self.name}: +$1, +1 Buy", player, self, money=1, buys=1)
+        game.effect_registry.register_turn_start_effect(effect)
+
+
 class Bazaar(Action):
     """
     +1 Card
@@ -160,11 +181,13 @@ class Caravan(Action):
         return count
 
 
+astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
 
 
 seaside_set: List[Card] = [
+    astrolabe,
     bazaar,
     caravan,
 ]
