@@ -83,6 +83,7 @@ class Player:
 
     def remove_playmat_persistent_card(self, card: Card) -> None:
         name = card.name
+        assert self.playmat_persist_counts[name] > 0
         self.playmat_persist_counts[name] -= 1
 
     def draw(
