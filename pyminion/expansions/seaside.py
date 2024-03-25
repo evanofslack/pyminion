@@ -1,9 +1,10 @@
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Any, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerGameEffect
 from pyminion.exceptions import EmptyPile
+from pyminion.game import Game
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -75,7 +76,24 @@ class BasicNextTurnEffect(PlayerGameEffect):
             for discard_card in discard_cards:
                 player.discard(game, discard_card)
 
-        self.player.remove_playmat_persistent_card(self.card)
+        player.remove_playmat_persistent_card(self.card)
+        game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
+
+
+class RemovePersistentMultiPlayEffect(PlayerGameEffect):
+    def __init__(self, player: Player, card: Card):
+        super().__init__("Remove Persistent Multi-Play Card")
+        self.player = player
+        self.card = card
+
+    def get_action(self) -> EffectAction:
+        return EffectAction.Other
+
+    def is_triggered(self, player: Player, game: "Game") -> bool:
+        return player is self.player
+
+    def handler(self, player: Player, game: "Game") -> None:
+        player.remove_playmat_persistent_card(self.card)
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
@@ -129,6 +147,17 @@ class Caravan(Action):
 
         effect = BasicNextTurnEffect(f"{self.name}: +1 Card", player, self, draw=1)
         game.effect_registry.register_turn_start_effect(effect)
+
+    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
+        count = 1 if state is None else int(state) + 1
+        if count == 1:
+            player.add_playmat_persistent_card(multi_play_card)
+            effect = RemovePersistentMultiPlayEffect(player, multi_play_card)
+            game.effect_registry.register_turn_start_effect(effect)
+
+        super().multi_play(player, game, multi_play_card, state, generic_play)
+
+        return count
 
 
 bazaar = Bazaar()

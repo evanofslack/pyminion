@@ -130,7 +130,7 @@ class Action(Card):
         player.hand.remove(self)
         player.state.actions -= 1
 
-    def multi_play(self, player: "Player", game: "Game", state: Any, generic_play: bool = True) -> Any:
+    def multi_play(self, player: "Player", game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
         """
         Called by "Throne Room variants" to play a card multiple times.
         By default this just calls self.play() but can be overridden by derived

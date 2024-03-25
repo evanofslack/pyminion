@@ -1066,7 +1066,7 @@ class ThroneRoom(Action):
                 player.playmat.add(player.hand.remove(card))
                 state = None
                 for i in range(2):
-                    state = player.multi_play(card=card, game=game, state=state, generic_play=False)
+                    state = player.multi_play(card=card, game=game, multi_play_card=self, state=state, generic_play=False)
                 return
 
 

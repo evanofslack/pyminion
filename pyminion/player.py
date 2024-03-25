@@ -186,7 +186,7 @@ class Player:
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
-    def multi_play(self, card: Card, game: "Game", state: Any, generic_play: bool = True) -> Any:
+    def multi_play(self, card: Card, game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
         """
         Similar to previous exact_play method, except card's multi_play method is called.
         This method is necessary when playing "Throne Room variants".
@@ -195,7 +195,7 @@ class Player:
         if CardType.Action in card.type:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
-            state = card.multi_play(player=self, game=game, state=state, generic_play=generic_play)
+            state = card.multi_play(self, game, multi_play_card, state, generic_play)
             game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")

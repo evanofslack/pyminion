@@ -654,7 +654,7 @@ class MiningVillage(Action):
         self._play(player, game, None, generic_play)
 
     def multi_play(
-        self, player: Player, game: "Game", state: Any, generic_play: bool = True
+        self, player: Player, game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True
     ) -> Any:
         return self._play(player, game, state, generic_play)
 
