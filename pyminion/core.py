@@ -101,18 +101,29 @@ class Action(Card):
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
+        buys: int = 0,
     ):
         super().__init__(name, cost, type)
         self.actions = actions
         self.draw = draw
         self.money = money
+        self.buys = buys
 
     def play(self, player: "Player", game: "Game", generic_play: bool = True) -> None:
         """
         Specific play method unique to each action card
 
         """
-        raise NotImplementedError(f"play method must be implemented for {self.name}")
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            self.generic_play(player)
+
+        if self.draw > 0:
+            player.draw(self.draw)
+        player.state.actions += self.actions
+        player.state.money += self.money
+        player.state.buys += self.buys
 
     def generic_play(self, player: "Player") -> None:
         """
