@@ -29,17 +29,13 @@ class Baron(Action):
         GainEstate = 1
 
     def __init__(self):
-        super().__init__(name="Baron", cost=4, type=(CardType.Action,))
+        super().__init__(name="Baron", cost=4, type=(CardType.Action,), buys=1)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.buys += 1
+        super().play(player, game, generic_play)
 
         discard_estate = False
         if estate in player.hand.cards:
@@ -69,18 +65,13 @@ class Bridge(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Bridge", cost=4, type=(CardType.Action,), money=1)
+        super().__init__(name="Bridge", cost=4, type=(CardType.Action,), money=1, buys=1)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.buys += 1
-        player.state.money += 1
+        super().play(player, game, generic_play)
 
         game.card_cost_reduction += 1
 
@@ -100,11 +91,7 @@ class Conspirator(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.money += 2
+        super().play(player, game, generic_play)
 
         if player.actions_played_this_turn >= 3:
             player.draw(1)
@@ -133,9 +120,7 @@ class Courtier(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         hand_len = len(player.hand)
 
@@ -208,11 +193,7 @@ class Courtyard(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(3)
+        super().play(player, game, generic_play)
 
         topdeck_cards = player.decider.topdeck_decision(
             prompt="Enter the card you would like to topdeck: ",
@@ -287,11 +268,8 @@ class Diplomat(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
-        player.draw(2)
         if len(player.hand) <= 5:
             player.state.actions += 2
 
@@ -375,9 +353,7 @@ class Ironworks(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         gain_cards = player.decider.gain_decision(
             prompt="Gain a card costing up to 4 money: ",
@@ -426,11 +402,7 @@ class Lurker(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         supply_action_cards = [
             c for c in game.supply.available_cards() if CardType.Action in c.type
@@ -512,12 +484,7 @@ class Masquerade(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(2)
+        super().play(player, game, generic_play)
 
         # get players who have at least 1 card in their hand
         valid_players = [p for p in game.players if len(p.hand) > 0]
@@ -589,13 +556,7 @@ class Mill(Action, Victory):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(1)
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         discard = player.decider.binary_decision(
             prompt="Do you want to discard 2 cards for +2 money?",
@@ -704,12 +665,7 @@ class Minion(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         # opponents react to the card before the choice is made
         is_attacked: List[bool] = []
@@ -768,10 +724,7 @@ class Nobles(Action, Victory):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         options = [
             "+3 Cards",
@@ -814,12 +767,7 @@ class Patrol(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(3)
+        super().play(player, game, generic_play)
 
         revealed = AbstractDeck()
         player.draw(num_cards=4, destination=revealed, silent=True)
@@ -868,10 +816,7 @@ class Pawn(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         options = [
             "+1 Card",
@@ -917,10 +862,7 @@ class Replace(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
@@ -985,13 +927,7 @@ class SecretPassage(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(2)
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         insert_cards = player.decider.topdeck_decision(
             prompt="Enter the card you would like to insert in your deck: ",
@@ -1038,12 +974,7 @@ class ShantyTown(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 2
+        super().play(player, game, generic_play)
 
         player.reveal(player.hand.cards, game)
 
@@ -1070,10 +1001,7 @@ class Steward(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         options = [
             "+2 Cards",
@@ -1135,12 +1063,7 @@ class Swindler(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.money += 2
+        super().play(player, game, generic_play)
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(player, self, game):
@@ -1193,12 +1116,7 @@ class Torturer(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(3)
+        super().play(player, game, generic_play)
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(player, self, game):
@@ -1265,10 +1183,7 @@ class TradingPost(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         len_hand = len(player.hand)
         if len_hand == 0:
@@ -1313,13 +1228,7 @@ class Upgrade(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(1)
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
@@ -1377,13 +1286,7 @@ class WishingWell(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(1)
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         named_cards = player.decider.name_card_decision(
             prompt="Name a card: ",
