@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional
 
-from pyminion.core import Action, Card, CardType, Treasure
+from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure
 from pyminion.effects import (
     AttackEffect,
     EffectAction,
@@ -354,11 +354,49 @@ class Lighthouse(Action):
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
 
+class SeaChart(Action):
+    """
+    +1 Card
+    +1 Action
+
+    Reveal the top card of your deck. If you have a copy of it in play, put it into your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Sea Chart", cost=3, type=(CardType.Action,), draw=1, actions=1
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.draw()
+        player.state.actions += 1
+
+        revealed = AbstractDeck()
+        player.draw(num_cards=1, destination=revealed, silent=True)
+        if len(revealed) == 0:
+            return
+
+        revealed_card = revealed.cards[0]
+        player.reveal(revealed_card, game)
+        if revealed_card in player.playmat.cards:
+            player.hand.add(revealed_card)
+        else:
+            player.deck.add(revealed_card)
+
+
 astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
 cutpurse = Cutpurse()
 lighthouse = Lighthouse()
+sea_chart = SeaChart()
 
 
 seaside_set: List[Card] = [
@@ -367,4 +405,5 @@ seaside_set: List[Card] = [
     caravan,
     cutpurse,
     lighthouse,
+    sea_chart,
 ]
