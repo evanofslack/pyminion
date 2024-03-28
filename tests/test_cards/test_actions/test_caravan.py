@@ -17,7 +17,7 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 0
     assert player.state.actions == 1
-    assert len(game.effect_registry.turn_start_effects) == 1
+    assert player.playmat_persist_counts[caravan.name] == 1
 
     player.start_cleanup_phase(game)
 
@@ -26,7 +26,7 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 1
     assert type(player.discard_pile.cards[0]) is not Caravan
-    assert len(game.effect_registry.turn_start_effects) == 1
+    assert player.playmat_persist_counts[caravan.name] == 1
 
     player.start_turn(game)
 
@@ -35,7 +35,7 @@ def test_caravan(player: Player, game: Game):
     assert type(player.playmat.cards[0]) is Caravan
     assert len(player.discard_pile) == 1
     assert type(player.discard_pile.cards[0]) is not Caravan
-    assert len(game.effect_registry.turn_start_effects) == 0
+    assert player.playmat_persist_counts[caravan.name] == 0
 
     player.start_cleanup_phase(game)
 
@@ -43,7 +43,7 @@ def test_caravan(player: Player, game: Game):
     assert len(player.playmat) == 0
     counter = DeckCounter(player.discard_pile.cards)
     assert counter[caravan] == 1
-    assert len(game.effect_registry.turn_start_effects) == 0
+    assert player.playmat_persist_counts[caravan.name] == 0
 
 
 def test_caravan_throne_room(human: Human, game: Game, monkeypatch):
@@ -63,7 +63,8 @@ def test_caravan_throne_room(human: Human, game: Game, monkeypatch):
     assert counter[caravan] == 1
     assert len(human.discard_pile) == 0
     assert human.state.actions == 2
-    assert len(game.effect_registry.turn_start_effects) == 3
+    assert human.playmat_persist_counts[caravan.name] == 1
+    assert human.playmat_persist_counts[throne_room.name] == 1
 
     human.start_cleanup_phase(game)
 
@@ -76,7 +77,6 @@ def test_caravan_throne_room(human: Human, game: Game, monkeypatch):
     counter = DeckCounter(human.discard_pile.cards)
     assert counter[throne_room] == 0
     assert counter[caravan] == 0
-    assert len(game.effect_registry.turn_start_effects) == 3
 
     human.start_turn(game)
 
@@ -89,7 +89,6 @@ def test_caravan_throne_room(human: Human, game: Game, monkeypatch):
     counter = DeckCounter(human.discard_pile.cards)
     assert counter[throne_room] == 0
     assert counter[caravan] == 0
-    assert len(game.effect_registry.turn_start_effects) == 0
 
     human.start_cleanup_phase(game)
 
@@ -98,4 +97,3 @@ def test_caravan_throne_room(human: Human, game: Game, monkeypatch):
     counter = DeckCounter(human.discard_pile.cards)
     assert counter[caravan] == 1
     assert counter[throne_room] == 1
-    assert len(game.effect_registry.turn_start_effects) == 0

@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerGameEffect
@@ -34,8 +34,6 @@ class BasicNextTurnEffect(PlayerGameEffect):
         self.money = money
         self.buys = buys
         self.discard = discard
-
-        player.add_playmat_persistent_card(card)
 
     def get_action(self) -> EffectAction:
         if self.draw > 0 and self.discard > 0:
@@ -76,15 +74,14 @@ class BasicNextTurnEffect(PlayerGameEffect):
             for discard_card in discard_cards:
                 player.discard(game, discard_card)
 
-        player.remove_playmat_persistent_card(self.card)
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
-class RemovePersistentMultiPlayEffect(PlayerGameEffect):
-    def __init__(self, player: Player, card: Card):
-        super().__init__("Remove Persistent Multi-Play Card")
+class RemovePersistentCardsEffect(PlayerGameEffect):
+    def __init__(self, player: Player, cards: List[Card]):
+        super().__init__("Remove Persistent Cards")
         self.player = player
-        self.card = card
+        self.cards = cards
 
     def get_action(self) -> EffectAction:
         return EffectAction.Other
@@ -93,7 +90,9 @@ class RemovePersistentMultiPlayEffect(PlayerGameEffect):
         return player is self.player
 
     def handler(self, player: Player, game: "Game") -> None:
-        player.remove_playmat_persistent_card(self.card)
+        for card in self.cards:
+            player.remove_playmat_persistent_card(card)
+
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
@@ -115,6 +114,11 @@ class Astrolabe(Treasure):
         player.state.buys += 1
 
         effect = BasicNextTurnEffect(f"{self.name}: +$1, +1 Buy", player, self, money=1, buys=1)
+        game.effect_registry.register_turn_start_effect(effect)
+
+        player.add_playmat_persistent_card(self)
+
+        effect = RemovePersistentCardsEffect(player, [self])
         game.effect_registry.register_turn_start_effect(effect)
 
 
@@ -158,6 +162,29 @@ class Caravan(Action):
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
+        self.duration_play(player, game, None, 1, generic_play)
+
+    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
+        if state is None:
+            count = 1
+        else:
+            count = int(state) + 1
+
+        self.duration_play(player, game, multi_play_card, count, generic_play)
+
+        return count
+
+    def duration_play(self, player: Player, game: Game, multi_play_card: Optional[Card], count: int, generic_play: bool = True) -> None:
+        if count == 1:
+            persistent_cards: List[Card] = [self]
+            if multi_play_card is not None:
+                persistent_cards.append(multi_play_card)
+
+            for card in persistent_cards:
+                player.add_playmat_persistent_card(card)
+
+            effect = RemovePersistentCardsEffect(player, persistent_cards)
+            game.effect_registry.register_turn_start_effect(effect)
 
         logger.info(f"{player} plays {self}")
         if generic_play:
@@ -168,17 +195,6 @@ class Caravan(Action):
 
         effect = BasicNextTurnEffect(f"{self.name}: +1 Card", player, self, draw=1)
         game.effect_registry.register_turn_start_effect(effect)
-
-    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
-        count = 1 if state is None else int(state) + 1
-        if count == 1:
-            player.add_playmat_persistent_card(multi_play_card)
-            effect = RemovePersistentMultiPlayEffect(player, multi_play_card)
-            game.effect_registry.register_turn_start_effect(effect)
-
-        super().multi_play(player, game, multi_play_card, state, generic_play)
-
-        return count
 
 
 astrolabe = Astrolabe()
