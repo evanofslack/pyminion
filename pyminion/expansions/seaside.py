@@ -1,11 +1,14 @@
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional
 
-from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
-from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerGameEffect
-from pyminion.exceptions import EmptyPile
+from pyminion.core import Action, Card, CardType, Treasure
+from pyminion.effects import (
+    AttackEffect,
+    EffectAction,
+    FuncPlayerGameEffect,
+    PlayerGameEffect,
+)
 from pyminion.expansions.base import copper
-from pyminion.game import Game
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -17,15 +20,15 @@ logger = logging.getLogger()
 
 class BasicNextTurnEffect(PlayerGameEffect):
     def __init__(
-            self,
-            name: str,
-            player: Player,
-            card: Card,
-            draw: int = 0,
-            actions: int = 0,
-            money: int = 0,
-            buys: int = 0,
-            discard: int = 0,
+        self,
+        name: str,
+        player: Player,
+        card: Card,
+        draw: int = 0,
+        actions: int = 0,
+        money: int = 0,
+        buys: int = 0,
+        discard: int = 0,
     ):
         super().__init__(name)
         self.player = player
@@ -114,7 +117,9 @@ class Astrolabe(Treasure):
         player.state.money += self.money
         player.state.buys += 1
 
-        effect = BasicNextTurnEffect(f"{self.name}: +$1, +1 Buy", player, self, money=1, buys=1)
+        effect = BasicNextTurnEffect(
+            f"{self.name}: +$1, +1 Buy", player, self, money=1, buys=1
+        )
         game.effect_registry.register_turn_start_effect(effect)
 
         player.add_playmat_persistent_card(self)
@@ -132,11 +137,11 @@ class Bazaar(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Bazaar", cost=5, type=(CardType.Action,), draw=1, actions=2, money=1)
+        super().__init__(
+            name="Bazaar", cost=5, type=(CardType.Action,), draw=1, actions=2, money=1
+        )
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -158,14 +163,25 @@ class Caravan(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Caravan", cost=4, type=(CardType.Action, CardType.Duration), draw=1, actions=1)
+        super().__init__(
+            name="Caravan",
+            cost=4,
+            type=(CardType.Action, CardType.Duration),
+            draw=1,
+            actions=1,
+        )
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
         self.duration_play(player, game, None, 1, generic_play)
 
-    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
         if state is None:
             count = 1
         else:
@@ -175,7 +191,14 @@ class Caravan(Action):
 
         return count
 
-    def duration_play(self, player: Player, game: Game, multi_play_card: Optional[Card], count: int, generic_play: bool = True) -> None:
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
         if count == 1:
             persistent_cards: List[Card] = [self]
             if multi_play_card is not None:
@@ -207,11 +230,11 @@ class Cutpurse(Action):
     """
 
     def __init__(self):
-        super().__init__(name="Cutpurse", cost=4, type=(CardType.Action, CardType.Attack), money=2)
+        super().__init__(
+            name="Cutpurse", cost=4, type=(CardType.Action, CardType.Attack), money=2
+        )
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
         logger.info(f"{player} plays {self}")
 
@@ -243,21 +266,44 @@ class Lighthouse(Action):
             super().__init__(f"{lighthouse.name}: Block Attack", EffectAction.Other)
             self.player = player
 
-        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+        def is_triggered(
+            self,
+            attacking_player: Player,
+            defending_player: Player,
+            attack_card: Card,
+            game: "Game",
+        ) -> bool:
             return defending_player is self.player
 
-        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+        def handler(
+            self,
+            attacking_player: Player,
+            defending_player: Player,
+            attack_card: Card,
+            game: "Game",
+        ) -> bool:
             return False
 
     def __init__(self):
-        super().__init__(name="Lighthouse", cost=2, type=(CardType.Action, CardType.Duration), actions=1, money=1)
+        super().__init__(
+            name="Lighthouse",
+            cost=2,
+            type=(CardType.Action, CardType.Duration),
+            actions=1,
+            money=1,
+        )
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
         self.duration_play(player, game, None, 1, generic_play)
 
-    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
         if state is None:
             count = 1
         else:
@@ -267,7 +313,14 @@ class Lighthouse(Action):
 
         return count
 
-    def duration_play(self, player: Player, game: Game, multi_play_card: Optional[Card], count: int, generic_play: bool = True) -> None:
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
         if count == 1:
             persistent_cards: List[Card] = [self]
             if multi_play_card is not None:
@@ -294,7 +347,9 @@ class Lighthouse(Action):
         unregister_effect = FuncPlayerGameEffect(
             f"Unregister {lighthouse.name} Block",
             EffectAction.Other,
-            lambda p, g: g.effect_registry.unregister_attack_effects(block_effect.get_name(), 1)
+            lambda p, g: g.effect_registry.unregister_attack_effects(
+                block_effect.get_name(), 1
+            ),
         )
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
