@@ -197,13 +197,86 @@ class Caravan(Action):
         game.effect_registry.register_turn_start_effect(effect)
 
 
+class Lighthouse(Action):
+    """
+    +1 Action
+    +$1
+
+    At the start of your next turn: +$1. Until then, when another player plays
+    an Attack card, it doesn't affect you.
+
+    """
+
+    class BlockAttackEffect(AttackEffect):
+        def __init__(self, player: Player):
+            super().__init__(f"{lighthouse.name}: Block Attack", EffectAction.Other)
+            self.player = player
+
+        def is_triggered(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return defending_player is self.player
+
+        def handler(self, attacking_player: Player, defending_player: Player, attack_card: Card, game: "Game") -> bool:
+            return False
+
+    def __init__(self):
+        super().__init__(name="Lighthouse", cost=2, type=(CardType.Action, CardType.Duration), actions=1, money=1)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+        self.duration_play(player, game, None, 1, generic_play)
+
+    def multi_play(self, player: Player, game: Game, multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
+        if state is None:
+            count = 1
+        else:
+            count = int(state) + 1
+
+        self.duration_play(player, game, multi_play_card, count, generic_play)
+
+        return count
+
+    def duration_play(self, player: Player, game: Game, multi_play_card: Optional[Card], count: int, generic_play: bool = True) -> None:
+        if count == 1:
+            persistent_cards: List[Card] = [self]
+            if multi_play_card is not None:
+                persistent_cards.append(multi_play_card)
+
+            for card in persistent_cards:
+                player.add_playmat_persistent_card(card)
+
+            effect = RemovePersistentCardsEffect(player, persistent_cards)
+            game.effect_registry.register_turn_start_effect(effect)
+
+        logger.info(f"{player} plays {self}")
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.actions += 1
+        player.state.money += 1
+
+        effect = BasicNextTurnEffect(f"{self.name}: +$1", player, self, money=1)
+        game.effect_registry.register_turn_start_effect(effect)
+
+        block_effect = Lighthouse.BlockAttackEffect(player)
+        game.effect_registry.register_attack_effect(block_effect)
+        unregister_effect = FuncPlayerGameEffect(
+            f"Unregister {lighthouse.name} Block",
+            EffectAction.Other,
+            lambda p, g: g.effect_registry.unregister_attack_effects(block_effect.get_name(), 1)
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
+
+
 astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
+lighthouse = Lighthouse()
 
 
 seaside_set: List[Card] = [
     astrolabe,
     bazaar,
     caravan,
+    lighthouse,
 ]
