@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 from pyminion.core import AbstractDeck, CardType, Action, Card, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerGameEffect
 from pyminion.exceptions import EmptyPile
+from pyminion.expansions.base import copper
 from pyminion.game import Game
 from pyminion.player import Player
 
@@ -197,6 +198,36 @@ class Caravan(Action):
         game.effect_registry.register_turn_start_effect(effect)
 
 
+class Cutpurse(Action):
+    """
+    +$2
+
+    Each other player discards a Copper (or reveals a hand with no Copper).
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Cutpurse", cost=4, type=(CardType.Action, CardType.Attack), money=2)
+
+    def play(
+        self, player: Player, game: "Game", generic_play: bool = True
+    ) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.money += 2
+
+        for opponent in game.players:
+            if opponent is not player and opponent.is_attacked(player, self, game):
+                if copper in opponent.hand.cards:
+                    opponent.discard(game, copper)
+                else:
+                    opponent.reveal(opponent.hand.cards, game)
+
+
 class Lighthouse(Action):
     """
     +1 Action
@@ -271,6 +302,7 @@ class Lighthouse(Action):
 astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
+cutpurse = Cutpurse()
 lighthouse = Lighthouse()
 
 
@@ -278,5 +310,6 @@ seaside_set: List[Card] = [
     astrolabe,
     bazaar,
     caravan,
+    cutpurse,
     lighthouse,
 ]
