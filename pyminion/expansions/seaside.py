@@ -142,17 +142,6 @@ class Bazaar(Action):
             name="Bazaar", cost=5, type=(CardType.Action,), draw=1, actions=2, money=1
         )
 
-    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw()
-        player.state.actions += 2
-        player.state.money += 1
-
 
 class Caravan(Action):
     """
@@ -211,12 +200,7 @@ class Caravan(Action):
             effect = RemovePersistentCardsEffect(player, persistent_cards)
             game.effect_registry.register_turn_start_effect(effect)
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw()
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         effect = BasicNextTurnEffect(f"{self.name}: +1 Card", player, self, draw=1)
         game.effect_registry.register_turn_start_effect(effect)
@@ -237,12 +221,7 @@ class Cutpurse(Action):
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.money += 2
+        super().play(player, game, generic_play)
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(player, self, game):
@@ -333,12 +312,7 @@ class Lighthouse(Action):
             effect = RemovePersistentCardsEffect(player, persistent_cards)
             game.effect_registry.register_turn_start_effect(effect)
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
-        player.state.money += 1
+        super().play(player, game, generic_play)
 
         effect = BasicNextTurnEffect(f"{self.name}: +$1", player, self, money=1)
         game.effect_registry.register_turn_start_effect(effect)
@@ -376,12 +350,7 @@ class NativeVillage(Action):
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 2
+        super().play(player, game, generic_play)
 
         mat = player.get_mat(self.name)
         mat_len = len(mat)
@@ -429,13 +398,7 @@ class SeaChart(Action):
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw()
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         revealed = AbstractDeck()
         player.draw(num_cards=1, destination=revealed, silent=True)

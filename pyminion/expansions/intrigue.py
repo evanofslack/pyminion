@@ -607,11 +607,6 @@ class MiningVillage(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
         self._play(player, game, None, generic_play)
 
     def multi_play(
@@ -622,8 +617,7 @@ class MiningVillage(Action):
     def _play(
         self, player: Player, game: "Game", state: Any, generic_play: bool = True
     ) -> Any:
-        player.draw(1)
-        player.state.actions += 2
+        super().play(player, game, generic_play)
 
         trashed = False if state is None else bool(state)
 
