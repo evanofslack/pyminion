@@ -1,3 +1,4 @@
+from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -354,6 +355,64 @@ class Lighthouse(Action):
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
 
+class NativeVillage(Action):
+    """
+    +2 Actions
+
+    Choose one: Put the top card of your deck face down on your Native Village mat (you may look at
+    those cards at any time); or put all the cards from your mat into your hand.
+
+    """
+
+    @unique
+    class Choice(IntEnum):
+        AddToMat = 0
+        GetFromMat = 1
+
+    def __init__(self):
+        super().__init__(
+            name="Native Village", cost=2, type=(CardType.Action,), actions=2
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        logger.info(f"{player} plays {self}")
+
+        if generic_play:
+            super().generic_play(player)
+
+        player.state.actions += 2
+
+        mat = player.get_mat(self.name)
+        mat_len = len(mat)
+        plural = "" if mat_len == 1 else "s"
+
+        options = [
+            "Put the top card of your deck onto your Native Village mat",
+        ]
+
+        if mat_len == 0:
+            options.append("Put no cards from your Native Village mat into your hand")
+        else:
+            s = f"Put the following card{plural} from your Native Village mat into your hand: "
+            s += ", ".join(c.name for c in mat.cards)
+            options.append(s)
+
+        choices = player.decider.multiple_option_decision(self, options, player, game)
+        assert len(choices) == 1
+        choice = choices[0]
+
+        if choice == NativeVillage.Choice.AddToMat:
+            player.draw(1, mat, silent=True)
+            if len(mat) > mat_len:
+                logger.info(f"{player} adds a card to their Native Village mat")
+        elif choice == NativeVillage.Choice.GetFromMat:
+            mat.move_to(player.hand)
+            logger.info(f"{player} puts {mat_len} card{plural} from their Native Village mat into their hand")
+        else:
+            raise ValueError(f"Unknown native village choice '{choice}'")
+
+
 class SeaChart(Action):
     """
     +1 Card
@@ -396,6 +455,7 @@ bazaar = Bazaar()
 caravan = Caravan()
 cutpurse = Cutpurse()
 lighthouse = Lighthouse()
+native_village = NativeVillage()
 sea_chart = SeaChart()
 
 
@@ -405,5 +465,6 @@ seaside_set: List[Card] = [
     caravan,
     cutpurse,
     lighthouse,
+    native_village,
     sea_chart,
 ]

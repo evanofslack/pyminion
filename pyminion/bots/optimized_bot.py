@@ -6,6 +6,7 @@ from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver, copper
 from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward, Torturer
+from pyminion.expansions.seaside import NativeVillage
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -185,6 +186,9 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Minion":
             ret = self.minion(player, game)
+            return [ret]
+        elif card.name == "Native Village":
+            ret = self.native_village(player, game)
             return [ret]
         elif card.name == "Nobles":
             ret = self.nobles(player, game)
@@ -968,6 +972,21 @@ class OptimizedBotDecider(BotDecider):
         if (has_action_cards and player.state.actions > 0) or hand_money >= 3:
             return Minion.Choice.Money
         return Minion.Choice.DiscardDrawAttack
+
+    def native_village(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        mat_count = len(player.get_mat("Native Village"))
+        if mat_count == 0:
+            return NativeVillage.Choice.AddToMat
+
+        native_village_card_count = sum(1 for c in player.hand.cards if c.name == "Native Village")
+        if native_village_card_count > 0:
+            return NativeVillage.Choice.AddToMat
+
+        return NativeVillage.Choice.GetFromMat
 
     def nobles(
         self,

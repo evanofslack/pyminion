@@ -51,6 +51,9 @@ from pyminion.expansions.intrigue import (
     upgrade,
     wishing_well,
 )
+from pyminion.expansions.seaside import (
+    native_village,
+)
 from pyminion.game import Game
 import pytest
 
@@ -775,3 +778,19 @@ def test_wishing_well_bot(bot: OptimizedBot, game: Game):
     assert len(bot.hand) == 2
     assert bot.hand.cards[0].name == "Copper"
     assert bot.hand.cards[1].name == "Copper"
+
+
+def test_native_village_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(native_village)
+    bot.hand.add(native_village)
+    bot.hand.add(native_village)
+
+    bot.play(native_village, game)
+    mat = bot.get_mat("Native Village")
+    assert len(mat) == 1
+
+    bot.play(native_village, game)
+    assert len(mat) == 2
+
+    bot.play(native_village, game)
+    assert len(mat) == 0
