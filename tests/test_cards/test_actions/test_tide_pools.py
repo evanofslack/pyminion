@@ -49,3 +49,30 @@ def test_tide_pools(human: Human, game: Game, monkeypatch):
     counter = DeckCounter(human.discard_pile.cards)
     assert counter[tide_pools] == 1
     assert human.playmat_persist_counts[tide_pools.name] == 0
+
+
+def test_tide_pools_multiple(human: Human, game: Game, monkeypatch):
+    for _ in range(17):
+        human.deck.add(copper)
+    for _ in range(4):
+        human.hand.add(tide_pools)
+
+    responses = ["copper, copper", "copper, copper"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop())
+
+    for _ in range(4):
+        human.play(tide_pools, game)
+    assert len(human.hand) == 12
+
+    human.start_cleanup_phase(game)
+
+    assert len(human.hand) == 5
+
+    human.start_turn(game)
+
+    assert len(human.hand) == 0
+    assert len(responses) == 0
+
+    human.start_cleanup_phase(game)
+
+    assert len(human.hand) == 5
