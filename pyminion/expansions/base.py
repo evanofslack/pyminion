@@ -174,17 +174,6 @@ class Smithy(Action):
     ):
         super().__init__(name, cost, type, draw=draw)
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(3)
-
 
 class Village(Action):
     """
@@ -201,18 +190,6 @@ class Village(Action):
         draw: int = 1,
     ):
         super().__init__(name, cost, type, actions=actions, draw=draw)
-
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 2
-        player.draw()
 
 
 class Laboratory(Action):
@@ -231,18 +208,6 @@ class Laboratory(Action):
     ):
         super().__init__(name, cost, type, actions=actions, draw=draw)
 
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
-        player.draw(2)
-
 
 class Market(Action):
     """
@@ -258,22 +223,9 @@ class Market(Action):
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
+        buys: int = 1,
     ):
-        super().__init__(name, cost, type, actions, draw, money)
-
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
-        player.draw()
-        player.state.money += 1
-        player.state.buys += 1
+        super().__init__(name, cost, type, actions, draw, money, buys)
 
 
 class Moneylender(Action):
@@ -297,10 +249,7 @@ class Moneylender(Action):
         generic_play: bool = True,
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         if copper not in player.hand.cards:
             return
@@ -341,12 +290,7 @@ class Cellar(Action):
         generic_play: bool = True,
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         if not player.hand.cards:
             return
@@ -382,9 +326,7 @@ class Chapel(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         if not player.hand.cards:
             return
@@ -420,10 +362,7 @@ class Workshop(Action):
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         gain_cards = player.decider.gain_decision(
             prompt="Gain a card costing up to 4 money: ",
@@ -456,21 +395,9 @@ class Festival(Action):
         type: Tuple[CardType, ...] = (CardType.Action,),
         actions: int = 2,
         money: int = 2,
+        buys: int = 1,
     ):
-        super().__init__(name, cost, type, actions=actions, money=money)
-
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 2
-        player.state.money += 2
-        player.state.buys += 1
+        super().__init__(name, cost, type, actions=actions, money=money, buys=buys)
 
 
 class Harbinger(Action):
@@ -495,13 +422,7 @@ class Harbinger(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.actions += 1
-        player.draw()
+        super().play(player, game, generic_play)
 
         if not player.discard_pile:
             return
@@ -545,12 +466,7 @@ class Vassal(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.money += 2
+        super().play(player, game, generic_play)
 
         temp = AbstractDeck()
         player.draw(destination=temp, silent=True)
@@ -600,10 +516,7 @@ class Artisan(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         gain_cards = player.decider.gain_decision(
             prompt="Gain a card costing up to 5 money: ",
@@ -663,14 +576,7 @@ class Poacher(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw()
-        player.state.actions += 1
-        player.state.money += 1
+        super().play(player, game, generic_play)
 
         empty_piles = game.supply.num_empty_piles()
 
@@ -708,20 +614,15 @@ class CouncilRoom(Action):
         cost: int = 5,
         type: Tuple[CardType, ...] = (CardType.Action,),
         draw: int = 4,
+        buys: int = 1,
     ):
-        super().__init__(name, cost, type, draw=draw)
+        super().__init__(name, cost, type, draw=draw, buys=buys)
 
     def play(
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(4)
-        player.state.buys += 1
+        super().play(player, game, generic_play)
 
         for p in game.players:
             if p is not player:
@@ -749,12 +650,7 @@ class Witch(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(2)
+        super().play(player, game, generic_play)
 
         for opponent in game.players:
             if opponent is not player:
@@ -809,17 +705,6 @@ class Moat(Action):
         draw: int = 2,
     ):
         super().__init__(name, cost, type, draw=draw)
-
-    def play(
-        self, player: Player, game: "Game", generic_play: bool = True
-    ) -> None:
-
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(2)
 
     def set_up(self, game: "Game") -> None:
         hand_add_effect = FuncPlayerCardGameEffect(
@@ -885,13 +770,7 @@ class Merchant(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw(1)
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         money_effect = Merchant.MoneyEffect()
         game.effect_registry.register_play_effect(money_effect)
@@ -922,10 +801,7 @@ class Bandit(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         # attempt to gain a gold. if gold pile is empty, proceed
         try:
@@ -982,10 +858,7 @@ class Bureaucrat(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         # attempt to gain a silver. if silver pile is empty, proceed
         try:
@@ -1041,10 +914,7 @@ class ThroneRoom(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         action_cards = [card for card in player.hand.cards if CardType.Action in card.type]
 
@@ -1088,10 +958,7 @@ class Remodel(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
@@ -1145,10 +1012,7 @@ class Mine(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         treasures = [card for card in player.hand.cards if CardType.Treasure in card.type]
 
@@ -1215,12 +1079,7 @@ class Militia(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.state.money += 2
+        super().play(player, game, generic_play)
 
         for opponent in game.players:
             if opponent is not player and opponent.is_attacked(
@@ -1268,13 +1127,7 @@ class Sentry(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
-        player.draw()
-        player.state.actions += 1
+        super().play(player, game, generic_play)
 
         looked_at = AbstractDeck()
         player.draw(num_cards=2, destination=looked_at, silent=True)
@@ -1352,10 +1205,7 @@ class Library(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
+        super().play(player, game, generic_play)
 
         set_aside = AbstractDeck()
         while len(player.hand) < 7:
