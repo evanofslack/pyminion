@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -395,25 +395,36 @@ class Player:
         self.start_cleanup_phase(game)
         self.end_turn(game)
 
-    def get_all_cards(self) -> List[Card]:
+    def get_all_cards(self) -> Iterable[Card]:
         """
-        Get a list of all the cards the player has in their possession.
+        Get all the cards the player has in their possession.
 
         """
-        all_cards = (
-            self.deck.cards
-            + self.discard_pile.cards
-            + self.playmat.cards
-            + self.hand.cards
-        )
-        return all_cards
+        for card in self.deck.cards:
+            yield card
+
+        for card in self.discard_pile.cards:
+            yield card
+
+        for card in self.playmat.cards:
+            yield card
+
+        for card in self.hand.cards:
+            yield card
+
+    def get_all_cards_count(self) -> int:
+        """
+        Get all the cards the player has in their possession.
+
+        """
+        return sum(1 for _ in self.get_all_cards())
 
     def get_card_count(self, card: Card) -> int:
         """
         Get count of a specific card in player's whole deck.
 
         """
-        return self.get_all_cards().count(card)
+        return sum(1 for c in self.get_all_cards() if c == card)
 
     def get_victory_points(self) -> int:
         """

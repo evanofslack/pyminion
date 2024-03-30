@@ -154,18 +154,17 @@ def test_player_discard(player: Player, game: Game):
 
 
 def test_player_all_cards(player: Player):
-    assert len(player.get_all_cards()) == 10
+    assert player.get_all_cards_count() == 10
     player.hand.add(copper)
-    assert len(player.get_all_cards()) == 11
-    assert type(player.get_all_cards()) is list
+    assert player.get_all_cards_count() == 11
     player.discard_pile.add(copper)
-    assert len(player.get_all_cards()) == 12
+    assert player.get_all_cards_count() == 12
     player.deck.add(copper)
-    assert len(player.get_all_cards()) == 13
+    assert player.get_all_cards_count() == 13
     player.playmat.add(copper)
-    assert len(player.get_all_cards()) == 14
+    assert player.get_all_cards_count() == 14
     player.playmat.remove(copper)
-    assert len(player.get_all_cards()) == 13
+    assert player.get_all_cards_count() == 13
 
 
 def test_player_get_vp(player: Player):
@@ -251,10 +250,10 @@ def test_deck_money(player: Player):
 
 
 def test_all_cards(player: Player):
-    assert len(player.get_all_cards()) == 10
+    assert player.get_all_cards_count() == 10
     player.hand.add(copper)
     player.discard_pile.add(copper)
-    assert len(player.get_all_cards()) == 12
+    assert player.get_all_cards_count() == 12
 
 
 def test_card_count(player: Player):

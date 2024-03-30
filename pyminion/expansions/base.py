@@ -154,7 +154,7 @@ class Gardens(Victory):
         super().__init__(name, cost, type)
 
     def score(self, player: Player) -> int:
-        total_count = len(player.get_all_cards())
+        total_count = player.get_all_cards_count()
         vp = math.floor(total_count / 10)
         return vp
 
