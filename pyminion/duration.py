@@ -179,14 +179,21 @@ class ActionDuration(Action):
 
         super().play(player, game, generic_play)
 
-        effect = BasicNextTurnEffect(
-            self._get_effect_name(),
-            player,
-            self,
-            self.next_turn_draw,
-            self.next_turn_actions,
-            self.next_turn_money,
-            self.next_turn_buys,
-            self.next_turn_discard,
-        )
-        game.effect_registry.register_turn_start_effect(effect)
+        if (
+            self.next_turn_draw > 0
+            or self.next_turn_actions > 0
+            or self.next_turn_money > 0
+            or self.next_turn_buys > 0
+            or self.next_turn_discard > 0
+        ):
+            effect = BasicNextTurnEffect(
+                self._get_effect_name(),
+                player,
+                self,
+                self.next_turn_draw,
+                self.next_turn_actions,
+                self.next_turn_money,
+                self.next_turn_buys,
+                self.next_turn_discard,
+            )
+            game.effect_registry.register_turn_start_effect(effect)

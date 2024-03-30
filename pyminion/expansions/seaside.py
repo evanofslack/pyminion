@@ -1,9 +1,13 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure
-from pyminion.duration import ActionDuration, BasicNextTurnEffect, RemovePersistentCardsEffect
+from pyminion.duration import (
+    ActionDuration,
+    BasicNextTurnEffect,
+    RemovePersistentCardsEffect,
+)
 from pyminion.effects import (
     AttackEffect,
     EffectAction,
@@ -106,7 +110,7 @@ class Cutpurse(Action):
                     opponent.reveal(opponent.hand.cards, game)
 
 
-class Lighthouse(Action):
+class Lighthouse(ActionDuration):
     """
     +1 Action
     +$1
@@ -146,27 +150,8 @@ class Lighthouse(Action):
             type=(CardType.Action, CardType.Duration),
             actions=1,
             money=1,
+            next_turn_money=1,
         )
-
-    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
-        self.duration_play(player, game, None, 1, generic_play)
-
-    def multi_play(
-        self,
-        player: Player,
-        game: "Game",
-        multi_play_card: Card,
-        state: Any,
-        generic_play: bool = True,
-    ) -> Any:
-        if state is None:
-            count = 1
-        else:
-            count = int(state) + 1
-
-        self.duration_play(player, game, multi_play_card, count, generic_play)
-
-        return count
 
     def duration_play(
         self,
@@ -176,21 +161,8 @@ class Lighthouse(Action):
         count: int,
         generic_play: bool = True,
     ) -> None:
-        if count == 1:
-            persistent_cards: List[Card] = [self]
-            if multi_play_card is not None:
-                persistent_cards.append(multi_play_card)
 
-            for card in persistent_cards:
-                player.add_playmat_persistent_card(card)
-
-            effect = RemovePersistentCardsEffect(player, persistent_cards)
-            game.effect_registry.register_turn_start_effect(effect)
-
-        super().play(player, game, generic_play)
-
-        effect = BasicNextTurnEffect(f"{self.name}: +$1", player, self, money=1)
-        game.effect_registry.register_turn_start_effect(effect)
+        super().duration_play(player, game, multi_play_card, count, generic_play)
 
         block_effect = Lighthouse.BlockAttackEffect(player)
         game.effect_registry.register_attack_effect(block_effect)
