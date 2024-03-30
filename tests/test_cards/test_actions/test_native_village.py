@@ -1,4 +1,4 @@
-from pyminion.expansions.base import Silver, silver
+from pyminion.expansions.base import Duchy, Silver, silver, duchy
 from pyminion.expansions.seaside import NativeVillage, native_village
 from pyminion.game import Game
 from pyminion.human import Human
@@ -36,3 +36,20 @@ def test_native_village(human: Human, game: Game, monkeypatch):
     assert human.state.money == 0
     mat = human.get_mat("Native Village")
     assert len(mat) == 0
+
+
+def test_native_village_score(human: Human, game: Game, monkeypatch):
+    human.hand.add(native_village)
+    human.deck.add(duchy)
+
+    assert human.get_victory_points() == 6
+
+    responses = iter(["1"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+
+    human.play(native_village, game)
+    mat = human.get_mat("Native Village")
+    assert len(mat) == 1
+    assert type(mat.cards[0]) is Duchy
+
+    assert human.get_victory_points() == 6
