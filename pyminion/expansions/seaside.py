@@ -110,6 +110,28 @@ class Cutpurse(Action):
                     opponent.reveal(opponent.hand.cards, game)
 
 
+class FishingVillage(ActionDuration):
+    """
+    +2 Actions
+    +$1
+
+    At the start of your next turn:
+    +1 Action and +$1.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Fishing Village",
+            cost=3,
+            type=(CardType.Action, CardType.Duration),
+            actions=2,
+            money=1,
+            next_turn_actions=1,
+            next_turn_money=1,
+        )
+
+
 class Lighthouse(ActionDuration):
     """
     +1 Action
@@ -286,6 +308,7 @@ astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
 cutpurse = Cutpurse()
+fishing_village = FishingVillage()
 lighthouse = Lighthouse()
 native_village = NativeVillage()
 sea_chart = SeaChart()
@@ -297,6 +320,7 @@ seaside_set: List[Card] = [
     bazaar,
     caravan,
     cutpurse,
+    fishing_village,
     lighthouse,
     native_village,
     sea_chart,
