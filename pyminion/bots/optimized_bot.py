@@ -228,6 +228,8 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
             return self.torturer(player, game, valid_cards=valid_cards, num_discard=min_num_discard, discard=True)
+        elif card.name == "Tide Pools":
+            return self.tide_pools(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         else:
             return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
@@ -973,21 +975,6 @@ class OptimizedBotDecider(BotDecider):
             return Minion.Choice.Money
         return Minion.Choice.DiscardDrawAttack
 
-    def native_village(
-        self,
-        player: "Player",
-        game: "Game",
-    ) -> int:
-        mat_count = len(player.get_mat("Native Village"))
-        if mat_count == 0:
-            return NativeVillage.Choice.AddToMat
-
-        native_village_card_count = sum(1 for c in player.hand.cards if c.name == "Native Village")
-        if native_village_card_count > 0:
-            return NativeVillage.Choice.AddToMat
-
-        return NativeVillage.Choice.GetFromMat
-
     def nobles(
         self,
         player: "Player",
@@ -1299,6 +1286,33 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
     ) -> Card:
         return copper
+
+    def native_village(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        mat_count = len(player.get_mat("Native Village"))
+        if mat_count == 0:
+            return NativeVillage.Choice.AddToMat
+
+        native_village_card_count = sum(1 for c in player.hand.cards if c.name == "Native Village")
+        if native_village_card_count > 0:
+            return NativeVillage.Choice.AddToMat
+
+        return NativeVillage.Choice.GetFromMat
+
+    def tide_pools(
+            self,
+            player: "Player",
+            game: "Game",
+            valid_cards: List[Card],
+            num_discard: int,
+    ) -> List[Card]:
+        actions = player.state.actions
+        cards = self.sort_for_discard(valid_cards, actions, player, game)
+        cards = cards[:num_discard]
+        return cards
 
 
 class OptimizedBot(Bot):

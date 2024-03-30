@@ -262,6 +262,26 @@ class SeaChart(Action):
             player.deck.add(revealed_card)
 
 
+class TidePools(ActionDuration):
+    """
+    +3 Cards
+    +1 Action
+
+    At the start of your next turn, discard 2 cards.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Tide Pools",
+            cost=4,
+            type=(CardType.Action, CardType.Duration),
+            draw=3,
+            actions=1,
+            next_turn_discard=2,
+        )
+
+
 astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
@@ -269,6 +289,7 @@ cutpurse = Cutpurse()
 lighthouse = Lighthouse()
 native_village = NativeVillage()
 sea_chart = SeaChart()
+tide_pools = TidePools()
 
 
 seaside_set: List[Card] = [
@@ -279,4 +300,5 @@ seaside_set: List[Card] = [
     lighthouse,
     native_village,
     sea_chart,
+    tide_pools,
 ]
