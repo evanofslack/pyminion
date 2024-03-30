@@ -197,6 +197,7 @@ class Haven(ActionDuration):
         assert len(set_aside_cards) == 1
         set_aside_card = set_aside_cards[0]
 
+        player.hand.remove(set_aside_card)
         player.set_aside.add(set_aside_card)
 
         effect = Haven.Effect(player, set_aside_card)

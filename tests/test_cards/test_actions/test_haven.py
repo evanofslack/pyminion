@@ -14,7 +14,7 @@ def test_haven_set_aside(human: Human, game: Game, monkeypatch):
 
     human.play(haven, game)
     assert len(responses) == 0
-    assert len(human.hand) == 1
+    assert len(human.hand) == 0
     assert len(human.playmat) == 1
     assert type(human.playmat.cards[0]) is Haven
     assert len(human.set_aside) == 1
@@ -30,9 +30,7 @@ def test_haven_set_aside(human: Human, game: Game, monkeypatch):
     assert type(human.playmat.cards[0]) is Haven
     assert len(human.set_aside) == 1
     assert type(human.set_aside.cards[0]) is Silver
-    assert len(human.discard_pile) == 1
-    counter = DeckCounter(human.discard_pile.cards)
-    assert counter[haven] == 0
+    assert len(human.discard_pile) == 0
     assert human.playmat_persist_counts[haven.name] == 1
 
     human.start_turn(game)
@@ -43,9 +41,7 @@ def test_haven_set_aside(human: Human, game: Game, monkeypatch):
     assert len(human.playmat) == 1
     assert type(human.playmat.cards[0]) is Haven
     assert len(human.set_aside) == 0
-    assert len(human.discard_pile) == 1
-    counter = DeckCounter(human.discard_pile.cards)
-    assert counter[haven] == 0
+    assert len(human.discard_pile) == 0
     assert human.playmat_persist_counts[haven.name] == 0
 
     human.start_cleanup_phase(game)
