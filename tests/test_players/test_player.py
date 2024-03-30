@@ -167,6 +167,8 @@ def test_player_all_cards(player: Player):
     assert player.get_all_cards_count() == 13
     player.get_mat("test").add(copper)
     assert player.get_all_cards_count() == 14
+    player.set_aside.add(copper)
+    assert player.get_all_cards_count() == 15
 
 
 def test_player_get_vp(player: Player):
