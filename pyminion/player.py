@@ -310,6 +310,9 @@ class Player:
 
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
 
+        if len(self.playmat) > 0:
+            logger.info(f"{self.player_id}'s cards in play: {self.playmat}")
+
         game.effect_registry.on_turn_start(self, game)
 
     def start_action_phase(self, game: "Game") -> None:
