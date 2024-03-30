@@ -50,6 +50,7 @@ class Player:
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
+        self.mats: Dict[str, AbstractDeck] = {}
         self.state = state if state else State()
         self.player_id = player_id
         self.turns: int = 0
@@ -72,6 +73,8 @@ class Player:
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
+        self.playmat.cards = []
+        self.mats = {}
         self.playmat_persist_counts = {}
 
     def add_playmat_persistent_card(self, card: Card) -> None:
@@ -85,6 +88,18 @@ class Player:
         name = card.name
         assert self.playmat_persist_counts[name] > 0
         self.playmat_persist_counts[name] -= 1
+
+    def get_mat(self, name: str) -> AbstractDeck:
+        """
+        Get a mat by name. If the mat does not exist, it is created.
+
+        """
+        mat = self.mats.get(name)
+        if mat is None:
+            mat = AbstractDeck()
+            self.mats[name] = mat
+
+        return mat
 
     def draw(
         self,
@@ -411,6 +426,10 @@ class Player:
 
         for card in self.hand.cards:
             yield card
+
+        for mat in self.mats.values():
+            for card in mat.cards:
+                yield card
 
     def get_all_cards_count(self) -> int:
         """

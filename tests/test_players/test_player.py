@@ -81,7 +81,7 @@ def test_draw_multiple(player: Player, game: Game):
 def test_play_copper(player: Player, game: Game):
     player.hand.add(copper)
     assert len(player.hand) == 1
-    player.hand.cards[0].play(player, game)
+    player.play(copper, game)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
 
@@ -165,6 +165,8 @@ def test_player_all_cards(player: Player):
     assert player.get_all_cards_count() == 14
     player.playmat.remove(copper)
     assert player.get_all_cards_count() == 13
+    player.get_mat("test").add(copper)
+    assert player.get_all_cards_count() == 14
 
 
 def test_player_get_vp(player: Player):
@@ -182,24 +184,24 @@ def test_player_get_vp(player: Player):
 def test_play_treasure_increment_money(player: Player, game: Game):
     player.hand.add(copper)
     assert player.state.money == 0
-    player.hand.cards[0].play(player, game)
+    player.play(copper, game)
     assert player.state.money == 1
 
 
 def test_play_action_decrement_action(player: Player, game: Game):
     player.hand.add(smithy)
     assert player.state.actions == 1
-    player.hand.cards[0].play(player, game)
+    player.play(smithy, game)
     assert player.state.actions == 0
 
 
 def test_insufficient_actions(player: Player, game: Game):
     player.hand.add(smithy)
     player.hand.add(smithy)
-    player.hand.cards[0].play(player, game)
+    player.play(smithy, game)
     assert player.state.actions == 0
     with pytest.raises(InsufficientActions):
-        player.hand.cards[0].play(player, game)
+        player.play(smithy, game)
 
 
 def test_player_gain_card(player: Player, game: Game):
