@@ -1,6 +1,7 @@
 from pyminion.bots.optimized_bot import OptimizedBot
 from pyminion.core import CardType, DeckCounter
 from pyminion.expansions.base import (
+    Smithy,
     artisan,
     bureaucrat,
     cellar,
@@ -52,6 +53,7 @@ from pyminion.expansions.intrigue import (
     wishing_well,
 )
 from pyminion.expansions.seaside import (
+    haven,
     native_village,
     tide_pools,
 )
@@ -779,6 +781,16 @@ def test_wishing_well_bot(bot: OptimizedBot, game: Game):
     assert len(bot.hand) == 2
     assert bot.hand.cards[0].name == "Copper"
     assert bot.hand.cards[1].name == "Copper"
+
+
+def test_haven_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(haven)
+    bot.hand.add(smithy)
+    bot.hand.add(smithy)
+
+    bot.play(haven, game)
+    assert len(bot.set_aside) == 1
+    assert type(bot.set_aside.cards[0]) is Smithy
 
 
 def test_native_village_bot(bot: OptimizedBot, game: Game):

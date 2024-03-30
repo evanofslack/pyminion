@@ -158,13 +158,12 @@ class ActionDuration(Action):
 
         return count
 
-    def duration_play(
+    def persist(
         self,
         player: Player,
         game: "Game",
         multi_play_card: Optional[Card],
         count: int,
-        generic_play: bool = True,
     ) -> None:
         if count == 1:
             persistent_cards: List[Card] = [self]
@@ -177,7 +176,18 @@ class ActionDuration(Action):
             effect = RemovePersistentCardsEffect(player, persistent_cards)
             game.effect_registry.register_turn_start_effect(effect)
 
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
         super().play(player, game, generic_play)
+
+        self.persist(player, game, multi_play_card, count)
 
         if (
             self.next_turn_draw > 0

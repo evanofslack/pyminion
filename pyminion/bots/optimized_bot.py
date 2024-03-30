@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, cast, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
+from pyminion.core import Action, CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver, copper
@@ -85,6 +85,24 @@ class OptimizedBotDecider(BotDecider):
         prioritized_cards.sort(key=lambda x: x[0])
         trash_cards = [x[1] for x in prioritized_cards]
         return trash_cards
+
+    @staticmethod
+    def sort_for_set_aside(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:
+        num_terminal = sum(1 for c in get_action_cards(cards) if c.actions == 0)
+
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in cards:
+            # set aside terminal action cards if we don't have enough actions to play them
+            if num_terminal > player.state.actions and CardType.Action in card.type and cast(Action, card).actions == 0:
+                priority = 100 + card.get_cost(player, game)
+            else:
+                priority = 200 + card.get_cost(player, game)
+
+            prioritized_cards.append((priority, card))
+
+        prioritized_cards.sort(key=lambda x: x[0])
+        set_aside_cards = [x[1] for x in prioritized_cards]
+        return set_aside_cards
 
     @staticmethod
     def get_optional_discard(cards: List[Card], player: Player) -> List[Card]:
@@ -416,6 +434,22 @@ class OptimizedBotDecider(BotDecider):
             return self.throne_room(player=player, game=game, valid_cards=valid_cards)
         else:
             return super().multi_play_decision(prompt, card, valid_cards, player, game, required)
+
+    def set_aside_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_set_aside: int = 0,
+        max_num_set_aside: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Haven":
+            ret = self.haven(player, game, valid_cards)
+            return [ret]
+        else:
+            return super().set_aside_decision(prompt, card, valid_cards, player, game, min_num_set_aside, max_num_set_aside)
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
@@ -1286,6 +1320,15 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
     ) -> Card:
         return copper
+
+    def haven(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        cards = self.sort_for_set_aside(valid_cards, player, game)
+        return cards[0]
 
     def native_village(
         self,

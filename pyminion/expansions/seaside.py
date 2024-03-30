@@ -12,8 +12,10 @@ from pyminion.effects import (
     AttackEffect,
     EffectAction,
     FuncPlayerGameEffect,
+    PlayerGameEffect,
 )
 from pyminion.expansions.base import copper
+from pyminion.game import Game
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -132,6 +134,77 @@ class FishingVillage(ActionDuration):
         )
 
 
+class Haven(ActionDuration):
+    """
+    +1 Card
+    +1 Action
+
+    Set aside a card from your hand face down (under this). At the start of your next turn,
+    put it into your hand.
+
+    """
+
+    class Effect(PlayerGameEffect):
+        def __init__(self, player: Player, card: Card):
+            super().__init__(f"{haven.name}: Put card in hand")
+            self.player = player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.HandAddCards
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            return player is self.player
+
+        def handler(self, player: Player, game: "Game") -> None:
+            player.set_aside.remove(self.card)
+            player.hand.add(self.card)
+
+            game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
+
+    def __init__(self):
+        super().__init__(
+            name="Haven",
+            cost=2,
+            type=(CardType.Action, CardType.Duration),
+            draw=1,
+            actions=1,
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        Action.play(self, player, game, generic_play)
+
+        if len(player.hand) == 0:
+            return
+
+        set_aside_cards = player.decider.set_aside_decision(
+            "Set aside a card from your hand: ",
+            self,
+            player.hand.cards,
+            player,
+            game,
+            min_num_set_aside=1,
+            max_num_set_aside=1,
+        )
+        assert len(set_aside_cards) == 1
+        set_aside_card = set_aside_cards[0]
+
+        player.set_aside.add(set_aside_card)
+
+        effect = Haven.Effect(player, set_aside_card)
+        game.effect_registry.register_turn_start_effect(effect)
+
+        self.persist(player, game, multi_play_card, count)
+
+
 class Lighthouse(ActionDuration):
     """
     +1 Action
@@ -144,7 +217,7 @@ class Lighthouse(ActionDuration):
 
     class BlockAttackEffect(AttackEffect):
         def __init__(self, player: Player):
-            super().__init__(f"{lighthouse.name}: Block Attack", EffectAction.Other)
+            super().__init__(f"{lighthouse.name}: Block attack", EffectAction.Other)
             self.player = player
 
         def is_triggered(
@@ -309,6 +382,7 @@ bazaar = Bazaar()
 caravan = Caravan()
 cutpurse = Cutpurse()
 fishing_village = FishingVillage()
+haven = Haven()
 lighthouse = Lighthouse()
 native_village = NativeVillage()
 sea_chart = SeaChart()
@@ -321,6 +395,7 @@ seaside_set: List[Card] = [
     caravan,
     cutpurse,
     fishing_village,
+    haven,
     lighthouse,
     native_village,
     sea_chart,

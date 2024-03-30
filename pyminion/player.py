@@ -50,6 +50,7 @@ class Player:
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
+        self.set_aside = AbstractDeck()
         self.mats: Dict[str, AbstractDeck] = {}
         self.state = state if state else State()
         self.player_id = player_id
@@ -74,6 +75,7 @@ class Player:
         self.discard_pile.cards = []
         self.hand.cards = []
         self.playmat.cards = []
+        self.set_aside.cards = []
         self.mats = {}
         self.playmat_persist_counts = {}
 
@@ -428,6 +430,9 @@ class Player:
             yield card
 
         for card in self.hand.cards:
+            yield card
+
+        for card in self.set_aside.cards:
             yield card
 
         for mat in self.mats.values():

@@ -169,3 +169,15 @@ class Decider(Protocol):
         required: bool = True,
     ) -> Optional["Card"]:
         raise NotImplementedError("multi_play_decision is not implemented")
+
+    def set_aside_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_set_aside: int = 0,
+        max_num_set_aside: int = -1,
+    ) -> List["Card"]:
+        raise NotImplementedError("set_aside_decision is not implemented")
