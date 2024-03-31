@@ -9,7 +9,7 @@ def test_witch(multiplayer_game: Game):
     for p in multiplayer_game.players:
         if p is not player:
             assert len(p.discard_pile) == 0
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(witch, multiplayer_game)
     for p in multiplayer_game.players:
         if p is not player:
             assert len(p.discard_pile) == 1
@@ -35,7 +35,7 @@ def test_witch_empty_curses(multiplayer_game: Game):
 
     player = multiplayer_game.players[0]
     player.hand.add(witch)
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(witch, multiplayer_game)
 
     for p in multiplayer_game.players:
         if p is not player:

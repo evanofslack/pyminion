@@ -14,7 +14,8 @@ from pyminion.effects import (
     FuncPlayerGameEffect,
     PlayerGameEffect,
 )
-from pyminion.expansions.base import copper
+from pyminion.exceptions import EmptyPile
+from pyminion.expansions.base import copper, curse
 from pyminion.game import Game
 from pyminion.player import Player
 
@@ -358,6 +359,53 @@ class SeaChart(Action):
             player.deck.add(revealed_card)
 
 
+class SeaWitch(ActionDuration):
+    """
+    +2 Cards
+
+    Each other player gains a Curse.
+
+    At the start of your next turn, +2 Cards, then discard 2 cards.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Sea Witch",
+            cost=5,
+            type=(CardType.Action, CardType.Duration, CardType.Attack),
+            draw=2,
+            next_turn_draw=2,
+            next_turn_discard=2,
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        for opponent in game.players:
+            if opponent is not player:
+                if opponent.is_attacked(
+                    attacking_player=player, attack_card=self, game=game
+                ):
+
+                    # attempt to gain a curse. if curse pile is empty, proceed
+                    try:
+                        opponent.gain(
+                            card=curse,
+                            game=game,
+                        )
+                    except EmptyPile:
+                        pass
+
+
 class TidePools(ActionDuration):
     """
     +3 Cards
@@ -387,6 +435,7 @@ haven = Haven()
 lighthouse = Lighthouse()
 native_village = NativeVillage()
 sea_chart = SeaChart()
+sea_witch = SeaWitch()
 tide_pools = TidePools()
 
 
@@ -400,5 +449,6 @@ seaside_set: List[Card] = [
     lighthouse,
     native_village,
     sea_chart,
+    sea_witch,
     tide_pools,
 ]
