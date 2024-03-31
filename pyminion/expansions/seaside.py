@@ -426,6 +426,25 @@ class TidePools(ActionDuration):
         )
 
 
+class Wharf(ActionDuration):
+    """
+    Now and at the start of your next turn:
+    +2 Cards and +1 Buy.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Wharf",
+            cost=5,
+            type=(CardType.Action, CardType.Duration),
+            draw=2,
+            buys=1,
+            next_turn_draw=2,
+            next_turn_buys=1,
+        )
+
+
 astrolabe = Astrolabe()
 bazaar = Bazaar()
 caravan = Caravan()
@@ -437,6 +456,7 @@ native_village = NativeVillage()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
 tide_pools = TidePools()
+wharf = Wharf()
 
 
 seaside_set: List[Card] = [
@@ -451,4 +471,5 @@ seaside_set: List[Card] = [
     sea_chart,
     sea_witch,
     tide_pools,
+    wharf,
 ]
