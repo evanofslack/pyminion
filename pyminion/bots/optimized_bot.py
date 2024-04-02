@@ -246,6 +246,8 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
             return self.torturer(player, game, valid_cards=valid_cards, num_discard=min_num_discard, discard=True)
+        elif card.name == "Sea Witch":
+            return self.sea_witch(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         elif card.name == "Tide Pools":
             return self.tide_pools(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         else:
@@ -1344,6 +1346,17 @@ class OptimizedBotDecider(BotDecider):
             return NativeVillage.Choice.AddToMat
 
         return NativeVillage.Choice.GetFromMat
+
+    def sea_witch(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        num_discard: int,
+    ) -> List[Card]:
+        cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
+        cards = cards[:num_discard]
+        return cards
 
     def tide_pools(
             self,

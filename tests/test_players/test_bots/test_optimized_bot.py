@@ -55,6 +55,7 @@ from pyminion.expansions.intrigue import (
 from pyminion.expansions.seaside import (
     haven,
     native_village,
+    sea_witch,
     tide_pools,
 )
 from pyminion.game import Game
@@ -807,6 +808,34 @@ def test_native_village_bot(bot: OptimizedBot, game: Game):
 
     bot.play(native_village, game)
     assert len(mat) == 0
+
+
+def test_sea_witch(bot: OptimizedBot, game: Game):
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+    bot.deck.add(copper)
+    bot.deck.add(estate)
+    bot.deck.add(silver)
+    bot.deck.add(silver)
+
+    bot.hand.add(sea_witch)
+
+    bot.play(sea_witch, game)
+
+    bot.start_cleanup_phase(game)
+    counter = DeckCounter(bot.hand.cards)
+    assert counter[silver] == 3
+    assert counter[copper] == 1
+    assert counter[estate] == 1
+
+    bot.start_turn(game)
+    counter = DeckCounter(bot.hand.cards)
+    assert counter[silver] == 5
+    assert counter[copper] == 0
+    assert counter[estate] == 0
 
 
 def test_tide_pools_bot(bot: OptimizedBot, game: Game):
