@@ -273,6 +273,79 @@ class Lighthouse(ActionDuration):
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
 
+class Lookout(Action):
+    """
+    +1 Action
+
+    Look at the top 3 cards of your deck. Trash one of them. Discard one of them.
+    Put the other one back on top of your deck.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Lookout", cost=3, type=(CardType.Action,), actions=1)
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        super().play(player, game, generic_play)
+
+        top_cards = AbstractDeck()
+        player.draw(3, top_cards, silent=True)
+
+        if len(top_cards) == 0:
+            return
+
+        # trash
+
+        if len(top_cards) == 1:
+            trash_card = top_cards.cards[0]
+        else:
+            trash_cards = player.decider.trash_decision(
+                "Trash a card: ",
+                self,
+                top_cards.cards,
+                player,
+                game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
+
+        player.trash(trash_card, game, top_cards)
+
+        if len(top_cards) == 0:
+            return
+
+        # discard
+
+        if len(top_cards) == 1:
+            discard_card = top_cards.cards[0]
+        else:
+            discard_cards = player.decider.discard_decision(
+                "Discard a card: ",
+                self,
+                top_cards.cards,
+                player,
+                game,
+                min_num_discard=1,
+                max_num_discard=1,
+            )
+            assert len(discard_cards) == 1
+            discard_card = discard_cards[0]
+
+        player.discard(game, discard_card, top_cards)
+
+        if len(top_cards) == 0:
+            return
+
+        # topdeck
+
+        topdeck_card = top_cards.cards[0]
+        player.deck.add(top_cards.remove(topdeck_card))
+        logger.info(f"{player} topdecks {topdeck_card}")
+
+
 class NativeVillage(Action):
     """
     +2 Actions
@@ -452,6 +525,7 @@ cutpurse = Cutpurse()
 fishing_village = FishingVillage()
 haven = Haven()
 lighthouse = Lighthouse()
+lookout = Lookout()
 native_village = NativeVillage()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
@@ -467,6 +541,7 @@ seaside_set: List[Card] = [
     fishing_village,
     haven,
     lighthouse,
+    lookout,
     native_village,
     sea_chart,
     sea_witch,
