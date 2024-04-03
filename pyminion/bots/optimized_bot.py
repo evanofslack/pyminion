@@ -246,6 +246,9 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
             return self.torturer(player, game, valid_cards=valid_cards, num_discard=min_num_discard, discard=True)
+        elif card.name == "Lookout":
+            ret = self.lookout(player, game, valid_cards, discard=True)
+            return [ret]
         elif card.name == "Sea Witch":
             return self.sea_witch(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         elif card.name == "Tide Pools":
@@ -288,6 +291,9 @@ class OptimizedBotDecider(BotDecider):
             return self.trading_post(player, game, valid_cards)
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Lookout":
+            ret = self.lookout(player, game, valid_cards, trash=True)
             return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
@@ -1331,6 +1337,26 @@ class OptimizedBotDecider(BotDecider):
     ) -> Card:
         cards = self.sort_for_set_aside(valid_cards, player, game)
         return cards[0]
+
+    def lookout(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        trash: bool = False,
+        discard: bool = False,
+    ) -> Card:
+        if trash:
+            cards = self.sort_for_trash(valid_cards, player, game)
+            return cards[0]
+
+        if discard:
+            cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
+            return cards[0]
+
+        raise InvalidBotImplementation(
+            "Either trash or discard must be true when playing lookout"
+        )
 
     def native_village(
         self,

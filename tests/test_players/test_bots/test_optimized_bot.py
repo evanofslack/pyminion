@@ -54,6 +54,7 @@ from pyminion.expansions.intrigue import (
 )
 from pyminion.expansions.seaside import (
     haven,
+    lookout,
     native_village,
     sea_witch,
     tide_pools,
@@ -792,6 +793,22 @@ def test_haven_bot(bot: OptimizedBot, game: Game):
     bot.play(haven, game)
     assert len(bot.set_aside) == 1
     assert type(bot.set_aside.cards[0]) is Smithy
+
+
+def test_lookout_bot(bot: OptimizedBot, game: Game):
+    bot.deck.add(silver)
+    bot.deck.add(curse)
+    bot.deck.add(estate)
+
+    bot.hand.add(lookout)
+
+    bot.play(lookout, game)
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Curse"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Estate"
+    assert len(bot.deck) >= 1
+    assert bot.deck.cards[-1].name == "Silver"
 
 
 def test_native_village_bot(bot: OptimizedBot, game: Game):
