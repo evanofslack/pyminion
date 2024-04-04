@@ -6,6 +6,7 @@ from pyminion.expansions.base import (base_set, duchy, estate, gold, province,
                                       smithy)
 from pyminion.game import Game
 from pyminion.human import Human
+from pyminion.player import Player
 
 
 def test_game_fixture(game: Game):
@@ -17,12 +18,12 @@ def test_game_fixture(game: Game):
 
 def test_game_too_many_players(human: Human):
     with pytest.raises(InvalidPlayerCount):
-        Game(players=[human, human, human, human, human], expansions=None)
+        Game(players=[human, human, human, human, human], expansions=[])
 
 
 def test_game_too_few_players():
     with pytest.raises(InvalidPlayerCount):
-        Game(players=[], expansions=None)
+        Game(players=[], expansions=[])
 
 
 def test_game_create_supply(game: Game):
@@ -127,3 +128,23 @@ def test_game_win_turns(multiplayer_game: Game):
     # if equal score, player with less turns wins
     multiplayer_game.players[1].turns += 1
     assert multiplayer_game.get_winners() == [multiplayer_game.players[0]]
+
+
+def test_get_players(decider):
+    player1 = Player(decider)
+    player2 = Player(decider)
+    player3 = Player(decider)
+
+    game2 = Game(players=[player1, player2], expansions=[])
+    assert game2.get_left_player(player1) is player2
+    assert game2.get_right_player(player1) is player2
+    assert game2.get_left_player(player2) is player1
+    assert game2.get_right_player(player2) is player1
+
+    game3 = Game(players=[player1, player2, player3], expansions=[])
+    assert game3.get_left_player(player1) is player2
+    assert game3.get_right_player(player1) is player3
+    assert game3.get_left_player(player2) is player3
+    assert game3.get_right_player(player2) is player1
+    assert game3.get_left_player(player3) is player1
+    assert game3.get_right_player(player3) is player2

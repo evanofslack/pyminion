@@ -243,6 +243,26 @@ class Game:
                     logging.info(f"\n{result}")
                     return result
 
+    def get_left_player(self, player: Player) -> Player:
+        """
+        Returns the player to the left of the given player.
+
+        """
+        player_idx = self.players.index(player)
+        left_player_idx = (player_idx + 1) % len(self.players)
+        left_player = self.players[left_player_idx]
+        return left_player
+
+    def get_right_player(self, player: Player) -> Player:
+        """
+        Returns the player to the right of the given player.
+
+        """
+        player_idx = self.players.index(player)
+        right_player_idx = (player_idx - 1) % len(self.players)
+        right_player = self.players[right_player_idx]
+        return right_player
+
     def get_winners(self) -> List[Player]:
         """
         The player with the most victory points wins.
