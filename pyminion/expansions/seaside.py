@@ -12,11 +12,11 @@ from pyminion.effects import (
     AttackEffect,
     EffectAction,
     FuncPlayerGameEffect,
+    PlayerCardGameEffect,
     PlayerGameEffect,
 )
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, curse
-from pyminion.game import Game
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -346,6 +346,61 @@ class Lookout(Action):
         logger.info(f"{player} topdecks {topdeck_card}")
 
 
+class Monkey(ActionDuration):
+    """
+    Until your next turn, when the player to your right gains a card, +1 Card.
+    At the start of your next turn, +1 Card.
+
+    """
+
+    class Effect(PlayerCardGameEffect):
+        def __init__(self, played_player: Player, right_player: Player):
+            super().__init__(f"{monkey.name}: Draw card")
+            self.played_player = played_player
+            self.right_player = right_player
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.HandAddCards
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return player is self.right_player
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            self.played_player.draw()
+
+    def __init__(self):
+        super().__init__(
+            name="Monkey",
+            cost=3,
+            type=(CardType.Action, CardType.Duration),
+            next_turn_draw=1,
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        right_player = game.get_right_player(player)
+        draw_effect = Monkey.Effect(player, right_player)
+        game.effect_registry.register_gain_effect(draw_effect)
+
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister Draw",
+            EffectAction.Other,
+            lambda p, g: g.effect_registry.unregister_attack_effects(
+                draw_effect.get_name(), 1
+            ),
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
+
+
 class NativeVillage(Action):
     """
     +2 Actions
@@ -526,6 +581,7 @@ fishing_village = FishingVillage()
 haven = Haven()
 lighthouse = Lighthouse()
 lookout = Lookout()
+monkey = Monkey()
 native_village = NativeVillage()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
@@ -542,6 +598,7 @@ seaside_set: List[Card] = [
     haven,
     lighthouse,
     lookout,
+    monkey,
     native_village,
     sea_chart,
     sea_witch,
