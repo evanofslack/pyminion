@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -285,7 +285,7 @@ class Player:
 
                 break
 
-    def reveal(self, cards: Union[Card, List[Card]], game: "Game", message: Optional[str] = None) -> None:
+    def reveal(self, cards: Union[Card, Iterable[Card]], game: "Game", message: Optional[str] = None) -> None:
         """
         Reveal cards.
 
@@ -415,28 +415,28 @@ class Player:
         self.start_cleanup_phase(game)
         self.end_turn(game)
 
-    def get_all_cards(self) -> Iterable[Card]:
+    def get_all_cards(self) -> Iterator[Card]:
         """
         Get all the cards the player has in their possession.
 
         """
-        for card in self.deck.cards:
+        for card in self.deck:
             yield card
 
-        for card in self.discard_pile.cards:
+        for card in self.discard_pile:
             yield card
 
-        for card in self.playmat.cards:
+        for card in self.playmat:
             yield card
 
-        for card in self.hand.cards:
+        for card in self.hand:
             yield card
 
-        for card in self.set_aside.cards:
+        for card in self.set_aside:
             yield card
 
         for mat in self.mats.values():
-            for card in mat.cards:
+            for card in mat:
                 yield card
 
     def get_all_cards_count(self) -> int:

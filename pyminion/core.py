@@ -179,8 +179,11 @@ class AbstractDeck:
     def __repr__(self):
         return str(DeckCounter(self.cards))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cards)
+
+    def __iter__(self) -> Iterator[Card]:
+        return iter(self.cards)
 
     def add(self, card: Card) -> None:
         self.cards.append(card)

@@ -110,7 +110,7 @@ class Cutpurse(Action):
                 if copper in opponent.hand.cards:
                     opponent.discard(game, copper)
                 else:
-                    opponent.reveal(opponent.hand.cards, game)
+                    opponent.reveal(opponent.hand, game)
 
 
 class FishingVillage(ActionDuration):
@@ -438,7 +438,7 @@ class NativeVillage(Action):
             options.append("Put no cards from your Native Village mat into your hand")
         else:
             s = f"Put the following card{plural} from your Native Village mat into your hand: "
-            s += ", ".join(c.name for c in mat.cards)
+            s += ", ".join(c.name for c in mat)
             options.append(s)
 
         choices = player.decider.multiple_option_decision(self, options, player, game)
