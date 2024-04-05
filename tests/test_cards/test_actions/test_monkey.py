@@ -56,11 +56,16 @@ def test_monkey_gain(multiplayer_game: Game):
     player1.start_cleanup_phase(multiplayer_game)
     assert len(player1.hand) == 5
 
+    player2.start_turn(multiplayer_game)
+
     player2.gain(copper, multiplayer_game)
     assert len(player1.hand) == 6
 
     player2.gain(copper, multiplayer_game)
     assert len(player1.hand) == 7
+
+    player2.start_cleanup_phase(multiplayer_game)
+    player2.end_turn(multiplayer_game)
 
     player1.start_turn(multiplayer_game)
     assert len(player1.hand) == 8

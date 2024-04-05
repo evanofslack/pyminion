@@ -28,6 +28,8 @@ def test_lighthouse(multiplayer_game: Game):
     assert type(lighthouse_player.playmat.cards[0]) is Lighthouse
     assert lighthouse_player.playmat_persist_counts[lighthouse.name] == 1
 
+    witch_player.start_turn(multiplayer_game)
+
     # witch player plays witch and should be blocked
 
     witch_player.hand.add(witch)

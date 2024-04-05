@@ -269,6 +269,7 @@ class Lighthouse(ActionDuration):
             lambda p, g: g.effect_registry.unregister_attack_effects(
                 block_effect.get_name(), 1
             ),
+            lambda p, g: p is player,
         )
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
@@ -394,9 +395,10 @@ class Monkey(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Draw",
             EffectAction.Other,
-            lambda p, g: g.effect_registry.unregister_attack_effects(
+            lambda p, g: g.effect_registry.unregister_gain_effects(
                 draw_effect.get_name(), 1
             ),
+            lambda p, g: p is player,
         )
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
