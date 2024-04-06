@@ -105,13 +105,14 @@ class ActionDuration(Action):
         draw: int = 0,
         money: int = 0,
         buys: int = 0,
+        discard: int = 0,
         next_turn_actions: int = 0,
         next_turn_draw: int = 0,
         next_turn_money: int = 0,
         next_turn_buys: int = 0,
         next_turn_discard: int = 0,
     ):
-        super().__init__(name, cost, type, actions, draw, money, buys)
+        super().__init__(name, cost, type, actions, draw, money, buys, discard)
         self.next_turn_actions = next_turn_actions
         self.next_turn_draw = next_turn_draw
         self.next_turn_money = next_turn_money

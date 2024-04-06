@@ -59,6 +59,7 @@ from pyminion.expansions.seaside import (
     sea_witch,
     smugglers,
     tide_pools,
+    warehouse,
 )
 from pyminion.game import Game
 import pytest
@@ -897,3 +898,24 @@ def test_tide_pools_bot(bot: OptimizedBot, game: Game):
     assert counter[silver] == 3
     assert counter[copper] == 0
     assert counter[estate] == 0
+
+
+def test_warehouse(bot: OptimizedBot, game: Game):
+    bot.deck.add(estate)
+    bot.deck.add(copper)
+    bot.deck.add(gold)
+
+    bot.hand.add(duchy)
+    bot.hand.add(silver)
+    bot.hand.add(warehouse)
+
+    bot.play(warehouse, game)
+
+    counter = DeckCounter(bot.hand)
+    assert counter[silver] == 1
+    assert counter[gold] == 1
+
+    counter = DeckCounter(bot.discard_pile)
+    assert counter[estate] == 1
+    assert counter[duchy] == 1
+    assert counter[copper] == 1

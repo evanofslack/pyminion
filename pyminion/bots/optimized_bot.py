@@ -253,6 +253,8 @@ class OptimizedBotDecider(BotDecider):
             return self.sea_witch(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         elif card.name == "Tide Pools":
             return self.tide_pools(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Warehouse":
+            return self.warehouse(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         else:
             return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
@@ -1405,6 +1407,17 @@ class OptimizedBotDecider(BotDecider):
     ) -> List[Card]:
         actions = player.state.actions
         cards = self.sort_for_discard(valid_cards, actions, player, game)
+        cards = cards[:num_discard]
+        return cards
+
+    def warehouse(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        num_discard: int,
+    ) -> List[Card]:
+        cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
 

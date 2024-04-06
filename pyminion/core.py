@@ -104,12 +104,14 @@ class Action(Card):
         draw: int = 0,
         money: int = 0,
         buys: int = 0,
+        discard: int = 0,
     ):
         super().__init__(name, cost, type)
         self.actions = actions
         self.draw = draw
         self.money = money
         self.buys = buys
+        self.discard = discard
 
     def play(self, player: "Player", game: "Game", generic_play: bool = True) -> None:
         """
@@ -123,9 +125,28 @@ class Action(Card):
 
         if self.draw > 0:
             player.draw(self.draw)
+
         player.state.actions += self.actions
         player.state.money += self.money
         player.state.buys += self.buys
+
+        if self.discard > 0 and len(player.hand) > 0:
+            if len(player.hand) <= self.discard:
+                discard_cards = player.hand.cards[:]
+            else:
+                discard_cards = player.decider.discard_decision(
+                    prompt=f"Discard {self.discard} card(s) from your hand: ",
+                    card=self,
+                    valid_cards=player.hand.cards,
+                    player=player,
+                    game=game,
+                    min_num_discard=self.discard,
+                    max_num_discard=self.discard,
+                )
+                assert len(discard_cards) == self.discard
+
+            for discard_card in discard_cards:
+                player.discard(game, discard_card)
 
     def generic_play(self, player: "Player") -> None:
         """

@@ -596,6 +596,26 @@ class TidePools(ActionDuration):
         )
 
 
+class Warehouse(Action):
+    """
+    +3 Cards
+    +1 Action
+
+    Discard 3 cards.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Warehouse",
+            cost=3,
+            type=(CardType.Action,),
+            draw=3,
+            actions=1,
+            discard=3,
+        )
+
+
 class Wharf(ActionDuration):
     """
     Now and at the start of your next turn:
@@ -629,6 +649,7 @@ sea_chart = SeaChart()
 sea_witch = SeaWitch()
 smugglers = Smugglers()
 tide_pools = TidePools()
+warehouse = Warehouse()
 wharf = Wharf()
 
 
@@ -647,5 +668,6 @@ seaside_set: List[Card] = [
     sea_witch,
     smugglers,
     tide_pools,
+    warehouse,
     wharf,
 ]
