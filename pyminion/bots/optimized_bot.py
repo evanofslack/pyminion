@@ -335,6 +335,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, valid_cards, gain=True)
             return [ret]
+        elif card.name == "Smugglers":
+            ret = self.smugglers(player, game, valid_cards)
+            return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
 
@@ -1383,6 +1386,15 @@ class OptimizedBotDecider(BotDecider):
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
+
+    def smugglers(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+        return card
 
     def tide_pools(
             self,

@@ -58,6 +58,8 @@ class Player:
         self.shuffles: int = 0
         self.actions_played_this_turn: int = 0
         self.playmat_persist_counts: Dict[str, int] = {}
+        self.current_turn_gains: List[Card] = []
+        self.last_turn_gains: List[Card] = []
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -78,6 +80,8 @@ class Player:
         self.set_aside.cards = []
         self.mats = {}
         self.playmat_persist_counts = {}
+        self.current_turn_gains = []
+        self.last_turn_gains = []
 
     def add_playmat_persistent_card(self, card: Card) -> None:
         name = card.name
@@ -241,6 +245,7 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
+        self.current_turn_gains.append(card)
         game.effect_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
@@ -263,6 +268,7 @@ class Player:
 
         gain_card = source.remove(card)
         destination.add(gain_card)
+        self.current_turn_gains.append(card)
         game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
 
@@ -406,6 +412,9 @@ class Player:
 
     def end_turn(self, game: "Game") -> None:
         game.effect_registry.on_turn_end(self, game)
+
+        self.last_turn_gains = self.current_turn_gains
+        self.current_turn_gains = []
 
     def take_turn(self, game: "Game") -> None:
         self.start_turn(game)

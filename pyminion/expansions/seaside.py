@@ -536,6 +536,46 @@ class SeaWitch(ActionDuration):
                         pass
 
 
+class Smugglers(Action):
+    """
+    Gain a copy of a card costing up to $6 that the player to your
+    right gained on their last turn.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Smugglers", cost=3, type=(CardType.Action,))
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        super().play(player, game, generic_play)
+
+        right_player = game.get_right_player(player)
+        valid_cards: List[Card] = [
+            card
+            for card in right_player.last_turn_gains
+            if card.get_cost(player, game) <= 6
+            and game.supply.pile_length(card.name) > 0
+        ]
+
+        if len(valid_cards) == 0:
+            return
+
+        gain_cards = player.decider.gain_decision(
+            "Choose a card to gain: ",
+            self,
+            valid_cards,
+            player,
+            game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+
+        player.gain(gain_card, game)
+
+
 class TidePools(ActionDuration):
     """
     +3 Cards
@@ -587,6 +627,7 @@ monkey = Monkey()
 native_village = NativeVillage()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
+smugglers = Smugglers()
 tide_pools = TidePools()
 wharf = Wharf()
 
@@ -604,6 +645,7 @@ seaside_set: List[Card] = [
     native_village,
     sea_chart,
     sea_witch,
+    smugglers,
     tide_pools,
     wharf,
 ]

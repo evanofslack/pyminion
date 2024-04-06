@@ -57,6 +57,7 @@ from pyminion.expansions.seaside import (
     lookout,
     native_village,
     sea_witch,
+    smugglers,
     tide_pools,
 )
 from pyminion.game import Game
@@ -853,6 +854,22 @@ def test_sea_witch(bot: OptimizedBot, game: Game):
     assert counter[silver] == 5
     assert counter[copper] == 0
     assert counter[estate] == 0
+
+
+def test_smugglers_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.start_turn(multiplayer_bot_game)
+    p1.gain(silver, multiplayer_bot_game)
+    p1.gain(gold, multiplayer_bot_game)
+    p1.end_turn(multiplayer_bot_game)
+
+    p2.start_turn(multiplayer_bot_game)
+    p2.hand.add(smugglers)
+    p2.play(smugglers, multiplayer_bot_game)
+    assert len(p2.discard_pile) == 1
+    assert p2.discard_pile.cards[0].name == "Gold"
 
 
 def test_tide_pools_bot(bot: OptimizedBot, game: Game):
