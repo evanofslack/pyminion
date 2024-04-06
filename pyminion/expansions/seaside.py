@@ -265,7 +265,7 @@ class Lighthouse(ActionDuration):
         game.effect_registry.register_attack_effect(block_effect)
         unregister_effect = FuncPlayerGameEffect(
             f"Unregister {lighthouse.name} Block",
-            EffectAction.Other,
+            EffectAction.First,
             lambda p, g: g.effect_registry.unregister_attack_effects(
                 block_effect.get_name(), 1
             ),
@@ -361,7 +361,7 @@ class Monkey(ActionDuration):
             self.right_player = right_player
 
         def get_action(self) -> EffectAction:
-            return EffectAction.HandAddCards
+            return EffectAction.Last
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
             return player is self.right_player
@@ -394,7 +394,7 @@ class Monkey(ActionDuration):
 
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Draw",
-            EffectAction.Other,
+            EffectAction.First,
             lambda p, g: g.effect_registry.unregister_gain_effects(
                 draw_effect.get_name(), 1
             ),

@@ -78,7 +78,7 @@ class RemovePersistentCardsEffect(PlayerGameEffect):
         self.cards = cards
 
     def get_action(self) -> EffectAction:
-        return EffectAction.Other
+        return EffectAction.First
 
     def is_triggered(self, player: Player, game: "Game") -> bool:
         return player is self.player
