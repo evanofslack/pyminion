@@ -86,7 +86,12 @@ class Blockade(ActionDuration):
             return EffectAction.Other
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
-            return player is not self.player and card.name == self.card.name and game.supply.pile_length("Curse") > 0
+            return (
+                player is not self.player
+                and player is game.current_player
+                and card.name == self.card.name
+                and game.supply.pile_length("Curse") > 0
+            )
 
         def handler(self, player: Player, card: Card, game: "Game") -> None:
             player.gain(curse, game)
