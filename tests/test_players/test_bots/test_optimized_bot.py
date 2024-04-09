@@ -55,6 +55,7 @@ from pyminion.expansions.intrigue import (
 from pyminion.expansions.seaside import (
     blockade,
     haven,
+    island,
     lookout,
     native_village,
     sea_witch,
@@ -788,6 +789,13 @@ def test_wishing_well_bot(bot: OptimizedBot, game: Game):
     assert bot.hand.cards[1].name == "Copper"
 
 
+def test_blockade_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(blockade)
+    bot.play(blockade, game)
+    assert len(bot.set_aside) == 1
+    assert bot.set_aside.cards[-1].name == "Silver"
+
+
 def test_haven_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(haven)
     bot.hand.add(smithy)
@@ -796,6 +804,18 @@ def test_haven_bot(bot: OptimizedBot, game: Game):
     bot.play(haven, game)
     assert len(bot.set_aside) == 1
     assert type(bot.set_aside.cards[0]) is Smithy
+
+
+def test_island_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(island)
+    bot.hand.add(estate)
+
+    bot.play(island, game)
+    mat = bot.get_mat("Island")
+    assert len(mat) == 2
+    mat_names = set(card.name for card in mat)
+    assert "Island" in mat_names
+    assert "Estate" in mat_names
 
 
 def test_lookout_bot(bot: OptimizedBot, game: Game):
@@ -812,13 +832,6 @@ def test_lookout_bot(bot: OptimizedBot, game: Game):
     assert bot.discard_pile.cards[0].name == "Estate"
     assert len(bot.deck) >= 1
     assert bot.deck.cards[-1].name == "Silver"
-
-
-def test_blockade(bot: OptimizedBot, game: Game):
-    bot.hand.add(blockade)
-    bot.play(blockade, game)
-    assert len(bot.set_aside) == 1
-    assert bot.set_aside.cards[-1].name == "Silver"
 
 
 def test_native_village_bot(bot: OptimizedBot, game: Game):

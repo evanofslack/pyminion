@@ -464,6 +464,9 @@ class OptimizedBotDecider(BotDecider):
         if card.name == "Haven":
             ret = self.haven(player, game, valid_cards)
             return [ret]
+        elif card.name == "Island":
+            ret = self.island(player, game, valid_cards)
+            return [ret]
         else:
             return super().set_aside_decision(prompt, card, valid_cards, player, game, min_num_set_aside, max_num_set_aside)
 
@@ -1356,6 +1359,30 @@ class OptimizedBotDecider(BotDecider):
     ) -> Card:
         cards = self.sort_for_set_aside(valid_cards, player, game)
         return cards[0]
+
+    def island(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        deck_money = player.get_deck_money()
+
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in valid_cards:
+            if len(card.type) == 1 and card.type[0] == CardType.Victory:
+                priority = 1
+            elif card.name == "Copper" and deck_money > 3:
+                priority = 2
+            elif card.name == "Curse":
+                priority = 3
+            else:
+                priority = 100 + card.get_cost(player, game)
+
+            prioritized_cards.append((priority, card))
+
+        result = min(prioritized_cards, key=lambda x: x[0])
+        return result[1]
 
     def lookout(
         self,

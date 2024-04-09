@@ -2,7 +2,7 @@ from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, List, Optional
 
-from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure
+from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.duration import (
     ActionDuration,
     BasicNextTurnEffect,
@@ -272,6 +272,50 @@ class Haven(ActionDuration):
         game.effect_registry.register_turn_start_effect(effect)
 
         self.persist(player, game, multi_play_card, count)
+
+
+class Island(Action, Victory):
+    """
+    Put this and a card from your hand onto your Island mat.
+
+    """
+
+    def __init__(self):
+        Action.__init__(self, "Island", 4, (CardType.Action, CardType.Victory))
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        super().play(player, game, generic_play)
+
+        mat = player.get_mat(self.name)
+
+        player.playmat.remove(self)
+        mat.add(self)
+
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            card = player.hand.cards[0]
+        else:
+            cards = player.decider.set_aside_decision(
+                "Set aside a card with Island: ",
+                self,
+                player.hand.cards,
+                player,
+                game,
+                min_num_set_aside=1,
+                max_num_set_aside=1,
+            )
+            assert len(cards) == 1
+            card = cards[0]
+
+        player.hand.remove(card)
+        mat.add(card)
+
+    def score(self, player: Player) -> int:
+        vp = 2
+        return vp
 
 
 class Lighthouse(ActionDuration):
@@ -709,6 +753,7 @@ caravan = Caravan()
 cutpurse = Cutpurse()
 fishing_village = FishingVillage()
 haven = Haven()
+island = Island()
 lighthouse = Lighthouse()
 lookout = Lookout()
 monkey = Monkey()
@@ -729,6 +774,7 @@ seaside_set: List[Card] = [
     cutpurse,
     fishing_village,
     haven,
+    island,
     lighthouse,
     lookout,
     monkey,
