@@ -6,6 +6,7 @@ from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure
 from pyminion.duration import (
     ActionDuration,
     BasicNextTurnEffect,
+    GetSetAsideCardEffect,
     RemovePersistentCardsEffect,
 )
 from pyminion.effects import (
@@ -13,7 +14,6 @@ from pyminion.effects import (
     EffectAction,
     FuncPlayerGameEffect,
     PlayerCardGameEffect,
-    PlayerGameEffect,
 )
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, curse
@@ -66,6 +66,86 @@ class Bazaar(Action):
         super().__init__(
             name="Bazaar", cost=5, type=(CardType.Action,), draw=1, actions=2, money=1
         )
+
+
+class Blockade(ActionDuration):
+    """
+    Gain a card costing up to $4, setting it aside.
+    At the start of your next turn, put it into your hand. While it's set aside,
+    when another player gains a copy of it on their turn, they gain a Curse.
+
+    """
+
+    class CurseEffect(PlayerCardGameEffect):
+        def __init__(self, player: Player, card: Card):
+            super().__init__(f"{blockade.name}: Gain curse")
+            self.player = player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return player is not self.player and card.name == self.card.name and game.supply.pile_length("Curse") > 0
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            player.gain(curse, game)
+
+    def __init__(self):
+        super().__init__(
+            name="Blockade",
+            cost=4,
+            type=(CardType.Action, CardType.Duration, CardType.Attack),
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        Action.play(self, player, game, generic_play)
+
+        valid_cards = [
+            card
+            for card in game.supply.available_cards()
+            if card.get_cost(player, game) <= 4
+        ]
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 4 money: ",
+            card=self,
+            valid_cards=valid_cards,
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.get_cost(player, game) <= 4
+
+        player.set_aside.add(gain_card)
+
+        get_set_aside_effect = GetSetAsideCardEffect(self.name, player, gain_cards)
+        game.effect_registry.register_turn_start_effect(get_set_aside_effect)
+
+        curse_effect = Blockade.CurseEffect(player, gain_card)
+        game.effect_registry.register_gain_effect(curse_effect)
+
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister Curse Effect",
+            EffectAction.First,
+            lambda p, g: g.effect_registry.unregister_gain_effects(
+                curse_effect.get_name(), 1
+            ),
+            lambda p, g: p is player,
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
+
+        self.persist(player, game, multi_play_card, count)
 
 
 class Caravan(ActionDuration):
@@ -145,24 +225,6 @@ class Haven(ActionDuration):
 
     """
 
-    class Effect(PlayerGameEffect):
-        def __init__(self, player: Player, card: Card):
-            super().__init__(f"{haven.name}: Put card in hand")
-            self.player = player
-            self.card = card
-
-        def get_action(self) -> EffectAction:
-            return EffectAction.HandAddCards
-
-        def is_triggered(self, player: Player, game: "Game") -> bool:
-            return player is self.player
-
-        def handler(self, player: Player, game: "Game") -> None:
-            player.set_aside.remove(self.card)
-            player.hand.add(self.card)
-
-            game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
-
     def __init__(self):
         super().__init__(
             name="Haven",
@@ -201,7 +263,7 @@ class Haven(ActionDuration):
         player.hand.remove(set_aside_card)
         player.set_aside.add(set_aside_card)
 
-        effect = Haven.Effect(player, set_aside_card)
+        effect = GetSetAsideCardEffect(self.name, player, set_aside_cards)
         game.effect_registry.register_turn_start_effect(effect)
 
         self.persist(player, game, multi_play_card, count)
@@ -637,6 +699,7 @@ class Wharf(ActionDuration):
 
 astrolabe = Astrolabe()
 bazaar = Bazaar()
+blockade = Blockade()
 caravan = Caravan()
 cutpurse = Cutpurse()
 fishing_village = FishingVillage()
@@ -656,6 +719,7 @@ wharf = Wharf()
 seaside_set: List[Card] = [
     astrolabe,
     bazaar,
+    blockade,
     caravan,
     cutpurse,
     fishing_village,

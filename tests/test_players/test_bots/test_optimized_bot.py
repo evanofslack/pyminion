@@ -53,6 +53,7 @@ from pyminion.expansions.intrigue import (
     wishing_well,
 )
 from pyminion.expansions.seaside import (
+    blockade,
     haven,
     lookout,
     native_village,
@@ -811,6 +812,13 @@ def test_lookout_bot(bot: OptimizedBot, game: Game):
     assert bot.discard_pile.cards[0].name == "Estate"
     assert len(bot.deck) >= 1
     assert bot.deck.cards[-1].name == "Silver"
+
+
+def test_blockade(bot: OptimizedBot, game: Game):
+    bot.hand.add(blockade)
+    bot.play(blockade, game)
+    assert len(bot.set_aside) == 1
+    assert bot.set_aside.cards[-1].name == "Silver"
 
 
 def test_native_village_bot(bot: OptimizedBot, game: Game):

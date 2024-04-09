@@ -337,6 +337,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, valid_cards, gain=True)
             return [ret]
+        elif card.name == "Blockade":
+            ret = self.blockade(player, game, valid_cards)
+            return [ret]
         elif card.name == "Smugglers":
             ret = self.smugglers(player, game, valid_cards)
             return [ret]
@@ -1333,6 +1336,17 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
     ) -> Card:
         return copper
+
+    def blockade(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        best_victory = self.get_best_victory_card(valid_cards, player)
+        if game.supply.pile_length(pile_name="Province") < 3 and best_victory is not None:
+            return best_victory
+        return silver
 
     def haven(
         self,

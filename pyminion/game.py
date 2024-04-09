@@ -53,6 +53,7 @@ class Game:
         if len(players) > 4:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
+        self.current_player = self.players[0]
         self.expansions = expansions
         self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
         self.all_game_cards: List[Card] = []
@@ -233,6 +234,7 @@ class Game:
         self.start()
         while True:
             for player in self.players:
+                self.current_player = player
                 player.take_turn(self)
 
                 # reset card cost reduction

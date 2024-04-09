@@ -90,6 +90,28 @@ class RemovePersistentCardsEffect(PlayerGameEffect):
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
 
+class GetSetAsideCardEffect(PlayerGameEffect):
+    def __init__(self, playing_card_name: str, player: Player, cards: List[Card]):
+        plural = "card" if len(cards) == 1 else "cards"
+        name = f"{playing_card_name}: Put {plural} in hand"
+        super().__init__(name)
+        self.player = player
+        self.cards = cards
+
+    def get_action(self) -> EffectAction:
+        return EffectAction.HandAddCards
+
+    def is_triggered(self, player: Player, game: "Game") -> bool:
+        return player is self.player
+
+    def handler(self, player: Player, game: "Game") -> None:
+        for card in self.cards:
+            player.set_aside.remove(card)
+            player.hand.add(card)
+
+        game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
+
+
 class ActionDuration(Action):
     """
     Base class for Action-Duration cards.
