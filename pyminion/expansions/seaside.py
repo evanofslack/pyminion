@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.duration import (
@@ -284,13 +284,34 @@ class Island(Action, Victory):
         Action.__init__(self, "Island", 4, (CardType.Action, CardType.Victory))
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        self._play(player, game, 1, generic_play)
+
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
+        if state is None:
+            count = 1
+        else:
+            count = int(state) + 1
+
+        self._play(player, game, count, generic_play)
+
+        return count
+
+    def _play(self, player: Player, game: "Game", count: int, generic_play: bool = True) -> None:
 
         super().play(player, game, generic_play)
 
         mat = player.get_mat(self.name)
 
-        player.playmat.remove(self)
-        mat.add(self)
+        if count == 1:
+            player.playmat.remove(self)
+            mat.add(self)
 
         if len(player.hand) == 0:
             return
