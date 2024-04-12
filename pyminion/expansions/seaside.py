@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
 from pyminion.duration import (
@@ -14,6 +14,7 @@ from pyminion.effects import (
     EffectAction,
     FuncPlayerGameEffect,
     PlayerCardGameEffect,
+    PlayerGameEffect,
 )
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, curse
@@ -592,6 +593,136 @@ class NativeVillage(Action):
             raise ValueError(f"Unknown native village choice '{choice}'")
 
 
+class Sailor(ActionDuration):
+    """
+    +1 Action
+
+    Once this turn, when you gain a Duration card, you may play it.
+
+    At the start of your next turn, +$2 and you may trash a card from your hand.
+
+    """
+
+    class PlayEffect(PlayerCardGameEffect):
+        def __init__(self):
+            super().__init__("Sailor: Play Duration")
+            self.player_sailor_counts: Dict[str, int] = {}
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            sailor_counts = self.player_sailor_counts.get(player.player_id, 0)
+            return sailor_counts > 0 and CardType.Duration in card.type
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            play = player.decider.binary_decision(
+                "Do you want to play your gained Duration card? y/n: ",
+                sailor,
+                player,
+                game,
+                relevant_cards=[card],
+            )
+
+            if not play:
+                return
+
+            player.discard_pile.remove(card)
+            player.playmat.add(card)
+            player.exact_play(card, game, generic_play=False)
+
+            self.player_sailor_counts[player.player_id] -= 1
+
+    class TrashEffect(PlayerGameEffect):
+        def __init__(self, player: Player, card: Card):
+            super().__init__("Sailor: Trash card")
+            self.player = player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.HandRemoveCards
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            return player is self.player and len(player.hand) > 0
+
+        def handler(self, player: Player, game: "Game") -> None:
+            trash = player.decider.binary_decision(
+                "Do you want to trash a card from your hand? y/n: ",
+                sailor,
+                player,
+                game,
+                relevant_cards=player.hand.cards,
+            )
+
+            if not trash:
+                return
+
+            if len(player.hand) == 1:
+                trash_card = player.hand.cards[0]
+            else:
+                trash_cards = player.decider.trash_decision(
+                    "Trash a card from your hand: ",
+                    self.card,
+                    player.hand.cards,
+                    player,
+                    game,
+                    min_num_trash=1,
+                    max_num_trash=1,
+                )
+                assert len(trash_cards) == 1
+                trash_card = trash_cards[0]
+
+            player.trash(trash_card, game)
+
+    def __init__(self):
+        super().__init__(
+            name="Sailor",
+            cost=4,
+            type=(CardType.Action, CardType.Duration),
+            actions=1,
+            next_turn_money=2,
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        effects = [e for e in game.effect_registry.gain_effects if e.get_name() == "Sailor: Play Duration"]
+        assert len(effects) == 1
+        play_effect = effects[0]
+        assert isinstance(play_effect, Sailor.PlayEffect)
+        play_effect.player_sailor_counts[player.player_id] += 1
+
+        # register trash effect
+        trash_effect = Sailor.TrashEffect(player, self)
+        game.effect_registry.register_turn_start_effect(trash_effect)
+
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister trash",
+            EffectAction.Last,
+            lambda p, g: g.effect_registry.unregister_turn_start_effects(
+                trash_effect.get_name(), 1
+            ),
+            lambda p, g: p is player,
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
+
+    def set_up(self, game: "Game") -> None:
+        # register play effect
+        play_effect = Sailor.PlayEffect()
+        play_effect.player_sailor_counts.clear()
+        for player in game.players:
+            play_effect.player_sailor_counts[player.player_id] = 0
+        game.effect_registry.register_gain_effect(play_effect)
+
+
 class SeaChart(Action):
     """
     +1 Card
@@ -781,6 +912,7 @@ lighthouse = Lighthouse()
 lookout = Lookout()
 monkey = Monkey()
 native_village = NativeVillage()
+sailor = Sailor()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
 smugglers = Smugglers()
@@ -802,6 +934,7 @@ seaside_set: List[Card] = [
     lookout,
     monkey,
     native_village,
+    sailor,
     sea_chart,
     sea_witch,
     smugglers,

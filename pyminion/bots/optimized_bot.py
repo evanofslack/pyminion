@@ -120,6 +120,30 @@ class OptimizedBotDecider(BotDecider):
 
         return discard_cards
 
+    @staticmethod
+    def get_optional_trash(cards: List[Card], player: Player, game: "Game") -> List[Card]:
+        num_provinces = game.supply.pile_length("Province")
+        deck_money = player.get_deck_money()
+
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in cards:
+            if CardType.Curse in card.type:
+                priority = 1
+            elif card.name == "Estate" and num_provinces >= 5:
+                priority = 2
+            elif card.name == "Copper" and deck_money > 3:
+                priority = 3
+                deck_money -= 1
+            else:
+                priority = 0
+
+            if priority > 0:
+                prioritized_cards.append((priority, card))
+
+        prioritized_cards.sort(key=lambda x: x[0])
+        trash_cards = [x[1] for x in prioritized_cards]
+        return trash_cards
+
     def determine_trash_cards(
         self, valid_cards: List[Card], player: Player, game: "Game"
     ) -> List[Card]:
@@ -182,6 +206,8 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, binary=True)
         elif card.name == "Mining Village":
             return self.mining_village(player, game)
+        elif card.name == "Sailor":
+            return self.sailor_binary(prompt, player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -296,6 +322,9 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Lookout":
             ret = self.lookout(player, game, valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Sailor":
+            ret = self.sailor_trash(player, game, valid_cards)
             return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
@@ -1418,6 +1447,31 @@ class OptimizedBotDecider(BotDecider):
             return NativeVillage.Choice.AddToMat
 
         return NativeVillage.Choice.GetFromMat
+
+    def sailor_binary(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]],
+    ) -> bool:
+        if "trash" in prompt:
+            assert valid_cards is not None
+            trash_cards = self.get_optional_trash(valid_cards, player, game)
+            return len(trash_cards) > 0
+        elif "play" in prompt:
+            return True
+
+        raise InvalidBotImplementation("Unknown prompt for sailor")
+
+    def sailor_trash(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.get_optional_trash(valid_cards, player, game)
+        return trash_cards[0]
 
     def sea_witch(
         self,

@@ -55,11 +55,14 @@ from pyminion.expansions.intrigue import (
 )
 from pyminion.expansions.seaside import (
     blockade,
+    fishing_village,
     haven,
     island,
     lookout,
     native_village,
+    sailor,
     sea_witch,
+    seaside_set,
     smugglers,
     tide_pools,
     warehouse,
@@ -852,7 +855,35 @@ def test_native_village_bot(bot: OptimizedBot, game: Game):
     assert len(mat) == 0
 
 
-def test_sea_witch(bot: OptimizedBot, game: Game):
+@pytest.mark.expansions([seaside_set])
+@pytest.mark.kingdom_cards([sailor, fishing_village])
+def test_sailor_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+
+    bot.deck.add(curse)
+    for _ in range(4):
+        bot.deck.add(copper)
+
+    bot.hand.add(sailor)
+
+    bot.play(sailor, multiplayer_bot_game)
+
+    bot.gain(fishing_village, multiplayer_bot_game)
+
+    assert len(bot.playmat) == 2
+    assert bot.playmat.cards[0].name == "Sailor"
+    assert bot.playmat.cards[1].name == "Fishing Village"
+
+    bot.start_cleanup_phase(multiplayer_bot_game)
+    bot.end_turn(multiplayer_bot_game)
+    bot.start_turn(multiplayer_bot_game)
+
+    assert len(bot.hand) == 4
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Curse"
+
+
+def test_sea_witch_bot(bot: OptimizedBot, game: Game):
     bot.deck.add(silver)
     bot.deck.add(silver)
     bot.deck.add(silver)
@@ -923,7 +954,7 @@ def test_tide_pools_bot(bot: OptimizedBot, game: Game):
     assert counter[estate] == 0
 
 
-def test_warehouse(bot: OptimizedBot, game: Game):
+def test_warehouse_bot(bot: OptimizedBot, game: Game):
     bot.deck.add(estate)
     bot.deck.add(copper)
     bot.deck.add(gold)
