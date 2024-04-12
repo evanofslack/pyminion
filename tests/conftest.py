@@ -27,6 +27,9 @@ START_ESTATE = 3
 
 def pytest_configure(config):
     config.addinivalue_line(
+        "markers", "expansions(expansions): expansions for game"
+    )
+    config.addinivalue_line(
         "markers", "kingdom_cards(cards): kingdom cards for game"
     )
 
@@ -132,15 +135,21 @@ def effect_registry():
 
 @pytest.fixture
 def game(request, player):
-    marker = request.node.get_closest_marker("kingdom_cards")
-    if marker is None:
+    expansions_marker = request.node.get_closest_marker("expansions")
+    if expansions_marker is None:
+        expansions = [base_set]
+    else:
+        expansions = expansions_marker.args[0]
+
+    kingdom_cards_marker = request.node.get_closest_marker("kingdom_cards")
+    if kingdom_cards_marker is None:
         kingdom_cards = []
     else:
-        kingdom_cards = marker.args[0]
+        kingdom_cards = kingdom_cards_marker.args[0]
 
     game = Game(
         players=[player],
-        expansions=[base_set, intrigue_set],
+        expansions=expansions,
         kingdom_cards=kingdom_cards,
     )
 
@@ -158,6 +167,12 @@ def game(request, player):
 
 @pytest.fixture
 def multiplayer_game(request):
+    expansions_marker = request.node.get_closest_marker("expansions")
+    if expansions_marker is None:
+        expansions = [base_set]
+    else:
+        expansions = expansions_marker.args[0]
+
     marker = request.node.get_closest_marker("kingdom_cards")
     if marker is None:
         kingdom_cards = []
@@ -169,7 +184,7 @@ def multiplayer_game(request):
 
     game = Game(
         players=[human1, human2],
-        expansions=[base_set, intrigue_set],
+        expansions=expansions,
         kingdom_cards=kingdom_cards,
     )
     game.start()
@@ -179,6 +194,12 @@ def multiplayer_game(request):
 
 @pytest.fixture
 def multiplayer_bot_game(request):
+    expansions_marker = request.node.get_closest_marker("expansions")
+    if expansions_marker is None:
+        expansions = [base_set]
+    else:
+        expansions = expansions_marker.args[0]
+
     marker = request.node.get_closest_marker("kingdom_cards")
     if marker is None:
         kingdom_cards = []
@@ -190,7 +211,7 @@ def multiplayer_bot_game(request):
 
     game = Game(
         players=[bot1, bot2],
-        expansions=[base_set, intrigue_set],
+        expansions=expansions,
         kingdom_cards=kingdom_cards,
     )
     game.start()

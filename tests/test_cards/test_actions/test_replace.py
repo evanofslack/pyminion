@@ -1,5 +1,5 @@
 from pyminion.expansions.base import estate
-from pyminion.expansions.intrigue import Replace, mill, replace
+from pyminion.expansions.intrigue import Replace, intrigue_set, mill, replace
 from pyminion.game import Game
 import pytest
 
@@ -50,6 +50,7 @@ def test_replace_gain_victory(multiplayer_game: Game, monkeypatch):
     assert p2.discard_pile.cards[0].name == "Curse"
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([mill])
 def test_replace_gain_action_victory(multiplayer_game: Game, monkeypatch):
     players = multiplayer_game.players

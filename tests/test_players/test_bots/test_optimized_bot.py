@@ -33,6 +33,7 @@ from pyminion.expansions.intrigue import (
     courtier,
     courtyard,
     diplomat,
+    intrigue_set,
     ironworks,
     lurker,
     masquerade,
@@ -419,6 +420,7 @@ def test_courtyard_bot(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-1].name == "Torturer"
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_bot(multiplayer_bot_game: Game):
     p1 = multiplayer_bot_game.players[0]

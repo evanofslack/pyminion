@@ -1,5 +1,5 @@
 from pyminion.expansions.base import Copper, Curse, copper, witch
-from pyminion.expansions.intrigue import Diplomat, diplomat
+from pyminion.expansions.intrigue import Diplomat, intrigue_set, diplomat
 from pyminion.player import Player
 from pyminion.game import Game
 import pytest
@@ -29,6 +29,7 @@ def test_diplomat_no_actions(player: Player, game: Game):
     assert player.state.actions == 0
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     p1 = multiplayer_game.players[0]
@@ -55,6 +56,7 @@ def test_diplomat_block_witch(multiplayer_game: Game, monkeypatch):
     assert type(p1.discard_pile.cards[-1]) is Curse
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     p1 = multiplayer_game.players[0]
@@ -78,6 +80,7 @@ def test_diplomat_no_block_witch(multiplayer_game: Game, monkeypatch):
     assert type(p1.discard_pile.cards[-1]) is Curse
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([diplomat])
 def test_diplomat_cannot_block_witch(multiplayer_game: Game):
     p1 = multiplayer_game.players[0]
