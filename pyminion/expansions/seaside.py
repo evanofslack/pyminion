@@ -303,7 +303,9 @@ class Island(Action, Victory):
 
         return count
 
-    def _play(self, player: Player, game: "Game", count: int, generic_play: bool = True) -> None:
+    def _play(
+        self, player: Player, game: "Game", count: int, generic_play: bool = True
+    ) -> None:
 
         super().play(player, game, generic_play)
 

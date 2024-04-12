@@ -318,6 +318,11 @@ class Player:
 
         logger.info(f"\nTurn {self.turns} - {self.player_id}")
 
+        for mat_name in self.mats:
+            mat = self.mats[mat_name]
+            if len(mat) > 0:
+                logger.info(f"{self.player_id}'s {mat_name} mat: {mat}")
+
         if len(self.playmat) > 0:
             logger.info(f"{self.player_id}'s cards in play: {self.playmat}")
 

@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 from pyminion.core import Action, Card, CardType
@@ -6,6 +7,9 @@ from pyminion.player import Player
 
 if TYPE_CHECKING:
     from pyminion.game import Game
+
+
+logger = logging.getLogger()
 
 
 class BasicNextTurnEffect(PlayerGameEffect):
@@ -108,6 +112,11 @@ class GetSetAsideCardEffect(PlayerGameEffect):
         for card in self.cards:
             player.set_aside.remove(card)
             player.hand.add(card)
+
+        if len(self.cards) == 1:
+            logger.info(f"{player} puts card in hand: {self.cards[0]}")
+        else:
+            logger.info(f"{player} puts cards in hand: {self.cards}")
 
         game.effect_registry.unregister_turn_start_effects(self.get_name(), 1)
 
