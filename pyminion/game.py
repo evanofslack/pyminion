@@ -1,15 +1,16 @@
 from enum import IntEnum, unique
 import logging
 import random
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
-from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
+from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.effects import EffectRegistry
-from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
+from pyminion.exceptions import EmptyPile, InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
 from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
+
 
 logger = logging.getLogger()
 
@@ -264,6 +265,31 @@ class Game:
         right_player_idx = (player_idx - 1) % len(self.players)
         right_player = self.players[right_player_idx]
         return right_player
+
+    def get_opponents(self, player: Player) -> Iterator[Player]:
+        """
+        Iterate over the given player's opponents in turn order.
+
+        """
+        start_idx = self.players.index(player) + 1
+        num_players = len(self.players)
+        for i in range(num_players - 1):
+            idx = (start_idx + i) % num_players
+            opponent = self.players[idx]
+            yield opponent
+
+    def distribute_curses(self, attacking_player: Player, attack_card: Card) -> None:
+        """
+        Distribute curses in turn order.
+
+        """
+        for opponent in self.get_opponents(attacking_player):
+            if opponent.is_attacked(attacking_player, attack_card, self):
+                # attempt to gain a curse. if curse pile is empty, proceed
+                try:
+                    opponent.gain(curse, self)
+                except EmptyPile:
+                    pass
 
     def get_winners(self) -> List[Player]:
         """

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
-from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
@@ -663,10 +663,9 @@ class Minion(Action):
 
         # opponents react to the card before the choice is made
         is_attacked: List[bool] = []
-        for opponent in game.players:
-            if opponent is not player:
-                ret = opponent.is_attacked(player, self, game)
-                is_attacked.append(ret)
+        for opponent in game.get_opponents(player):
+            ret = opponent.is_attacked(player, self, game)
+            is_attacked.append(ret)
 
         options = [
             "+2 Money",
@@ -688,14 +687,12 @@ class Minion(Action):
                 player.discard(game, player.hand.cards[0])
             player.draw(4)
 
-            i = 0
-            for opponent in game.players:
-                if opponent is not player and is_attacked[i]:
+            for i, opponent in enumerate(game.get_opponents(player)):
+                if is_attacked[i]:
                     if len(opponent.hand) >= 5:
                         for _ in range(len(opponent.hand.cards)):
                             opponent.discard(game, opponent.hand.cards[0])
                         opponent.draw(4)
-                    i += 1
         else:
             raise ValueError(f"Unknown minion choice '{choice}'")
 
@@ -896,13 +893,7 @@ class Replace(Action):
             player.gain(gain_card, game)
 
         if CardType.Victory in gain_card.type:
-            for opponent in game.players:
-                if opponent is not player and opponent.is_attacked(player, self, game):
-                    # attempt to gain a curse. if curse pile is empty, proceed
-                    try:
-                        opponent.gain(curse, game)
-                    except EmptyPile:
-                        pass
+            game.distribute_curses(player, self)
 
 
 class SecretPassage(Action):
@@ -1059,8 +1050,8 @@ class Swindler(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(player, self, game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
                 revealed_cards = AbstractDeck()
                 opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
@@ -1112,8 +1103,8 @@ class Torturer(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(player, self, game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
                 options = [
                     "Discard 2 cards",
                     "Gain a Curse to your hand",

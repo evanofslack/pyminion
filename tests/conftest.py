@@ -14,9 +14,6 @@ from pyminion.expansions.base import (
     province,
     silver,
 )
-from pyminion.expansions.intrigue import (
-    intrigue_set,
-)
 from pyminion.game import Game, Card
 from pyminion.human import Human
 from pyminion.player import Player

@@ -624,9 +624,8 @@ class CouncilRoom(Action):
 
         super().play(player, game, generic_play)
 
-        for p in game.players:
-            if p is not player:
-                p.draw()
+        for p in game.get_opponents(player):
+            p.draw()
 
 
 class Witch(Action):
@@ -652,18 +651,7 @@ class Witch(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
-
-                    # attempt to gain a curse. if curse pile is empty, proceed
-                    try:
-                        opponent.gain(
-                            card=curse,
-                            game=game,
-                        )
-                    except EmptyPile:
-                        pass
+        game.distribute_curses(player, self)
 
 
 class Moat(Action):
@@ -809,34 +797,33 @@ class Bandit(Action):
         except EmptyPile:
             pass
 
-        for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
-                    revealed_cards = AbstractDeck()
-                    opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
+                revealed_cards = AbstractDeck()
+                opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
 
-                    opponent.reveal(revealed_cards.cards, game)
+                opponent.reveal(revealed_cards.cards, game)
 
-                    trash_card = None
-                    for card in revealed_cards.cards:
-                        if card.name == "Silver":
-                            trash_card = card
-                        elif card.name == "Gold" and not trash_card:
-                            trash_card = card
-                        elif (
-                            CardType.Treasure in card.type
-                            and card.name != "Copper"
-                            and not trash_card
-                        ):
-                            trash_card = card
+                trash_card = None
+                for card in revealed_cards.cards:
+                    if card.name == "Silver":
+                        trash_card = card
+                    elif card.name == "Gold" and not trash_card:
+                        trash_card = card
+                    elif (
+                        CardType.Treasure in card.type
+                        and card.name != "Copper"
+                        and not trash_card
+                    ):
+                        trash_card = card
 
-                    if trash_card:
-                        game.trash.add(revealed_cards.remove(trash_card))
+                if trash_card:
+                    game.trash.add(revealed_cards.remove(trash_card))
 
-                    revealed_cards_copy = revealed_cards.cards[:]
-                    for card in revealed_cards_copy:
-                        opponent.discard(game, card, revealed_cards)
+                revealed_cards_copy = revealed_cards.cards[:]
+                for card in revealed_cards_copy:
+                    opponent.discard(game, card, revealed_cards)
 
 
 class Bureaucrat(Action):
@@ -866,8 +853,8 @@ class Bureaucrat(Action):
         except EmptyPile:
             pass
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(
                 attacking_player=player, attack_card=self, game=game
             ):
 
@@ -1081,8 +1068,8 @@ class Militia(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(
                 attacking_player=player, attack_card=self, game=game
             ):
 

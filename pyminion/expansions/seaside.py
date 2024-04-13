@@ -191,8 +191,8 @@ class Cutpurse(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(player, self, game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
                 if copper in opponent.hand.cards:
                     opponent.discard(game, copper)
                 else:
@@ -838,20 +838,7 @@ class SeaWitch(ActionDuration):
 
         super().duration_play(player, game, multi_play_card, count, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(
-                    attacking_player=player, attack_card=self, game=game
-                ):
-
-                    # attempt to gain a curse. if curse pile is empty, proceed
-                    try:
-                        opponent.gain(
-                            card=curse,
-                            game=game,
-                        )
-                    except EmptyPile:
-                        pass
+        game.distribute_curses(player, self)
 
 
 class Smugglers(Action):
@@ -963,7 +950,10 @@ class TreasureMap(Action):
 
         if trashed_2:
             for _ in range(4):
-                player.gain(gold, game, player.deck)
+                try:
+                    player.gain(gold, game, player.deck)
+                except EmptyPile:
+                    pass
 
         return True
 

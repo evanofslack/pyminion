@@ -520,15 +520,19 @@ def test_mining_village_bot(bot: OptimizedBot, game: Game):
     assert game.trash.cards[0].name == "Mining Village"
 
 
-def test_minion_bot(bot: OptimizedBot, game: Game):
+def test_minion_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+    while len(bot.hand) > 0:
+        bot.hand.cards.pop()
+
     bot.hand.add(minion)
     bot.hand.add(minion)
     bot.hand.add(copper)
-    bot.play(minion, game)
+    bot.play(minion, multiplayer_bot_game)
     assert len(bot.discard_pile) == 0
     assert bot.state.money == 2
 
-    bot.play(minion, game)
+    bot.play(minion, multiplayer_bot_game)
     assert len(bot.discard_pile) == 1
     assert bot.state.money == 2
 
@@ -590,47 +594,59 @@ def test_pawn_bot_buy(bot: OptimizedBot, game: Game):
     assert bot.state.money == 0
 
 
-def test_replace_bot(bot: OptimizedBot, game: Game):
-    province_pile = game.supply.get_pile("Province")
+def test_replace_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+    while len(bot.hand) > 0:
+        bot.hand.cards.pop()
+
+    province_pile = multiplayer_bot_game.supply.get_pile("Province")
     while len(province_pile) >= 3:
         province_pile.remove(province_pile.cards[0])
 
     bot.hand.add(replace)
     bot.hand.add(copper)
-    bot.play(replace, game)
+    bot.play(replace, multiplayer_bot_game)
     assert len(bot.hand) == 0
-    assert len(game.trash) == 1
-    assert game.trash.cards[0].name == "Copper"
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Copper"
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].name == "Estate"
 
 
-def test_replace_bot_trash_gold(bot: OptimizedBot, game: Game):
-    province_pile = game.supply.get_pile("Province")
+def test_replace_bot_trash_gold(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+    while len(bot.hand) > 0:
+        bot.hand.cards.pop()
+
+    province_pile = multiplayer_bot_game.supply.get_pile("Province")
     while len(province_pile) >= 3:
         province_pile.remove(province_pile.cards[0])
 
     bot.hand.add(replace)
     bot.hand.add(gold)
-    bot.play(replace, game)
+    bot.play(replace, multiplayer_bot_game)
     assert len(bot.hand) == 0
-    assert len(game.trash) == 1
-    assert game.trash.cards[0].name == "Gold"
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Gold"
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].name == "Province"
 
 
-def test_replace_bot_trash_curse(bot: OptimizedBot, game: Game):
-    province_pile = game.supply.get_pile("Province")
+def test_replace_bot_trash_curse(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+    while len(bot.hand) > 0:
+        bot.hand.cards.pop()
+
+    province_pile = multiplayer_bot_game.supply.get_pile("Province")
     while len(province_pile) >= 3:
         province_pile.remove(province_pile.cards[0])
 
     bot.hand.add(replace)
     bot.hand.add(curse)
-    bot.play(replace, game)
+    bot.play(replace, multiplayer_bot_game)
     assert len(bot.hand) == 0
-    assert len(game.trash) == 1
-    assert game.trash.cards[0].name == "Curse"
+    assert len(multiplayer_bot_game.trash) == 1
+    assert multiplayer_bot_game.trash.cards[0].name == "Curse"
     assert len(bot.discard_pile) == 1
     assert bot.discard_pile.cards[0].name == "Estate"
 
@@ -897,7 +913,9 @@ def test_salvager_bot(bot: OptimizedBot, game: Game):
     assert game.trash.cards[0].name == "Estate"
 
 
-def test_sea_witch_bot(bot: OptimizedBot, game: Game):
+def test_sea_witch_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+
     bot.deck.add(silver)
     bot.deck.add(silver)
     bot.deck.add(silver)
@@ -910,15 +928,15 @@ def test_sea_witch_bot(bot: OptimizedBot, game: Game):
 
     bot.hand.add(sea_witch)
 
-    bot.play(sea_witch, game)
+    bot.play(sea_witch, multiplayer_bot_game)
 
-    bot.start_cleanup_phase(game)
+    bot.start_cleanup_phase(multiplayer_bot_game)
     counter = DeckCounter(bot.hand.cards)
     assert counter[silver] == 3
     assert counter[copper] == 1
     assert counter[estate] == 1
 
-    bot.start_turn(game)
+    bot.start_turn(multiplayer_bot_game)
     counter = DeckCounter(bot.hand.cards)
     assert counter[silver] == 5
     assert counter[copper] == 0
