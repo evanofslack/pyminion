@@ -604,9 +604,11 @@ class Sailor(ActionDuration):
     """
 
     class PlayEffect(PlayerCardGameEffect):
-        def __init__(self):
+        def __init__(self, players: List[Player]):
             super().__init__("Sailor: Play Duration")
             self.player_sailor_counts: Dict[str, int] = {}
+            for player in players:
+                self.player_sailor_counts[player.player_id] = 0
 
         def get_action(self) -> EffectAction:
             return EffectAction.Other
@@ -716,10 +718,7 @@ class Sailor(ActionDuration):
 
     def set_up(self, game: "Game") -> None:
         # register play effect
-        play_effect = Sailor.PlayEffect()
-        play_effect.player_sailor_counts.clear()
-        for player in game.players:
-            play_effect.player_sailor_counts[player.player_id] = 0
+        play_effect = Sailor.PlayEffect(game.players)
         game.effect_registry.register_gain_effect(play_effect)
 
 
