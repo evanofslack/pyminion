@@ -326,6 +326,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Sailor":
             ret = self.sailor_trash(player, game, valid_cards)
             return [ret]
+        elif card.name == "Salvager":
+            ret = self.salvager(player, game, valid_cards)
+            return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
@@ -1471,6 +1474,15 @@ class OptimizedBotDecider(BotDecider):
         valid_cards: List[Card],
     ) -> Card:
         trash_cards = self.get_optional_trash(valid_cards, player, game)
+        return trash_cards[0]
+
+    def salvager(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game)
         return trash_cards[0]
 
     def sea_witch(

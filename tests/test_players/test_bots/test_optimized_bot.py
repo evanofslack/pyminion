@@ -61,6 +61,7 @@ from pyminion.expansions.seaside import (
     lookout,
     native_village,
     sailor,
+    salvager,
     sea_witch,
     seaside_set,
     smugglers,
@@ -881,6 +882,19 @@ def test_sailor_bot(multiplayer_bot_game: Game):
     assert len(bot.hand) == 4
     assert len(multiplayer_bot_game.trash) == 1
     assert multiplayer_bot_game.trash.cards[0].name == "Curse"
+
+
+def test_salvager_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(salvager)
+    bot.hand.add(estate)
+    bot.hand.add(silver)
+
+    bot.play(salvager, game)
+    assert bot.state.money == 2
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Estate"
 
 
 def test_sea_witch_bot(bot: OptimizedBot, game: Game):

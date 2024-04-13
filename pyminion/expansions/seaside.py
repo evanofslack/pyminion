@@ -696,7 +696,11 @@ class Sailor(ActionDuration):
 
         super().duration_play(player, game, multi_play_card, count, generic_play)
 
-        effects = [e for e in game.effect_registry.gain_effects if e.get_name() == "Sailor: Play Duration"]
+        effects = [
+            e
+            for e in game.effect_registry.gain_effects
+            if e.get_name() == "Sailor: Play Duration"
+        ]
         assert len(effects) == 1
         play_effect = effects[0]
         assert isinstance(play_effect, Sailor.PlayEffect)
@@ -731,6 +735,45 @@ class Sailor(ActionDuration):
             reset_count,
         )
         game.effect_registry.register_turn_end_effect(reset_effect)
+
+
+class Salvager(Action):
+    """
+    +1 Buy
+
+    Trash a card from your hand.
+    +$1 per $1 it costs.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Salvager", cost=4, type=(CardType.Action,), buys=1)
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        super().play(player, game, generic_play)
+
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            trash_card = player.hand.cards[0]
+        else:
+            trash_cards = player.decider.trash_decision(
+                "Trash a card from your hand: ",
+                self,
+                player.hand.cards,
+                player,
+                game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
+
+        player.state.money += trash_card.get_cost(player, game)
+
+        player.trash(trash_card, game)
 
 
 class SeaChart(Action):
@@ -923,6 +966,7 @@ lookout = Lookout()
 monkey = Monkey()
 native_village = NativeVillage()
 sailor = Sailor()
+salvager = Salvager()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
 smugglers = Smugglers()
@@ -945,6 +989,7 @@ seaside_set: List[Card] = [
     monkey,
     native_village,
     sailor,
+    salvager,
     sea_chart,
     sea_witch,
     smugglers,
