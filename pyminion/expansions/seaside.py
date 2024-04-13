@@ -481,6 +481,22 @@ class Lookout(Action):
         logger.info(f"{player} topdecks {topdeck_card}")
 
 
+class MerchantShip(ActionDuration):
+    """
+    Now and at the start of your next turn: +$2.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Merchant Ship",
+            cost=5,
+            type=(CardType.Action, CardType.Duration),
+            money=2,
+            next_turn_money=2,
+        )
+
+
 class Monkey(ActionDuration):
     """
     Until your next turn, when the player to your right gains a card, +1 Card.
@@ -1003,6 +1019,7 @@ haven = Haven()
 island = Island()
 lighthouse = Lighthouse()
 lookout = Lookout()
+merchant_ship = MerchantShip()
 monkey = Monkey()
 native_village = NativeVillage()
 sailor = Sailor()
@@ -1027,6 +1044,7 @@ seaside_set: List[Card] = [
     island,
     lighthouse,
     lookout,
+    merchant_ship,
     monkey,
     native_village,
     sailor,
