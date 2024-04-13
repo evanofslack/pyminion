@@ -257,7 +257,7 @@ class Player:
         source: Optional[AbstractDeck] = None,
     ) -> None:
         """
-        Gain a card from the supply and add to destination.
+        Gain a card from source (supply by default) and adds it to destination.
         Defaults to adding the card to the player's discard pile.
 
         """
@@ -271,6 +271,25 @@ class Player:
         self.current_turn_gains.append(card)
         game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
+
+    def try_gain(
+        self,
+        card: Card,
+        game: "Game",
+        destination: Optional[AbstractDeck] = None,
+        source: Optional[AbstractDeck] = None,
+    ) -> None:
+        """
+        Gain a card from source (supply by default) and adds it to destination.
+        Defaults to adding the card to the player's discard pile.
+        If the source does not contain the card, nothing will happen.
+
+        """
+        try:
+            self.gain(card, game, destination, source)
+        except EmptyPile:
+            # do nothing if the source was empty
+            pass
 
     def trash(
         self, target_card: Card, game: "Game", source: Optional[AbstractDeck] = None

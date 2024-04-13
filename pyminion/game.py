@@ -5,7 +5,7 @@ from typing import Iterator, List, Optional
 
 from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.effects import EffectRegistry
-from pyminion.exceptions import EmptyPile, InvalidGameSetup, InvalidPlayerCount
+from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
 from pyminion.player import Player
@@ -286,10 +286,7 @@ class Game:
         for opponent in self.get_opponents(attacking_player):
             if opponent.is_attacked(attacking_player, attack_card, self):
                 # attempt to gain a curse. if curse pile is empty, proceed
-                try:
-                    opponent.gain(curse, self)
-                except EmptyPile:
-                    pass
+                opponent.try_gain(curse, self)
 
     def get_winners(self) -> List[Player]:
         """

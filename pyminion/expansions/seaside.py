@@ -16,7 +16,6 @@ from pyminion.effects import (
     PlayerCardGameEffect,
     PlayerGameEffect,
 )
-from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, curse, gold
 from pyminion.player import Player
 
@@ -950,10 +949,7 @@ class TreasureMap(Action):
 
         if trashed_2:
             for _ in range(4):
-                try:
-                    player.gain(gold, game, player.deck)
-                except EmptyPile:
-                    pass
+                player.try_gain(gold, game, player.deck)
 
         return True
 

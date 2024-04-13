@@ -1,5 +1,5 @@
 import pytest
-from pyminion.core import DiscardPile, Hand, Playmat
+from pyminion.core import AbstractDeck, DiscardPile, Hand, Playmat
 from pyminion.exceptions import (
     CardNotFound,
     InsufficientActions,
@@ -210,6 +210,19 @@ def test_player_gain_card(player: Player, game: Game):
     player.gain(card=copper, game=game)
     assert player.discard_pile.cards[0] == copper
     assert len(player.discard_pile) == 1
+
+
+def test_player_try_gain_card(player: Player, game: Game):
+    copper_pile = game.supply.get_pile("Copper")
+    copper_pile.cards = copper_pile.cards[:3]
+    assert len(copper_pile) == 3
+
+    dest = AbstractDeck()
+    for _ in range(5):
+        player.try_gain(copper, game, destination=dest)
+
+    assert len(copper_pile) == 0
+    assert len(dest) == 3
 
 
 def test_player_draw_to_discard(player: Player, game: Game):

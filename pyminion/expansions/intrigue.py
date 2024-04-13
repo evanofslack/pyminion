@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, List
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect
-from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
 if TYPE_CHECKING:
@@ -1121,7 +1120,7 @@ class Torturer(Action):
                 if choice == Torturer.Choice.Discard:
                     self._discard(opponent, game)
                 elif choice == Torturer.Choice.GainCurse:
-                    self._gain_curse(opponent, game)
+                    opponent.try_gain(curse, game, opponent.hand)
                 else:
                     raise ValueError(f"Unknown torturer choice '{choice}'")
 
@@ -1143,16 +1142,6 @@ class Torturer(Action):
 
         for card in discard_cards:
             opponent.discard(game, target_card=card)
-
-    def _gain_curse(self, opponent: Player, game: "Game") -> None:
-        try:
-            opponent.gain(
-                card=curse,
-                game=game,
-                destination=opponent.hand,
-            )
-        except EmptyPile:
-            pass
 
 
 class TradingPost(Action):
@@ -1193,10 +1182,7 @@ class TradingPost(Action):
         if len(trash_cards) == 2:
             # attempt to gain a silver to player's hand.
             # if silver pile is empty, proceed
-            try:
-                player.gain(silver, game, player.hand)
-            except EmptyPile:
-                pass
+            player.try_gain(silver, game, player.hand)
 
 
 class Upgrade(Action):

@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
-from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -792,10 +791,7 @@ class Bandit(Action):
         super().play(player, game, generic_play)
 
         # attempt to gain a gold. if gold pile is empty, proceed
-        try:
-            player.gain(card=gold, game=game)
-        except EmptyPile:
-            pass
+        player.try_gain(card=gold, game=game)
 
         for opponent in game.get_opponents(player):
             if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
@@ -848,10 +844,7 @@ class Bureaucrat(Action):
         super().play(player, game, generic_play)
 
         # attempt to gain a silver. if silver pile is empty, proceed
-        try:
-            player.gain(card=silver, game=game, destination=player.deck)
-        except EmptyPile:
-            pass
+        player.try_gain(card=silver, game=game, destination=player.deck)
 
         for opponent in game.get_opponents(player):
             if opponent.is_attacked(
