@@ -721,6 +721,17 @@ class Sailor(ActionDuration):
         play_effect = Sailor.PlayEffect(game.players)
         game.effect_registry.register_gain_effect(play_effect)
 
+        def reset_count(p: Player, g: "Game"):
+            play_effect.player_sailor_counts[p.player_id] = 0
+
+        # reset sailor counts at the end of each turn
+        reset_effect = FuncPlayerGameEffect(
+            f"{self.name}: Reset count",
+            EffectAction.Last,
+            reset_count,
+        )
+        game.effect_registry.register_turn_end_effect(reset_effect)
+
 
 class SeaChart(Action):
     """

@@ -150,6 +150,79 @@ def test_sailor_play(multiplayer_game: Game, monkeypatch):
 
 
 @pytest.mark.expansions([seaside_set])
+@pytest.mark.kingdom_cards([bazaar, fishing_village, sailor])
+def test_two_sailors_play(multiplayer_game: Game, monkeypatch):
+    responses = ["y", "y"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    human = multiplayer_game.players[0]
+    human.hand.add(sailor)
+    human.hand.add(sailor)
+
+    human.play(sailor, multiplayer_game)
+    human.play(sailor, multiplayer_game)
+
+    # ensure gaining a non-duration card will not be played
+    human.gain(bazaar, multiplayer_game)
+    assert len(responses) == 2
+    assert len(human.playmat) == 2
+    assert len(human.discard_pile) == 1
+
+    # gain a duration card and play it
+    human.gain(fishing_village, multiplayer_game)
+    assert len(responses) == 1
+    assert len(human.playmat) == 3
+    assert human.playmat.cards[0].name == "Sailor"
+    assert human.playmat.cards[1].name == "Sailor"
+    assert human.playmat.cards[2].name == "Fishing Village"
+    assert len(human.discard_pile) == 1
+    assert human.state.actions == 3
+    assert human.state.money == 1
+
+    # gain a 2nd duration card and play it
+    human.gain(fishing_village, multiplayer_game)
+    assert len(responses) == 0
+    assert len(human.playmat) == 4
+    assert human.playmat.cards[0].name == "Sailor"
+    assert human.playmat.cards[1].name == "Sailor"
+    assert human.playmat.cards[2].name == "Fishing Village"
+    assert human.playmat.cards[3].name == "Fishing Village"
+    assert len(human.discard_pile) == 1
+    assert human.state.actions == 5
+    assert human.state.money == 2
+
+    # ensure gaining a 3rd duration card will not be played
+    human.gain(fishing_village, multiplayer_game)
+    assert len(responses) == 0
+    assert len(human.playmat) == 4
+    assert len(human.discard_pile) == 2
+
+
+@pytest.mark.expansions([seaside_set])
+@pytest.mark.kingdom_cards([fishing_village, sailor])
+def test_sailor_no_play_next_turn(multiplayer_game: Game, monkeypatch):
+    # don't trash a card
+    responses = ["n"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    human = multiplayer_game.players[0]
+    human.hand.add(sailor)
+
+    human.play(sailor, multiplayer_game)
+
+    human.start_cleanup_phase(multiplayer_game)
+    human.end_turn(multiplayer_game)
+    human.start_turn(multiplayer_game)
+    assert len(responses) == 0
+
+    # ensure gaining a duration card on the next turn will not be played
+    human.gain(fishing_village, multiplayer_game)
+    assert len(human.playmat) == 1
+    assert human.playmat.cards[0].name == "Sailor"
+    assert "Fishing Village" in (c.name for c in human.discard_pile)
+
+
+@pytest.mark.expansions([seaside_set])
 @pytest.mark.kingdom_cards([fishing_village, sailor])
 def test_sailor_no_play(multiplayer_game: Game, monkeypatch):
     responses = ["n"]
