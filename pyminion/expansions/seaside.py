@@ -17,7 +17,7 @@ from pyminion.effects import (
     PlayerGameEffect,
 )
 from pyminion.exceptions import EmptyPile
-from pyminion.expansions.base import copper, curse
+from pyminion.expansions.base import copper, curse, gold
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -914,6 +914,60 @@ class TidePools(ActionDuration):
         )
 
 
+class TreasureMap(Action):
+    """
+    Trash this and a Treasure Map from your hand. If you trashed two
+    Treasure Maps, gain 4 Golds onto your deck.
+
+    """
+
+    def __init__(self):
+        super().__init__(name="Treasure Map", cost=4, type=(CardType.Action,))
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+
+        self._play(player, game, None, generic_play)
+
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
+        return self._play(player, game, state, generic_play)
+
+    def _play(
+        self, player: Player, game: "Game", state: Any, generic_play: bool
+    ) -> Any:
+        # count the number of Treasure Maps in the players hand before the
+        # first is played and any effects are triggered
+        count = sum(1 for c in player.hand if c.name == self.name)
+
+        super().play(player, game, generic_play)
+
+        trashed = False if state is None else bool(state)
+
+        # if the card has not previously been trashed, trash it now
+        trashed_2 = False
+        if not trashed:
+            player.trash(self, game, player.playmat)
+
+            if count >= 2:
+                for card in player.hand:
+                    if card.name == self.name:
+                        player.trash(card, game)
+                        trashed_2 = True
+                        break
+
+        if trashed_2:
+            for _ in range(4):
+                player.gain(gold, game, player.deck)
+
+        return True
+
+
 class Warehouse(Action):
     """
     +3 Cards
@@ -971,6 +1025,7 @@ sea_chart = SeaChart()
 sea_witch = SeaWitch()
 smugglers = Smugglers()
 tide_pools = TidePools()
+treasure_map = TreasureMap()
 warehouse = Warehouse()
 wharf = Wharf()
 
@@ -994,6 +1049,7 @@ seaside_set: List[Card] = [
     sea_witch,
     smugglers,
     tide_pools,
+    treasure_map,
     warehouse,
     wharf,
 ]
