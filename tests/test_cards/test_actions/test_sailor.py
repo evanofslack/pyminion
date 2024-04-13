@@ -1,9 +1,6 @@
-from pyminion.core import DeckCounter
-from pyminion.expansions.base import curse, throne_room
+from pyminion.expansions.base import copper, curse, silver, throne_room
 from pyminion.expansions.seaside import Sailor, bazaar, fishing_village, seaside_set, sailor
 from pyminion.game import Game
-from pyminion.human import Human
-from pyminion.player import Player
 import pytest
 
 
@@ -240,3 +237,52 @@ def test_sailor_no_play(multiplayer_game: Game, monkeypatch):
     assert human.playmat.cards[0].name == "Sailor"
     assert len(human.discard_pile) == 1
     assert human.discard_pile.cards[0].name == "Fishing Village"
+
+
+@pytest.mark.expansions([seaside_set])
+@pytest.mark.kingdom_cards([fishing_village, sailor])
+def test_sailor_throne_room(multiplayer_game: Game, monkeypatch):
+    responses = ["sailor", "y", "y", "y", "curse", "y", "copper"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    human = multiplayer_game.players[0]
+    human.deck.add(curse)
+    human.deck.add(copper)
+    human.deck.add(silver)
+    human.deck.add(silver)
+    human.deck.add(silver)
+    human.hand.add(throne_room)
+    human.hand.add(sailor)
+
+    human.play(throne_room, multiplayer_game)
+    assert len(responses) == 6
+    assert len(human.playmat) == 2
+    assert set(c.name for c in human.playmat) == {"Throne Room", "Sailor"}
+    assert human.state.actions == 2
+
+    # ensure gained duration card will be played
+    human.gain(fishing_village, multiplayer_game)
+    assert len(responses) == 5
+    assert len(human.playmat) == 3
+    assert sum(1 for c in human.playmat if c.name == "Fishing Village") == 1
+    assert len(human.discard_pile) == 0
+
+    # ensure 2nd gained duration card will be played
+    human.gain(fishing_village, multiplayer_game)
+    assert len(responses) == 4
+    assert len(human.playmat) == 4
+    assert sum(1 for c in human.playmat if c.name == "Fishing Village") == 2
+    assert len(human.discard_pile) == 0
+
+    human.start_cleanup_phase(multiplayer_game)
+    human.end_turn(multiplayer_game)
+
+    assert len(human.hand) == 5
+    assert len(multiplayer_game.trash) == 0
+
+    human.start_turn(multiplayer_game)
+
+    assert len(human.hand) == 3
+    assert set(c.name for c in human.hand) == {"Silver"}
+    assert len(multiplayer_game.trash) == 2
+    assert set(c.name for c in multiplayer_game.trash) == {"Copper", "Curse"}
