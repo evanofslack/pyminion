@@ -231,15 +231,30 @@ class Game:
 
         return False
 
+    def play_turn(self, player: Player) -> None:
+        extra_turn_count = 0
+        take_turn = True
+        while take_turn:
+            player.take_turn(self, is_extra_turn=extra_turn_count > 0)
+
+            # reset card cost reduction
+            self.card_cost_reduction = 0
+
+            if self.is_over():
+                return
+
+            extra_turn_count += 1
+            take_turn = player.take_extra_turn and extra_turn_count < 2
+
+        # reset extra turn flag
+        player.take_extra_turn = False
+
     def play(self) -> GameResult:
         self.start()
         while True:
             for player in self.players:
                 self.current_player = player
-                player.take_turn(self)
-
-                # reset card cost reduction
-                self.card_cost_reduction = 0
+                self.play_turn(player)
 
                 if self.is_over():
                     result = self.summarize_game()

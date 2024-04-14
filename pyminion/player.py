@@ -60,6 +60,8 @@ class Player:
         self.playmat_persist_counts: Dict[str, int] = {}
         self.current_turn_gains: List[Card] = []
         self.last_turn_gains: List[Card] = []
+        self.take_extra_turn: bool = False
+        self.next_turn_draw: int = 5
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -82,6 +84,8 @@ class Player:
         self.playmat_persist_counts = {}
         self.current_turn_gains = []
         self.last_turn_gains = []
+        self.take_extra_turn = False
+        self.next_turn_draw = 5
 
     def add_playmat_persistent_card(self, card: Card) -> None:
         name = card.name
@@ -92,7 +96,7 @@ class Player:
 
     def remove_playmat_persistent_card(self, card: Card) -> None:
         name = card.name
-        assert self.playmat_persist_counts[name] > 0
+        assert self.playmat_persist_counts[name] > 0, f"self.playmat_persist_counts['{name}'] = {self.playmat_persist_counts[name]}"
         self.playmat_persist_counts[name] -= 1
 
     def get_mat(self, name: str) -> AbstractDeck:
@@ -324,18 +328,22 @@ class Player:
         for card in cards:
             game.effect_registry.on_reveal(self, card, game)
 
-    def start_turn(self, game: "Game") -> None:
+    def start_turn(self, game: "Game", is_extra_turn: bool = False) -> None:
         """
         Increase turn counter and reset state
 
         """
-        self.turns += 1
         self.actions_played_this_turn = 0
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
 
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
+        if is_extra_turn:
+            logger.info(f"\nTurn {self.turns} (extra) - {self.player_id}")
+        else:
+            # extra turns do not count toward the total number of turns
+            self.turns += 1
+            logger.info(f"\nTurn {self.turns} - {self.player_id}")
 
         for mat_name in self.mats:
             mat = self.mats[mat_name]
@@ -429,7 +437,8 @@ class Player:
             else:
                 self.discard(game, card, self.playmat, silent=True)
 
-        self.draw(5)
+        self.draw(self.next_turn_draw)
+        self.next_turn_draw = 5
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
@@ -440,8 +449,8 @@ class Player:
         self.last_turn_gains = self.current_turn_gains
         self.current_turn_gains = []
 
-    def take_turn(self, game: "Game") -> None:
-        self.start_turn(game)
+    def take_turn(self, game: "Game", is_extra_turn: bool = False) -> None:
+        self.start_turn(game, is_extra_turn)
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
