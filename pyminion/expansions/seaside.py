@@ -481,35 +481,6 @@ class Lookout(Action):
         logger.info(f"{player} topdecks {topdeck_card}")
 
 
-class Outpost(ActionDuration):
-    """
-    You only draw 3 cards for your next hand. Take an extra turn after
-    this one (but not a 3rd turn in a row).
-
-    """
-
-    def __init__(self):
-        super().__init__(
-            name="Outpost",
-            cost=5,
-            type=(CardType.Action, CardType.Duration),
-        )
-
-    def duration_play(
-        self,
-        player: Player,
-        game: "Game",
-        multi_play_card: Optional[Card],
-        count: int,
-        generic_play: bool = True,
-    ) -> None:
-
-        super().duration_play(player, game, multi_play_card, count, generic_play)
-
-        player.next_turn_draw = 3
-        player.take_extra_turn = True
-
-
 class MerchantShip(ActionDuration):
     """
     Now and at the start of your next turn: +$2.
@@ -635,6 +606,35 @@ class NativeVillage(Action):
             )
         else:
             raise ValueError(f"Unknown native village choice '{choice}'")
+
+
+class Outpost(ActionDuration):
+    """
+    You only draw 3 cards for your next hand. Take an extra turn after
+    this one (but not a 3rd turn in a row).
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Outpost",
+            cost=5,
+            type=(CardType.Action, CardType.Duration),
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        player.next_turn_draw = 3
+        player.take_extra_turn = True
 
 
 class Sailor(ActionDuration):
