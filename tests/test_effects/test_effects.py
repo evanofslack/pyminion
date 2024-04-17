@@ -183,19 +183,19 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.turn_end_effects) == 1
     assert len(effect_registry.cleanup_start_effects) == 1
 
-    effect_registry.unregister_attack_effects("AttackEffectTest")
-    effect_registry.unregister_buy_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_discard_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_gain_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_hand_add_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_hand_remove_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_play_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_reveal_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_shuffle_effects("PlayerGameEffectTest")
-    effect_registry.unregister_trash_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_turn_start_effects("PlayerGameEffectTest")
-    effect_registry.unregister_turn_end_effects("PlayerGameEffectTest")
-    effect_registry.unregister_cleanup_start_effects("PlayerGameEffectTest")
+    effect_registry.unregister_attack_effects_by_name("AttackEffectTest")
+    effect_registry.unregister_buy_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_discard_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_gain_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_hand_add_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_hand_remove_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_play_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_reveal_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_shuffle_effects_by_name("PlayerGameEffectTest")
+    effect_registry.unregister_trash_effects_by_name("PlayerCardGameEffectTest")
+    effect_registry.unregister_turn_start_effects_by_name("PlayerGameEffectTest")
+    effect_registry.unregister_turn_end_effects_by_name("PlayerGameEffectTest")
+    effect_registry.unregister_cleanup_start_effects_by_name("PlayerGameEffectTest")
 
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
@@ -221,7 +221,7 @@ def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
 
     assert len(effect_registry.attack_effects) == 3
 
-    effect_registry.unregister_attack_effects("test1")
+    effect_registry.unregister_attack_effects_by_name("test1")
 
     assert len(effect_registry.attack_effects) == 1
 
@@ -230,7 +230,7 @@ def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
 
     assert len(effect_registry.attack_effects) == 3
 
-    effect_registry.unregister_attack_effects("test1", max_unregister=1)
+    effect_registry.unregister_attack_effects_by_name("test1", max_unregister=1)
 
     assert len(effect_registry.attack_effects) == 2
 

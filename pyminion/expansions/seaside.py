@@ -143,8 +143,8 @@ class Blockade(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Curse Effect",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_gain_effects(
-                curse_effect.get_name(), 1
+            lambda p, g: g.effect_registry.unregister_gain_effect_by_id(
+                curse_effect.get_id()
             ),
             lambda p, g: p is player,
         )
@@ -400,8 +400,8 @@ class Lighthouse(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"Unregister {lighthouse.name} Block",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_attack_effects(
-                block_effect.get_name(), 1
+            lambda p, g: g.effect_registry.unregister_attack_effect_by_id(
+                block_effect.get_id()
             ),
             lambda p, g: p is player,
         )
@@ -574,8 +574,8 @@ class Monkey(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Draw",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_gain_effects(
-                draw_effect.get_name(), 1
+            lambda p, g: g.effect_registry.unregister_gain_effect_by_id(
+                draw_effect.get_id()
             ),
             lambda p, g: p is player,
         )
@@ -757,8 +757,8 @@ class Sailor(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister trash",
             EffectAction.Last,
-            lambda p, g: g.effect_registry.unregister_turn_start_effects(
-                trash_effect.get_name(), 1
+            lambda p, g: g.effect_registry.unregister_turn_start_effect_by_id(
+                trash_effect.get_id()
             ),
             lambda p, g: p is player,
         )

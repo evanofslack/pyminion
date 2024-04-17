@@ -715,7 +715,7 @@ class Moat(Action):
         game.effect_registry.register_attack_effect(effect)
 
     def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects(f"Moat: {player.player_id} block attack")
+        game.effect_registry.unregister_attack_effects_by_name(f"Moat: {player.player_id} block attack")
 
 
 class Merchant(Action):
@@ -766,7 +766,7 @@ class Merchant(Action):
         game.effect_registry.register_turn_end_effect(reset_effect)
 
     def remove_play_handlers(self, player: "Player", game: "Game") -> None:
-        game.effect_registry.unregister_play_effects(self.MONEY_EFFECT_NAME)
+        game.effect_registry.unregister_play_effects_by_name(self.MONEY_EFFECT_NAME)
 
 
 class Bandit(Action):
