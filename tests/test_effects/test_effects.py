@@ -140,7 +140,93 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.cleanup_start_effects) == 1
 
 
-def test_unregister_effects(effect_registry: EffectRegistry):
+def test_unregister_effects_by_id(effect_registry: EffectRegistry):
+    assert len(effect_registry.attack_effects) == 0
+    assert len(effect_registry.buy_effects) == 0
+    assert len(effect_registry.discard_effects) == 0
+    assert len(effect_registry.gain_effects) == 0
+    assert len(effect_registry.hand_add_effects) == 0
+    assert len(effect_registry.hand_remove_effects) == 0
+    assert len(effect_registry.play_effects) == 0
+    assert len(effect_registry.reveal_effects) == 0
+    assert len(effect_registry.shuffle_effects) == 0
+    assert len(effect_registry.trash_effects) == 0
+    assert len(effect_registry.turn_start_effects) == 0
+    assert len(effect_registry.turn_end_effects) == 0
+    assert len(effect_registry.cleanup_start_effects) == 0
+
+    attack_effect = AttackEffectTest()
+    buy_effect = PlayerCardGameEffectTest()
+    discard_effect = PlayerCardGameEffectTest()
+    gain_effect = PlayerCardGameEffectTest()
+    hand_add_effect = PlayerCardGameEffectTest()
+    hand_remove_effect = PlayerCardGameEffectTest()
+    play_effect = PlayerCardGameEffectTest()
+    reveal_effect = PlayerCardGameEffectTest()
+    shuffle_effect = PlayerGameEffectTest()
+    trash_effect = PlayerCardGameEffectTest()
+    turn_start_effect = PlayerGameEffectTest()
+    turn_end_effect = PlayerGameEffectTest()
+    cleanup_start_effect = PlayerGameEffectTest()
+
+    effect_registry.register_attack_effect(attack_effect)
+    effect_registry.register_buy_effect(buy_effect)
+    effect_registry.register_discard_effect(discard_effect)
+    effect_registry.register_gain_effect(gain_effect)
+    effect_registry.register_hand_add_effect(hand_add_effect)
+    effect_registry.register_hand_remove_effect(hand_remove_effect)
+    effect_registry.register_play_effect(play_effect)
+    effect_registry.register_reveal_effect(reveal_effect)
+    effect_registry.register_shuffle_effect(shuffle_effect)
+    effect_registry.register_trash_effect(trash_effect)
+    effect_registry.register_turn_start_effect(turn_start_effect)
+    effect_registry.register_turn_end_effect(turn_end_effect)
+    effect_registry.register_cleanup_start_effect(cleanup_start_effect)
+
+    assert len(effect_registry.attack_effects) == 1
+    assert len(effect_registry.buy_effects) == 1
+    assert len(effect_registry.discard_effects) == 1
+    assert len(effect_registry.gain_effects) == 1
+    assert len(effect_registry.hand_add_effects) == 1
+    assert len(effect_registry.hand_remove_effects) == 1
+    assert len(effect_registry.play_effects) == 1
+    assert len(effect_registry.reveal_effects) == 1
+    assert len(effect_registry.shuffle_effects) == 1
+    assert len(effect_registry.trash_effects) == 1
+    assert len(effect_registry.turn_start_effects) == 1
+    assert len(effect_registry.turn_end_effects) == 1
+    assert len(effect_registry.cleanup_start_effects) == 1
+
+    effect_registry.unregister_attack_effect_by_id(attack_effect.get_id())
+    effect_registry.unregister_buy_effect_by_id(buy_effect.get_id())
+    effect_registry.unregister_discard_effect_by_id(discard_effect.get_id())
+    effect_registry.unregister_gain_effect_by_id(gain_effect.get_id())
+    effect_registry.unregister_hand_add_effect_by_id(hand_add_effect.get_id())
+    effect_registry.unregister_hand_remove_effect_by_id(hand_remove_effect.get_id())
+    effect_registry.unregister_play_effect_by_id(play_effect.get_id())
+    effect_registry.unregister_reveal_effect_by_id(reveal_effect.get_id())
+    effect_registry.unregister_shuffle_effect_by_id(shuffle_effect.get_id())
+    effect_registry.unregister_trash_effect_by_id(trash_effect.get_id())
+    effect_registry.unregister_turn_start_effect_by_id(turn_start_effect.get_id())
+    effect_registry.unregister_turn_end_effect_by_id(turn_end_effect.get_id())
+    effect_registry.unregister_cleanup_start_effect_by_id(cleanup_start_effect.get_id())
+
+    assert len(effect_registry.attack_effects) == 0
+    assert len(effect_registry.buy_effects) == 0
+    assert len(effect_registry.discard_effects) == 0
+    assert len(effect_registry.gain_effects) == 0
+    assert len(effect_registry.hand_add_effects) == 0
+    assert len(effect_registry.hand_remove_effects) == 0
+    assert len(effect_registry.play_effects) == 0
+    assert len(effect_registry.reveal_effects) == 0
+    assert len(effect_registry.shuffle_effects) == 0
+    assert len(effect_registry.trash_effects) == 0
+    assert len(effect_registry.turn_start_effects) == 0
+    assert len(effect_registry.turn_end_effects) == 0
+    assert len(effect_registry.cleanup_start_effects) == 0
+
+
+def test_unregister_effects_by_name(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
