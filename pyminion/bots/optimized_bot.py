@@ -206,6 +206,8 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, binary=True)
         elif card.name == "Mining Village":
             return self.mining_village(player, game)
+        elif card.name == "Pirate":
+            return self.pirate_binary(player, game)
         elif card.name == "Sailor":
             return self.sailor_binary(prompt, player, game, relevant_cards)
         else:
@@ -371,6 +373,9 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Blockade":
             ret = self.blockade(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Pirate":
+            ret = self.pirate_gain(player, game, valid_cards)
             return [ret]
         elif card.name == "Smugglers":
             ret = self.smugglers(player, game, valid_cards)
@@ -1450,6 +1455,22 @@ class OptimizedBotDecider(BotDecider):
             return NativeVillage.Choice.AddToMat
 
         return NativeVillage.Choice.GetFromMat
+
+    def pirate_binary(
+        self,
+        player: Player,
+        game: "Game",
+    ) -> bool:
+        return True
+
+    def pirate_gain(
+        self,
+        player: Player,
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        most_expensive_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+        return most_expensive_card
 
     def sailor_binary(
         self,

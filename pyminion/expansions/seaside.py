@@ -12,6 +12,7 @@ from pyminion.duration import (
 from pyminion.effects import (
     AttackEffect,
     EffectAction,
+    FuncPlayerCardGameEffect,
     FuncPlayerGameEffect,
     PlayerCardGameEffect,
     PlayerGameEffect,
@@ -637,6 +638,124 @@ class Outpost(ActionDuration):
         player.take_extra_turn = True
 
 
+class Pirate(ActionDuration):
+    """
+    At the start of your next turn, gain a Treasure costing up to $6 to your hand.
+
+    When any player gains a Treasure, you may play this from your hand.
+
+    """
+
+    class GainTreasureEffect(PlayerGameEffect):
+        def __init__(self, player: Player, card: Card):
+            super().__init__("Pirate: Gain Treasure")
+            self.player = player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.HandAddCards
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            return player is self.player
+
+        def handler(self, player: Player, game: "Game") -> None:
+            treasure_cards = [
+                card
+                for card in game.supply.available_cards()
+                if CardType.Treasure in card.type and card.get_cost(player, game) <= 6
+            ]
+
+            gain_cards = player.decider.gain_decision(
+                "Gain a Treasure costing up to $6 to your hand: ",
+                self.card,
+                treasure_cards,
+                player,
+                game,
+                min_num_gain=1,
+                max_num_gain=1,
+            )
+            assert len(gain_cards) == 1
+            gain_card = gain_cards[0]
+
+            player.gain(gain_card, game, player.hand)
+
+            game.effect_registry.unregister_turn_start_effect_by_id(self.get_id())
+
+    class PlayEffect(PlayerCardGameEffect):
+        def __init__(self, pirate_player: Player, card: Card):
+            super().__init__(f"Pirate: {pirate_player.player_id} play")
+            self.pirate_player = pirate_player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.HandRemoveCards
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return CardType.Treasure in card.type
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            play_card = self.pirate_player.decider.binary_decision(
+                "Would you like to play Pirate? y/n: ",
+                self.card,
+                self.pirate_player,
+                game,
+            )
+
+            if not play_card:
+                return
+
+            self.pirate_player.hand.remove(self.card)
+            self.pirate_player.playmat.add(self.card)
+            self.pirate_player.exact_play(self.card, game, generic_play=False)
+
+    def __init__(self):
+        super().__init__(
+            name="Pirate",
+            cost=5,
+            type=(CardType.Action, CardType.Duration, CardType.Reaction),
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        effect = Pirate.GainTreasureEffect(player, self)
+        game.effect_registry.register_turn_start_effect(effect)
+
+    def set_up(self, game: "Game") -> None:
+        hand_add_effect = FuncPlayerCardGameEffect(
+            "Pirate: Hand Add",
+            EffectAction.Other,
+            self.on_hand_add,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_add_effect(hand_add_effect)
+
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Pirate: Hand Remove",
+            EffectAction.Other,
+            self.on_hand_remove,
+            lambda p, c, g: c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
+
+    def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
+        effect = Pirate.PlayEffect(player, self)
+        game.effect_registry.register_gain_effect(effect)
+
+    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
+        game.effect_registry.unregister_gain_effects_by_name(
+            f"Pirate: {player.player_id} play", 1
+        )
+
+
 class Sailor(ActionDuration):
     """
     +1 Action
@@ -1052,6 +1171,7 @@ merchant_ship = MerchantShip()
 monkey = Monkey()
 native_village = NativeVillage()
 outpost = Outpost()
+pirate = Pirate()
 sailor = Sailor()
 salvager = Salvager()
 sea_chart = SeaChart()
@@ -1078,6 +1198,7 @@ seaside_set: List[Card] = [
     monkey,
     native_village,
     outpost,
+    pirate,
     sailor,
     salvager,
     sea_chart,

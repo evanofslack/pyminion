@@ -60,6 +60,7 @@ from pyminion.expansions.seaside import (
     island,
     lookout,
     native_village,
+    pirate,
     sailor,
     salvager,
     sea_witch,
@@ -870,6 +871,26 @@ def test_native_village_bot(bot: OptimizedBot, game: Game):
 
     bot.play(native_village, game)
     assert len(mat) == 0
+
+
+@pytest.mark.expansions([seaside_set])
+@pytest.mark.kingdom_cards([pirate])
+def test_pirate_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(pirate)
+
+    p2.gain(silver, multiplayer_bot_game)
+    assert len(p1.playmat) == 1
+    assert p1.playmat.cards[0].name == "Pirate"
+
+    p2.start_cleanup_phase(multiplayer_bot_game)
+    p2.end_turn(multiplayer_bot_game)
+
+    p1.start_turn(multiplayer_bot_game)
+    assert len(p1.hand) == 6
+    assert "Gold" in (c.name for c in p1.hand)
 
 
 @pytest.mark.expansions([seaside_set])
