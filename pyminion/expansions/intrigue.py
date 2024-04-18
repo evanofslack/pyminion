@@ -294,7 +294,7 @@ class Diplomat(Action):
         game.effect_registry.register_attack_effect(effect)
 
     def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects_by_name(f"Diplomat: {player.player_id} attack reaction")
+        game.effect_registry.unregister_attack_effects_by_name(f"Diplomat: {player.player_id} attack reaction", 1)
 
 
 class Duke(Victory):
