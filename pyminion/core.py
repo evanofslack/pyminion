@@ -407,6 +407,17 @@ class Supply:
         return len(pile)
 
 
+def plural(word: str, count: int) -> str:
+    """
+    Makes a word plural if needed based on the count.
+
+    """
+    if count == 1:
+        return word
+
+    return word + "s"
+
+
 def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:
     """
     Returns an iterator over the action cards in a Card iterable.

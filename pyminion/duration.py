@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
-from pyminion.core import Action, Card, CardType
+from pyminion.core import Action, Card, CardType, plural
 from pyminion.effects import EffectAction, PlayerGameEffect
 from pyminion.player import Player
 
@@ -15,7 +15,6 @@ logger = logging.getLogger()
 class BasicNextTurnEffect(PlayerGameEffect):
     def __init__(
         self,
-        name: str,
         player: Player,
         card: Card,
         draw: int = 0,
@@ -24,7 +23,6 @@ class BasicNextTurnEffect(PlayerGameEffect):
         buys: int = 0,
         discard: int = 0,
     ):
-        super().__init__(name)
         self.player = player
         self.card = card
         self.draw = draw
@@ -32,6 +30,27 @@ class BasicNextTurnEffect(PlayerGameEffect):
         self.money = money
         self.buys = buys
         self.discard = discard
+        super().__init__(self._create_name())
+
+    def _create_name(self) -> str:
+        effects: List[str] = []
+        if self.draw > 0:
+            p = plural("Card", self.draw)
+            effects.append(f"+{self.draw} {p}")
+        if self.actions > 0:
+            p = plural("Action", self.actions)
+            effects.append(f"+{self.actions} {p}")
+        if self.buys > 0:
+            p = plural("Buy", self.buys)
+            effects.append(f"+{self.buys} {p}")
+        if self.money > 0:
+            effects.append(f"+${self.money}")
+        if self.discard > 0:
+            p = plural("card", self.discard)
+            effects.append(f"discard {self.discard} {p}")
+
+        name = f"{self.card.name}: " + ",".join(effects)
+        return name
 
     def get_action(self) -> EffectAction:
         if self.draw > 0 and self.discard > 0:
@@ -58,8 +77,9 @@ class BasicNextTurnEffect(PlayerGameEffect):
             if len(player.hand) <= self.discard:
                 discard_cards = player.hand.cards[:]
             else:
+                cards_str = plural("card", self.discard)
                 discard_cards = player.decider.discard_decision(
-                    prompt=f"Discard {self.discard} card(s) from your hand: ",
+                    prompt=f"Discard {self.discard} {cards_str} from your hand: ",
                     card=self.card,
                     valid_cards=player.hand.cards,
                     player=player,
@@ -97,8 +117,8 @@ class RemovePersistentCardsEffect(PlayerGameEffect):
 
 class GetSetAsideCardEffect(PlayerGameEffect):
     def __init__(self, playing_card_name: str, player: Player, cards: List[Card]):
-        plural = "card" if len(cards) == 1 else "cards"
-        name = f"{playing_card_name}: Put {plural} in hand"
+        cards_str = plural("card", len(cards))
+        name = f"{playing_card_name}: Put {cards_str} in hand"
         super().__init__(name)
         self.player = player
         self.cards = cards
@@ -150,26 +170,6 @@ class ActionDuration(Action):
         self.next_turn_money = next_turn_money
         self.next_turn_buys = next_turn_buys
         self.next_turn_discard = next_turn_discard
-
-    def _get_effect_name(self) -> str:
-        effects: List[str] = []
-        if self.next_turn_draw > 0:
-            p = "s" if self.next_turn_draw > 1 else ""
-            effects.append(f"+{self.next_turn_draw} Card{p}")
-        if self.next_turn_actions > 0:
-            p = "s" if self.next_turn_actions > 1 else ""
-            effects.append(f"+{self.next_turn_actions} Action{p}")
-        if self.next_turn_buys > 0:
-            p = "s" if self.next_turn_buys > 1 else ""
-            effects.append(f"+{self.next_turn_buys} Buys{p}")
-        if self.next_turn_money > 0:
-            effects.append(f"+${self.next_turn_money}")
-        if self.next_turn_discard > 0:
-            p = "s" if self.next_turn_discard > 1 else ""
-            effects.append(f"discard {self.next_turn_discard} card{p}")
-
-        name = f"{self.name}: " + ",".join(effects)
-        return name
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
         self.duration_play(player, game, None, 1, generic_play)
@@ -230,7 +230,6 @@ class ActionDuration(Action):
             or self.next_turn_discard > 0
         ):
             effect = BasicNextTurnEffect(
-                self._get_effect_name(),
                 player,
                 self,
                 self.next_turn_draw,

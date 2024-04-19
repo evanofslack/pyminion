@@ -2,7 +2,15 @@ from enum import IntEnum, unique
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory
+from pyminion.core import (
+    AbstractDeck,
+    Action,
+    Card,
+    CardType,
+    Treasure,
+    Victory,
+    plural,
+)
 from pyminion.duration import (
     ActionDuration,
     BasicNextTurnEffect,
@@ -44,9 +52,7 @@ class Astrolabe(Treasure):
         player.state.money += self.money
         player.state.buys += 1
 
-        effect = BasicNextTurnEffect(
-            f"{self.name}: +$1, +1 Buy", player, self, money=1, buys=1
-        )
+        effect = BasicNextTurnEffect(player, self, money=1, buys=1)
         game.effect_registry.register_turn_start_effect(effect)
 
         player.add_playmat_persistent_card(self)
@@ -121,7 +127,7 @@ class Blockade(ActionDuration):
             if card.get_cost(player, game) <= 4
         ]
         gain_cards = player.decider.gain_decision(
-            prompt="Gain a card costing up to 4 money: ",
+            prompt="Gain a card costing up to $4: ",
             card=self,
             valid_cards=valid_cards,
             player=player,
@@ -579,7 +585,7 @@ class NativeVillage(Action):
 
         mat = player.get_mat(self.name)
         mat_len = len(mat)
-        plural = "" if mat_len == 1 else "s"
+        cards_str = plural("card", mat_len)
 
         options = [
             "Put the top card of your deck onto your Native Village mat",
@@ -588,7 +594,7 @@ class NativeVillage(Action):
         if mat_len == 0:
             options.append("Put no cards from your Native Village mat into your hand")
         else:
-            s = f"Put the following card{plural} from your Native Village mat into your hand: "
+            s = f"Put the following {cards_str} from your Native Village mat into your hand: "
             s += ", ".join(c.name for c in mat)
             options.append(s)
 
@@ -603,7 +609,7 @@ class NativeVillage(Action):
         elif choice == NativeVillage.Choice.GetFromMat:
             mat.move_to(player.hand)
             logger.info(
-                f"{player} puts {mat_len} card{plural} from their Native Village mat into their hand"
+                f"{player} puts {mat_len} {cards_str} from their Native Village mat into their hand"
             )
         else:
             raise ValueError(f"Unknown native village choice '{choice}'")
