@@ -520,7 +520,7 @@ class EffectRegistry:
         """
         self.attack_effects.append(effect)
 
-    def unregister_attack_effect_by_id(self, id: int) -> None:
+    def unregister_attack_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on attacking.
 
@@ -534,7 +534,7 @@ class EffectRegistry:
         """
         self.buy_effects.append(effect)
 
-    def unregister_buy_effect_by_id(self, id: int) -> None:
+    def unregister_buy_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on buying.
 
@@ -548,7 +548,7 @@ class EffectRegistry:
         """
         self.discard_effects.append(effect)
 
-    def unregister_discard_effect_by_id(self, id: int) -> None:
+    def unregister_discard_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on discarding.
 
@@ -562,7 +562,7 @@ class EffectRegistry:
         """
         self.gain_effects.append(effect)
 
-    def unregister_gain_effect_by_id(self, id: int) -> None:
+    def unregister_gain_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on gaining.
 
@@ -576,7 +576,7 @@ class EffectRegistry:
         """
         self.hand_add_effects.append(effect)
 
-    def unregister_hand_add_effect_by_id(self, id: int) -> None:
+    def unregister_hand_add_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on hand adding.
 
@@ -590,7 +590,7 @@ class EffectRegistry:
         """
         self.hand_remove_effects.append(effect)
 
-    def unregister_hand_remove_effect_by_id(self, id: int) -> None:
+    def unregister_hand_remove_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on hand removing.
 
@@ -604,7 +604,7 @@ class EffectRegistry:
         """
         self.play_effects.append(effect)
 
-    def unregister_play_effect_by_id(self, id: int) -> None:
+    def unregister_play_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on playing.
 
@@ -618,7 +618,7 @@ class EffectRegistry:
         """
         self.reveal_effects.append(effect)
 
-    def unregister_reveal_effect_by_id(self, id: int) -> None:
+    def unregister_reveal_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on revealing.
 
@@ -632,7 +632,7 @@ class EffectRegistry:
         """
         self.shuffle_effects.append(effect)
 
-    def unregister_shuffle_effect_by_id(self, id: int) -> None:
+    def unregister_shuffle_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on shuffling.
 
@@ -646,7 +646,7 @@ class EffectRegistry:
         """
         self.trash_effects.append(effect)
 
-    def unregister_trash_effect_by_id(self, id: int) -> None:
+    def unregister_trash_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on trashing.
 
@@ -660,7 +660,7 @@ class EffectRegistry:
         """
         self.turn_start_effects.append(effect)
 
-    def unregister_turn_start_effect_by_id(self, id: int) -> None:
+    def unregister_turn_start_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on turn start.
 
@@ -674,7 +674,7 @@ class EffectRegistry:
         """
         self.turn_end_effects.append(effect)
 
-    def unregister_turn_end_effect_by_id(self, id: int) -> None:
+    def unregister_turn_end_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on turn end.
 
@@ -688,7 +688,7 @@ class EffectRegistry:
         """
         self.cleanup_start_effects.append(effect)
 
-    def unregister_cleanup_start_effect_by_id(self, id: int) -> None:
+    def unregister_cleanup_start_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on clean-up start.
 

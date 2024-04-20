@@ -694,7 +694,7 @@ class Moat(Action):
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Moat: Hand Remove",
             EffectAction.Other,
-            lambda p, c, g: g.effect_registry.unregister_attack_effect_by_id(
+            lambda p, c, g: g.effect_registry.unregister_attack_effect(
                 effect.get_id()
             ),
             lambda p, c, g: p is player and c.name == self.name,
@@ -723,7 +723,7 @@ class Merchant(Action):
 
         def handler(self, player: Player, card: Card, game: "Game") -> None:
             player.state.money += 1
-            game.effect_registry.unregister_play_effect_by_id(self.get_id())
+            game.effect_registry.unregister_play_effect(self.get_id())
 
     def __init__(
         self,
@@ -747,7 +747,7 @@ class Merchant(Action):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister money",
             EffectAction.Last,
-            lambda p, g: g.effect_registry.unregister_play_effect_by_id(
+            lambda p, g: g.effect_registry.unregister_play_effect(
                 money_effect.get_id()
             ),
             lambda p, g: p is player,

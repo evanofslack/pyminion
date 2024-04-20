@@ -92,7 +92,7 @@ class BasicNextTurnEffect(PlayerGameEffect):
             for discard_card in discard_cards:
                 player.discard(game, discard_card)
 
-        game.effect_registry.unregister_turn_start_effect_by_id(self.get_id())
+        game.effect_registry.unregister_turn_start_effect(self.get_id())
 
 
 class RemovePersistentCardsEffect(PlayerGameEffect):
@@ -112,7 +112,7 @@ class RemovePersistentCardsEffect(PlayerGameEffect):
         for card in self.cards:
             player.remove_playmat_persistent_card(card)
 
-        game.effect_registry.unregister_turn_start_effect_by_id(self.get_id())
+        game.effect_registry.unregister_turn_start_effect(self.get_id())
 
 
 class GetSetAsideCardEffect(PlayerGameEffect):
@@ -139,7 +139,7 @@ class GetSetAsideCardEffect(PlayerGameEffect):
         else:
             logger.info(f"{player} puts cards in hand: {self.cards}")
 
-        game.effect_registry.unregister_turn_start_effect_by_id(self.get_id())
+        game.effect_registry.unregister_turn_start_effect(self.get_id())
 
 
 class ActionDuration(Action):

@@ -153,7 +153,7 @@ class Blockade(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Curse Effect",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_gain_effect_by_id(
+            lambda p, g: g.effect_registry.unregister_gain_effect(
                 curse_effect.get_id()
             ),
             lambda p, g: p is player,
@@ -209,14 +209,14 @@ class Corsair(ActionDuration):
             player.trash(card, game, player.playmat)
 
             # unregister this effect
-            game.effect_registry.unregister_play_effect_by_id(self.get_id())
+            game.effect_registry.unregister_play_effect(self.get_id())
 
             # check if there are other corsair effects for this player and unregister them
             for effect in game.effect_registry.play_effects:
                 if effect.get_name() == self.get_name():
                     trash_effect = cast(Corsair.TrashEffect, effect)
                     if trash_effect.player is player:
-                        game.effect_registry.unregister_play_effect_by_id(
+                        game.effect_registry.unregister_play_effect(
                             effect.get_id()
                         )
 
@@ -258,7 +258,7 @@ class Corsair(ActionDuration):
     @staticmethod
     def _unregister_effects(effect_ids: List[int], game: "Game") -> None:
         for effect_id in effect_ids:
-            game.effect_registry.unregister_play_effect_by_id(effect_id)
+            game.effect_registry.unregister_play_effect(effect_id)
 
 
 class Cutpurse(Action):
@@ -488,7 +488,7 @@ class Lighthouse(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"Unregister {lighthouse.name} Block",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_attack_effect_by_id(
+            lambda p, g: g.effect_registry.unregister_attack_effect(
                 block_effect.get_id()
             ),
             lambda p, g: p is player,
@@ -633,7 +633,7 @@ class Monkey(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Draw",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_gain_effect_by_id(
+            lambda p, g: g.effect_registry.unregister_gain_effect(
                 draw_effect.get_id()
             ),
             lambda p, g: p is player,
@@ -766,7 +766,7 @@ class Pirate(ActionDuration):
 
             player.gain(gain_card, game, player.hand)
 
-            game.effect_registry.unregister_turn_start_effect_by_id(self.get_id())
+            game.effect_registry.unregister_turn_start_effect(self.get_id())
 
     class PlayEffect(PlayerCardGameEffect):
         def __init__(self, pirate_player: Player, card: Card):
@@ -832,7 +832,7 @@ class Pirate(ActionDuration):
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Pirate: Hand Remove",
             EffectAction.Other,
-            lambda p, c, g: g.effect_registry.unregister_gain_effect_by_id(
+            lambda p, c, g: g.effect_registry.unregister_gain_effect(
                 effect.get_id()
             ),
             lambda p, c, g: p is player and c.name == self.name,
@@ -960,7 +960,7 @@ class Sailor(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister trash",
             EffectAction.Last,
-            lambda p, g: g.effect_registry.unregister_turn_start_effect_by_id(
+            lambda p, g: g.effect_registry.unregister_turn_start_effect(
                 trash_effect.get_id()
             ),
             lambda p, g: p is player,

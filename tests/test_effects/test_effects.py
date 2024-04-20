@@ -197,19 +197,19 @@ def test_unregister_effects_by_id(effect_registry: EffectRegistry):
     assert len(effect_registry.turn_end_effects) == 1
     assert len(effect_registry.cleanup_start_effects) == 1
 
-    effect_registry.unregister_attack_effect_by_id(attack_effect.get_id())
-    effect_registry.unregister_buy_effect_by_id(buy_effect.get_id())
-    effect_registry.unregister_discard_effect_by_id(discard_effect.get_id())
-    effect_registry.unregister_gain_effect_by_id(gain_effect.get_id())
-    effect_registry.unregister_hand_add_effect_by_id(hand_add_effect.get_id())
-    effect_registry.unregister_hand_remove_effect_by_id(hand_remove_effect.get_id())
-    effect_registry.unregister_play_effect_by_id(play_effect.get_id())
-    effect_registry.unregister_reveal_effect_by_id(reveal_effect.get_id())
-    effect_registry.unregister_shuffle_effect_by_id(shuffle_effect.get_id())
-    effect_registry.unregister_trash_effect_by_id(trash_effect.get_id())
-    effect_registry.unregister_turn_start_effect_by_id(turn_start_effect.get_id())
-    effect_registry.unregister_turn_end_effect_by_id(turn_end_effect.get_id())
-    effect_registry.unregister_cleanup_start_effect_by_id(cleanup_start_effect.get_id())
+    effect_registry.unregister_attack_effect(attack_effect.get_id())
+    effect_registry.unregister_buy_effect(buy_effect.get_id())
+    effect_registry.unregister_discard_effect(discard_effect.get_id())
+    effect_registry.unregister_gain_effect(gain_effect.get_id())
+    effect_registry.unregister_hand_add_effect(hand_add_effect.get_id())
+    effect_registry.unregister_hand_remove_effect(hand_remove_effect.get_id())
+    effect_registry.unregister_play_effect(play_effect.get_id())
+    effect_registry.unregister_reveal_effect(reveal_effect.get_id())
+    effect_registry.unregister_shuffle_effect(shuffle_effect.get_id())
+    effect_registry.unregister_trash_effect(trash_effect.get_id())
+    effect_registry.unregister_turn_start_effect(turn_start_effect.get_id())
+    effect_registry.unregister_turn_end_effect(turn_end_effect.get_id())
+    effect_registry.unregister_cleanup_start_effect(cleanup_start_effect.get_id())
 
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0

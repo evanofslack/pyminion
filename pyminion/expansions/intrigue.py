@@ -288,7 +288,7 @@ class Diplomat(Action):
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Diplomat: Hand Remove",
             EffectAction.Other,
-            lambda p, c, g: g.effect_registry.unregister_attack_effect_by_id(
+            lambda p, c, g: g.effect_registry.unregister_attack_effect(
                 effect.get_id()
             ),
             lambda p, c, g: p is player and c.name == self.name,
