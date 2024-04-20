@@ -825,22 +825,19 @@ class Pirate(ActionDuration):
         )
         game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        hand_remove_effect = FuncPlayerCardGameEffect(
-            "Pirate: Hand Remove",
-            EffectAction.Other,
-            self.on_hand_remove,
-            lambda p, c, g: c.name == self.name,
-        )
-        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
-
     def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
         effect = Pirate.PlayEffect(player, self)
         game.effect_registry.register_gain_effect(effect)
 
-    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_gain_effects_by_name(
-            f"Pirate: {player.player_id} play", 1
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Pirate: Hand Remove",
+            EffectAction.Other,
+            lambda p, c, g: g.effect_registry.unregister_gain_effect_by_id(
+                effect.get_id()
+            ),
+            lambda p, c, g: p is player and c.name == self.name,
         )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
 
 class Sailor(ActionDuration):

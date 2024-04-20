@@ -687,20 +687,19 @@ class Moat(Action):
         )
         game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        hand_remove_effect = FuncPlayerCardGameEffect(
-            "Moat: Hand Remove",
-            EffectAction.Other,
-            self.on_hand_remove,
-            lambda p, c, g: c.name == self.name,
-        )
-        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
-
     def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
         effect = Moat.MoatAttackEffect(player)
         game.effect_registry.register_attack_effect(effect)
 
-    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects_by_name(f"Moat: {player.player_id} block attack", 1)
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Remove",
+            EffectAction.Other,
+            lambda p, c, g: g.effect_registry.unregister_attack_effect_by_id(
+                effect.get_id()
+            ),
+            lambda p, c, g: p is player and c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
 
 class Merchant(Action):
@@ -711,22 +710,20 @@ class Merchant(Action):
 
     """
 
-    MONEY_EFFECT_NAME = "Merchant: +$1"
-
     class MoneyEffect(PlayerCardGameEffect):
-        def __init__(self):
-            super().__init__(Merchant.MONEY_EFFECT_NAME)
-            self.first_play = True
+        def __init__(self, player: Player):
+            super().__init__("Merchant: +$1")
+            self.player = player
 
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
-            return card.name == "Silver" and self.first_play
+            return player is self.player and card.name == "Silver"
 
         def handler(self, player: Player, card: Card, game: "Game") -> None:
             player.state.money += 1
-            self.first_play = False
+            game.effect_registry.unregister_play_effect_by_id(self.get_id())
 
     def __init__(
         self,
@@ -744,14 +741,18 @@ class Merchant(Action):
 
         super().play(player, game, generic_play)
 
-        money_effect = Merchant.MoneyEffect()
+        money_effect = Merchant.MoneyEffect(player)
         game.effect_registry.register_play_effect(money_effect)
 
-        reset_effect = FuncPlayerGameEffect("Merchant: reset", EffectAction.Other, self.remove_play_handlers)
-        game.effect_registry.register_turn_end_effect(reset_effect)
-
-    def remove_play_handlers(self, player: "Player", game: "Game") -> None:
-        game.effect_registry.unregister_play_effects_by_name(self.MONEY_EFFECT_NAME)
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister money",
+            EffectAction.Last,
+            lambda p, g: g.effect_registry.unregister_play_effect_by_id(
+                money_effect.get_id()
+            ),
+            lambda p, g: p is player,
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
 
 
 class Bandit(Action):

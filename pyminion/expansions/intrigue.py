@@ -281,20 +281,19 @@ class Diplomat(Action):
         )
         game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        hand_remove_effect = FuncPlayerCardGameEffect(
-            "Diplomat: Hand Remove",
-            EffectAction.Other,
-            self.on_hand_remove,
-            lambda p, c, g: c.name == self.name,
-        )
-        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
-
     def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
         effect = Diplomat.DiplomatAttackEffect(player)
         game.effect_registry.register_attack_effect(effect)
 
-    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects_by_name(f"Diplomat: {player.player_id} attack reaction", 1)
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Remove",
+            EffectAction.Other,
+            lambda p, c, g: g.effect_registry.unregister_attack_effect_by_id(
+                effect.get_id()
+            ),
+            lambda p, c, g: p is player and c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
 
 class Duke(Victory):
