@@ -82,6 +82,7 @@ def test_lighthouse_duration_attack(multiplayer_game: Game, monkeypatch):
     p1.start_cleanup_phase(multiplayer_game)
     p1.end_turn(multiplayer_game)
 
+    multiplayer_game.current_player = p2
     p2.start_turn(multiplayer_game)
 
     p2.play(blockade, multiplayer_game)
@@ -90,8 +91,36 @@ def test_lighthouse_duration_attack(multiplayer_game: Game, monkeypatch):
     p2.start_cleanup_phase(multiplayer_game)
     p2.end_turn(multiplayer_game)
 
+    multiplayer_game.current_player = p1
     p1.start_turn(multiplayer_game)
 
     p1.gain(smithy, multiplayer_game)
 
     assert "Curse" not in (c.name for c in p1.discard_pile)
+
+
+@pytest.mark.kingdom_cards([smithy])
+def test_lighthouse_duration_attack_no_block(multiplayer_game: Game, monkeypatch):
+    responses = ["smithy"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    p1 = multiplayer_game.players[0]
+    p2 = multiplayer_game.players[1]
+
+    p2.hand.add(blockade)
+
+    p2.play(blockade, multiplayer_game)
+    assert len(responses) == 0
+
+    p2.start_cleanup_phase(multiplayer_game)
+    p2.end_turn(multiplayer_game)
+
+    multiplayer_game.current_player = p1
+    p1.start_turn(multiplayer_game)
+
+    p1.hand.add(lighthouse)
+    p1.play(lighthouse, multiplayer_game)
+
+    p1.gain(smithy, multiplayer_game)
+
+    assert "Curse" in (c.name for c in p1.discard_pile)
