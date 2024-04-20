@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, cast
 
 from pyminion.core import (
     AbstractDeck,
@@ -181,6 +181,84 @@ class Caravan(ActionDuration):
             actions=1,
             next_turn_draw=1,
         )
+
+
+class Corsair(ActionDuration):
+    """
+    +$2
+
+    At the start of your next turn, +1 Card. Until then, each other player
+    trashes the first Silver or Gold they play each turn.
+
+    """
+
+    class TrashEffect(PlayerCardGameEffect):
+        NAME = "Corsair: Trash Silver or Gold"
+
+        def __init__(self, player: Player):
+            super().__init__(Corsair.TrashEffect.NAME)
+            self.player = player
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+            return player is self.player and card.name in {"Silver", "Gold"}
+
+        def handler(self, player: Player, card: Card, game: "Game") -> None:
+            player.trash(card, game, player.playmat)
+
+            # unregister this effect
+            game.effect_registry.unregister_play_effect_by_id(self.get_id())
+
+            # check if there are other corsair effects for this player and unregister them
+            for effect in game.effect_registry.play_effects:
+                if effect.get_name() == self.get_name():
+                    trash_effect = cast(Corsair.TrashEffect, effect)
+                    if trash_effect.player is player:
+                        game.effect_registry.unregister_play_effect_by_id(
+                            effect.get_id()
+                        )
+
+    def __init__(self):
+        super().__init__(
+            name="Corsair",
+            cost=5,
+            type=(CardType.Action, CardType.Duration, CardType.Attack),
+            money=2,
+            next_turn_draw=1,
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        super().duration_play(player, game, multi_play_card, count, generic_play)
+
+        effect_ids: List[int] = []
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
+                effect = Corsair.TrashEffect(opponent)
+                game.effect_registry.register_play_effect(effect)
+                effect_ids.append(effect.get_id())
+
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister Trash Effects",
+            EffectAction.First,
+            lambda p, g: Corsair._unregister_effects(effect_ids, g),
+            lambda p, g: p is player,
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
+
+    @staticmethod
+    def _unregister_effects(effect_ids: List[int], game: "Game") -> None:
+        for effect_id in effect_ids:
+            game.effect_registry.unregister_play_effect_by_id(effect_id)
 
 
 class Cutpurse(Action):
@@ -1170,6 +1248,7 @@ astrolabe = Astrolabe()
 bazaar = Bazaar()
 blockade = Blockade()
 caravan = Caravan()
+corsair = Corsair()
 cutpurse = Cutpurse()
 fishing_village = FishingVillage()
 haven = Haven()
@@ -1197,6 +1276,7 @@ seaside_set: List[Card] = [
     bazaar,
     blockade,
     caravan,
+    corsair,
     cutpurse,
     fishing_village,
     haven,

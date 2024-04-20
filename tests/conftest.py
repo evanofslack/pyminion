@@ -190,6 +190,35 @@ def multiplayer_game(request):
 
 
 @pytest.fixture
+def multiplayer4_game(request):
+    expansions_marker = request.node.get_closest_marker("expansions")
+    if expansions_marker is None:
+        expansions = [base_set]
+    else:
+        expansions = expansions_marker.args[0]
+
+    marker = request.node.get_closest_marker("kingdom_cards")
+    if marker is None:
+        kingdom_cards = []
+    else:
+        kingdom_cards = marker.args[0]
+
+    human1 = Human(player_id="human_1")
+    human2 = Human(player_id="human_2")
+    human3 = Human(player_id="human_3")
+    human4 = Human(player_id="human_4")
+
+    game = Game(
+        players=[human1, human2, human3, human4],
+        expansions=expansions,
+        kingdom_cards=kingdom_cards,
+    )
+    game.start()
+
+    return game
+
+
+@pytest.fixture
 def multiplayer_bot_game(request):
     expansions_marker = request.node.get_closest_marker("expansions")
     if expansions_marker is None:
