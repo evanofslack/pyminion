@@ -812,9 +812,11 @@ def test_wishing_well_bot(bot: OptimizedBot, game: Game):
     assert bot.hand.cards[1].name == "Copper"
 
 
-def test_blockade_bot(bot: OptimizedBot, game: Game):
+def test_blockade_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+
     bot.hand.add(blockade)
-    bot.play(blockade, game)
+    bot.play(blockade, multiplayer_bot_game)
     assert len(bot.set_aside) == 1
     assert bot.set_aside.cards[-1].name == "Silver"
 

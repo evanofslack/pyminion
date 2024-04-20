@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 from pyminion.core import (
     AbstractDeck,
@@ -83,9 +83,9 @@ class Blockade(ActionDuration):
     """
 
     class CurseEffect(PlayerCardGameEffect):
-        def __init__(self, player: Player, card: Card):
+        def __init__(self, affected_players: Iterable[Player], card: Card):
             super().__init__(f"{blockade.name}: Gain curse")
-            self.player = player
+            self.affected_players = set(affected_players)
             self.card = card
 
         def get_action(self) -> EffectAction:
@@ -93,7 +93,7 @@ class Blockade(ActionDuration):
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
             return (
-                player is not self.player
+                player in self.affected_players
                 and player is game.current_player
                 and card.name == self.card.name
                 and game.supply.pile_length("Curse") > 0
@@ -143,7 +143,11 @@ class Blockade(ActionDuration):
         get_set_aside_effect = GetSetAsideCardEffect(self.name, player, gain_cards)
         game.effect_registry.register_turn_start_effect(get_set_aside_effect)
 
-        curse_effect = Blockade.CurseEffect(player, gain_card)
+        affected_players = (
+            p for p in game.get_opponents(player) if p.is_attacked(player, self, game)
+        )
+
+        curse_effect = Blockade.CurseEffect(affected_players, gain_card)
         game.effect_registry.register_gain_effect(curse_effect)
 
         unregister_effect = FuncPlayerGameEffect(

@@ -1,7 +1,8 @@
 from pyminion.core import DeckCounter
-from pyminion.expansions.base import curse, witch
-from pyminion.expansions.seaside import Lighthouse, lighthouse
+from pyminion.expansions.base import curse, smithy, witch
+from pyminion.expansions.seaside import Lighthouse, blockade, lighthouse
 from pyminion.game import Game
+import pytest
 
 
 def test_lighthouse(multiplayer_game: Game):
@@ -62,3 +63,35 @@ def test_lighthouse(multiplayer_game: Game):
     witch_player.play(witch, multiplayer_game)
     counter = DeckCounter(lighthouse_player.discard_pile.cards)
     assert counter[curse] == 1
+
+
+@pytest.mark.kingdom_cards([smithy])
+def test_lighthouse_duration_attack(multiplayer_game: Game, monkeypatch):
+    responses = ["smithy"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    p1 = multiplayer_game.players[0]
+    p2 = multiplayer_game.players[1]
+
+    p1.hand.add(lighthouse)
+
+    p2.hand.add(blockade)
+
+    p1.play(lighthouse, multiplayer_game)
+
+    p1.start_cleanup_phase(multiplayer_game)
+    p1.end_turn(multiplayer_game)
+
+    p2.start_turn(multiplayer_game)
+
+    p2.play(blockade, multiplayer_game)
+    assert len(responses) == 0
+
+    p2.start_cleanup_phase(multiplayer_game)
+    p2.end_turn(multiplayer_game)
+
+    p1.start_turn(multiplayer_game)
+
+    p1.gain(smithy, multiplayer_game)
+
+    assert "Curse" not in (c.name for c in p1.discard_pile)
