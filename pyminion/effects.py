@@ -356,22 +356,6 @@ class EffectRegistry:
                 return
             i += 1
 
-    def _unregister_effects_by_name(
-            self,
-            name: str,
-            effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect], List[AttackEffect]],
-            max_unregister: int,
-    ) -> None:
-        unregister_count = 0
-        i = 0
-        while i < len(effect_list) and (max_unregister < 0 or unregister_count < max_unregister):
-            effect = effect_list[i]
-            if effect.get_name() == name:
-                effect_list.pop(i)
-                unregister_count += 1
-            else:
-                i += 1
-
     def on_attack(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         """
         Trigger attacking effects.
@@ -543,13 +527,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.attack_effects)
 
-    def unregister_attack_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on attacking.
-
-        """
-        self._unregister_effects_by_name(name, self.attack_effects, max_unregister)
-
     def register_buy_effect(self, effect: PlayerCardGameEffect) -> None:
         """
         Register an effect to be triggered on buying.
@@ -563,13 +540,6 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.buy_effects)
-
-    def unregister_buy_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on buying.
-
-        """
-        self._unregister_effects_by_name(name, self.buy_effects, max_unregister)
 
     def register_discard_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -585,13 +555,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.discard_effects)
 
-    def unregister_discard_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on discarding.
-
-        """
-        self._unregister_effects_by_name(name, self.discard_effects, max_unregister)
-
     def register_gain_effect(self, effect: PlayerCardGameEffect) -> None:
         """
         Register an effect to be triggered on gaining.
@@ -605,13 +568,6 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.gain_effects)
-
-    def unregister_gain_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on gaining.
-
-        """
-        self._unregister_effects_by_name(name, self.gain_effects, max_unregister)
 
     def register_hand_add_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -627,13 +583,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.hand_add_effects)
 
-    def unregister_hand_add_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on hand adding.
-
-        """
-        self._unregister_effects_by_name(name, self.hand_add_effects, max_unregister)
-
     def register_hand_remove_effect(self, effect: PlayerCardGameEffect) -> None:
         """
         Register an effect to be triggered on hand removing.
@@ -647,13 +596,6 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.hand_remove_effects)
-
-    def unregister_hand_remove_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on hand removing.
-
-        """
-        self._unregister_effects_by_name(name, self.hand_remove_effects, max_unregister)
 
     def register_play_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -669,13 +611,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.play_effects)
 
-    def unregister_play_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on playing.
-
-        """
-        self._unregister_effects_by_name(name, self.play_effects, max_unregister)
-
     def register_reveal_effect(self, effect: PlayerCardGameEffect) -> None:
         """
         Register an effect to be triggered on revealing.
@@ -689,13 +624,6 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.reveal_effects)
-
-    def unregister_reveal_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on revealing.
-
-        """
-        self._unregister_effects_by_name(name, self.reveal_effects, max_unregister)
 
     def register_shuffle_effect(self, effect: PlayerGameEffect) -> None:
         """
@@ -711,13 +639,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.shuffle_effects)
 
-    def unregister_shuffle_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on shuffling.
-
-        """
-        self._unregister_effects_by_name(name, self.shuffle_effects, max_unregister)
-
     def register_trash_effect(self, effect: PlayerCardGameEffect) -> None:
         """
         Register an effect to be triggered on trashing.
@@ -731,13 +652,6 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.trash_effects)
-
-    def unregister_trash_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on trashing.
-
-        """
-        self._unregister_effects_by_name(name, self.trash_effects, max_unregister)
 
     def register_turn_start_effect(self, effect: PlayerGameEffect) -> None:
         """
@@ -753,13 +667,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.turn_start_effects)
 
-    def unregister_turn_start_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on turn start.
-
-        """
-        self._unregister_effects_by_name(name, self.turn_start_effects, max_unregister)
-
     def register_turn_end_effect(self, effect: PlayerGameEffect) -> None:
         """
         Register an effect to be triggered on turn end.
@@ -774,13 +681,6 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.turn_end_effects)
 
-    def unregister_turn_end_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on turn end.
-
-        """
-        self._unregister_effects_by_name(name, self.turn_end_effects, max_unregister)
-
     def register_cleanup_start_effect(self, effect: PlayerGameEffect) -> None:
         """
         Register an effect to be triggered on clean-up start.
@@ -794,10 +694,3 @@ class EffectRegistry:
 
         """
         self._unregister_effect_by_id(id, self.cleanup_start_effects)
-
-    def unregister_cleanup_start_effects_by_name(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on clean-up start.
-
-        """
-        self._unregister_effects_by_name(name, self.cleanup_start_effects, max_unregister)
