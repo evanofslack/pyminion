@@ -27,11 +27,6 @@ class Copper(Treasure):
         num_players = len(game.players)
         return 60 - (7 * num_players)
 
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
-
 
 class Silver(Treasure):
     def __init__(
@@ -46,11 +41,6 @@ class Silver(Treasure):
     def get_pile_starting_count(self, game: "Game") -> int:
         return 40
 
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
-
 
 class Gold(Treasure):
     def __init__(
@@ -64,11 +54,6 @@ class Gold(Treasure):
 
     def get_pile_starting_count(self, game: "Game") -> int:
         return 30
-
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
 
 
 class Estate(Victory):

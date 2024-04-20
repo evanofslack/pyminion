@@ -91,7 +91,9 @@ class Treasure(Card):
         Specific play method unique to each treasure card
 
         """
-        raise NotImplementedError(f"Play method must be implemented for {self.name}")
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
 
 
 class Action(Card):

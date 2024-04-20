@@ -47,9 +47,8 @@ class Astrolabe(Treasure):
         super().__init__("Astrolabe", 3, (CardType.Treasure, CardType.Duration), 1)
 
     def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
+        super().play(player, game)
+
         player.state.buys += 1
 
         effect = BasicNextTurnEffect(player, self, money=1, buys=1)

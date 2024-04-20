@@ -324,11 +324,6 @@ class Harem(Treasure, Victory):
             money=2,
         )
 
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
-
     def score(self, player: Player) -> int:
         vp = 2
         return vp
