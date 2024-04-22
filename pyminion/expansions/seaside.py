@@ -216,9 +216,7 @@ class Corsair(ActionDuration):
                 if effect.get_name() == self.get_name():
                     trash_effect = cast(Corsair.TrashEffect, effect)
                     if trash_effect.player is player:
-                        game.effect_registry.unregister_play_effect(
-                            effect.get_id()
-                        )
+                        game.effect_registry.unregister_play_effect(effect.get_id())
 
     def __init__(self):
         super().__init__(
@@ -633,9 +631,7 @@ class Monkey(ActionDuration):
         unregister_effect = FuncPlayerGameEffect(
             f"{self.name}: Unregister Draw",
             EffectAction.First,
-            lambda p, g: g.effect_registry.unregister_gain_effect(
-                draw_effect.get_id()
-            ),
+            lambda p, g: g.effect_registry.unregister_gain_effect(draw_effect.get_id()),
             lambda p, g: p is player,
         )
         game.effect_registry.register_turn_start_effect(unregister_effect)
@@ -832,9 +828,7 @@ class Pirate(ActionDuration):
         hand_remove_effect = FuncPlayerCardGameEffect(
             "Pirate: Hand Remove",
             EffectAction.Other,
-            lambda p, c, g: g.effect_registry.unregister_gain_effect(
-                effect.get_id()
-            ),
+            lambda p, c, g: g.effect_registry.unregister_gain_effect(effect.get_id()),
             lambda p, c, g: p is player and c.name == self.name,
         )
         game.effect_registry.register_hand_remove_effect(hand_remove_effect)
@@ -1128,6 +1122,49 @@ class Smugglers(Action):
         player.gain(gain_card, game)
 
 
+class Tactician(ActionDuration):
+    """
+    If you have at least one card in hand: Discard your hand, and at
+    the start of your next turn, +5 Cards, +1 Action, and +1 Buy.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Tactician",
+            cost=5,
+            type=(CardType.Action, CardType.Duration),
+        )
+
+    def duration_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Optional[Card],
+        count: int,
+        generic_play: bool = True,
+    ) -> None:
+
+        Action.play(self, player, game, generic_play)
+
+        if len(player.hand) == 0:
+            return
+
+        while len(player.hand) > 0:
+            player.discard(game, player.hand.cards[0])
+
+        self.persist(player, game, multi_play_card, count)
+
+        effect = BasicNextTurnEffect(
+            player,
+            self,
+            draw=5,
+            actions=1,
+            buys=1,
+        )
+        game.effect_registry.register_turn_start_effect(effect)
+
+
 class TidePools(ActionDuration):
     """
     +3 Cards
@@ -1262,6 +1299,7 @@ salvager = Salvager()
 sea_chart = SeaChart()
 sea_witch = SeaWitch()
 smugglers = Smugglers()
+tactician = Tactician()
 tide_pools = TidePools()
 treasure_map = TreasureMap()
 warehouse = Warehouse()
@@ -1290,6 +1328,7 @@ seaside_set: List[Card] = [
     sea_chart,
     sea_witch,
     smugglers,
+    tactician,
     tide_pools,
     treasure_map,
     warehouse,
