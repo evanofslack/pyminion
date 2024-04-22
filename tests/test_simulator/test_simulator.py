@@ -11,4 +11,6 @@ def test_sim():
         players=[bm, bm_ultimate], expansions=[base_set], kingdom_cards=[smithy]
     )
     sim = Simulator(game, iterations=2)
-    sim.run()
+    result = sim.run()
+
+    assert "ran 2 games" in str(result)
