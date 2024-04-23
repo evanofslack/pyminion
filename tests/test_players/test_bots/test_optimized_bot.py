@@ -3,6 +3,7 @@ from pyminion.core import CardType, DeckCounter
 from pyminion.expansions.base import (
     Smithy,
     artisan,
+    base_set,
     bureaucrat,
     cellar,
     chapel,
@@ -15,6 +16,7 @@ from pyminion.expansions.base import (
     library,
     militia,
     mine,
+    moat,
     moneylender,
     poacher,
     province,
@@ -232,6 +234,22 @@ def test_mine_bot_gold(bot: OptimizedBot, game: Game):
     bot.hand.add(gold)
     bot.play(mine, game)
     assert bot.hand.cards[-1].name == "Gold"
+
+
+@pytest.mark.expansions([base_set])
+@pytest.mark.kingdom_cards([moat])
+def test_moat(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(moat)
+    p2.hand.add(militia)
+
+    assert len(p1.hand) == 6
+
+    p2.play(militia, multiplayer_bot_game)
+
+    assert len(p1.hand) == 6
 
 
 def test_moneylender_bot(bot: OptimizedBot, game: Game):
@@ -834,6 +852,9 @@ def test_haven_bot(bot: OptimizedBot, game: Game):
 def test_island_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(island)
     bot.hand.add(estate)
+    bot.hand.add(copper)
+    bot.hand.add(curse)
+    bot.hand.add(haven)
 
     bot.play(island, game)
     mat = bot.get_mat("Island")

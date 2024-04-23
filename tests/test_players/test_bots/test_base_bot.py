@@ -3,12 +3,29 @@ from typing import List
 
 from pyminion.bots.bot import Bot
 from pyminion.core import Card
+from pyminion.effects import PlayerGameEffect
 from pyminion.expansions.base import copper, estate, gold, witch
 from pyminion.game import Game
 
 
+def test_effects_order_decision(base_bot: Bot, game: Game):
+    effect = PlayerGameEffect("test")
+    assert base_bot.decider.effects_order_decision([effect], base_bot, game) == 0
+
+
 def test_binary_decision(base_bot: Bot, game: Game):
     assert base_bot.decider.binary_decision(prompt="test", card=copper, player=base_bot, game=game, relevant_cards=None)
+
+
+def test_multiple_option_decision(base_bot: Bot, game: Game):
+    decision = base_bot.decider.multiple_option_decision(
+        copper,
+        ["A", "B", "C"],
+        base_bot,
+        game,
+        num_choices=2,
+    )
+    assert decision == [0, 1]
 
 
 def test_multiple_discard_decision(base_bot: Bot, game: Game):
@@ -111,6 +128,62 @@ def test_topdeck_decision_none(base_bot: Bot, game: Game):
     assert len(cards) == 0
 
 
+def test_deck_position_decision(base_bot: Bot, game: Game):
+    position = base_bot.decider.deck_position_decision(
+        "",
+        copper,
+        base_bot,
+        game,
+        num_deck_cards=5,
+    )
+    assert position == 5
+
+
+def test_reveal_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.reveal_decision(
+        "",
+        copper,
+        [copper, estate, gold],
+        base_bot,
+        game,
+        min_num_reveal=2,
+        max_num_reveal=3,
+    )
+    assert len(cards) == 2
+    assert cards[0].name == "Copper"
+    assert cards[1].name == "Estate"
+
+
+def test_pass_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.pass_decision(
+        "",
+        copper,
+        [copper, estate, gold],
+        base_bot,
+        game,
+        min_num_pass=2,
+        max_num_pass=3,
+    )
+    assert len(cards) == 2
+    assert cards[0].name == "Copper"
+    assert cards[1].name == "Estate"
+
+
+def test_name_card_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.name_card_decision(
+        "",
+        copper,
+        [copper, estate, gold],
+        base_bot,
+        game,
+        min_num_name=2,
+        max_num_name=3,
+    )
+    assert len(cards) == 2
+    assert cards[0].name == "Copper"
+    assert cards[1].name == "Estate"
+
+
 def test_multi_play_decision(base_bot: Bot, game: Game):
     card = base_bot.decider.multi_play_decision(
         prompt="",
@@ -134,6 +207,21 @@ def test_multi_play_decision_none(base_bot: Bot, game: Game):
         required=False,
     )
     assert card is None
+
+
+def test_set_aside_decision(base_bot: Bot, game: Game):
+    cards = base_bot.decider.set_aside_decision(
+        "",
+        copper,
+        [copper, estate, gold],
+        base_bot,
+        game,
+        min_num_set_aside=2,
+        max_num_set_aside=3,
+    )
+    assert len(cards) == 2
+    assert cards[0].name == "Copper"
+    assert cards[1].name == "Estate"
 
 
 def test_is_attacked(base_bot: Bot, game: Game):
