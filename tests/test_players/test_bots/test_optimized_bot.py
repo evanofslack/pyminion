@@ -69,6 +69,7 @@ from pyminion.expansions.seaside import (
     seaside_set,
     smugglers,
     tide_pools,
+    treasury,
     warehouse,
 )
 from pyminion.game import Game
@@ -1028,6 +1029,15 @@ def test_tide_pools_bot(bot: OptimizedBot, game: Game):
     assert counter[silver] == 3
     assert counter[copper] == 0
     assert counter[estate] == 0
+
+
+def test_treasury_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(treasury)
+
+    bot.play(treasury, game)
+
+    game.effect_registry.on_buy_phase_end(bot, game)
+    assert bot.deck.cards[-1].name == "Treasury"
 
 
 def test_warehouse_bot(bot: OptimizedBot, game: Game):

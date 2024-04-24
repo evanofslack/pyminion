@@ -210,6 +210,8 @@ class OptimizedBotDecider(BotDecider):
             return self.pirate_binary(player, game)
         elif card.name == "Sailor":
             return self.sailor_binary(prompt, player, game, relevant_cards)
+        elif card.name == "Treasury":
+            return self.treasury(prompt, player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -1537,6 +1539,15 @@ class OptimizedBotDecider(BotDecider):
         cards = self.sort_for_discard(valid_cards, actions, player, game)
         cards = cards[:num_discard]
         return cards
+
+    def treasury(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]],
+    ) -> bool:
+        return True
 
     def warehouse(
         self,

@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, cast
+from typing import Any, Dict, Iterable, List, Optional, cast
 
 from pyminion.core import (
     AbstractDeck,
@@ -26,10 +26,8 @@ from pyminion.effects import (
     PlayerGameEffect,
 )
 from pyminion.expansions.base import copper, curse, gold
+from pyminion.game import Game
 from pyminion.player import Player
-
-if TYPE_CHECKING:
-    from pyminion.game import Game
 
 
 logger = logging.getLogger()
@@ -1099,7 +1097,7 @@ class Smugglers(Action):
         right_player = game.get_right_player(player)
         valid_cards: List[Card] = [
             card
-            for card in right_player.last_turn_gains
+            for _, card in right_player.last_turn_gains
             if card.get_cost(player, game) <= 6
             and game.supply.pile_length(card.name) > 0
         ]
@@ -1239,6 +1237,79 @@ class TreasureMap(Action):
         return True
 
 
+class Treasury(Action):
+    """
+    +1 Card
+    +1 Action
+    +$1
+
+    At the end of your Buy phase this turn, if you didn't gain a Victory card
+    in it, you may put this onto your deck.
+
+    """
+
+    class TopdeckEffect(PlayerGameEffect):
+        def __init__(self, player: Player, card: Card):
+            super().__init__("Treasury: Topdeck")
+            self.player = player
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            return player is self.player and not any(
+                phase == Game.Phase.Buy and CardType.Victory in card.type
+                for phase, card in player.current_turn_gains
+            )
+
+        def handler(self, player: Player, game: "Game") -> None:
+            topdeck = player.decider.binary_decision(
+                "Topdeck Treasury? y/n: ",
+                self.card,
+                player,
+                game,
+            )
+
+            if topdeck:
+                player.playmat.remove(self.card)
+                player.deck.add(self.card)
+
+    def __init__(self):
+        super().__init__(
+            name="Treasury", cost=5, type=(CardType.Action,), draw=1, actions=1, money=1
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        self._play(player, game, 1, generic_play)
+
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
+        if state is None:
+            count = 1
+        else:
+            count = int(state) + 1
+
+        self._play(player, game, count, generic_play)
+
+        return count
+
+    def _play(
+        self, player: Player, game: "Game", count: int, generic_play: bool = True
+    ) -> None:
+        super().play(player, game, generic_play)
+
+        if count == 1:
+            effect = Treasury.TopdeckEffect(player, self)
+            game.effect_registry.register_buy_phase_end_effect(effect)
+
+
 class Warehouse(Action):
     """
     +3 Cards
@@ -1302,6 +1373,7 @@ smugglers = Smugglers()
 tactician = Tactician()
 tide_pools = TidePools()
 treasure_map = TreasureMap()
+treasury = Treasury()
 warehouse = Warehouse()
 wharf = Wharf()
 
@@ -1331,6 +1403,7 @@ seaside_set: List[Card] = [
     tactician,
     tide_pools,
     treasure_map,
+    treasury,
     warehouse,
     wharf,
 ]

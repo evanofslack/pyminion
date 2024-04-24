@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -58,8 +58,8 @@ class Player:
         self.shuffles: int = 0
         self.actions_played_this_turn: int = 0
         self.playmat_persist_counts: Dict[str, int] = {}
-        self.current_turn_gains: List[Card] = []
-        self.last_turn_gains: List[Card] = []
+        self.current_turn_gains: List[Tuple[Game.Phase, Card]] = []
+        self.last_turn_gains: List[Tuple[Game.Phase, Card]] = []
         self.take_extra_turn: bool = False
         self.next_turn_draw: int = 5
 
@@ -249,7 +249,7 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
-        self.current_turn_gains.append(card)
+        self.current_turn_gains.append((game.current_phase, card))
         game.effect_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
@@ -272,7 +272,7 @@ class Player:
 
         gain_card = source.remove(card)
         destination.add(gain_card)
-        self.current_turn_gains.append(card)
+        self.current_turn_gains.append((game.current_phase, card))
         game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
 
