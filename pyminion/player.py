@@ -412,13 +412,15 @@ class Player:
 
             self.buy(card, game)
 
+        game.effect_registry.on_buy_phase_end(self, game)
+
     def start_cleanup_phase(self, game: "Game") -> None:
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
 
         """
         game.current_phase = game.Phase.CleanUp
-        game.effect_registry.on_cleanup_start(self, game)
+        game.effect_registry.on_cleanup_phase_start(self, game)
 
         hand_copy = self.hand.cards[:]
         for card in hand_copy:

@@ -156,7 +156,8 @@ class EffectRegistry:
         self.trash_effects: List[PlayerCardGameEffect] = []
         self.turn_start_effects: List[PlayerGameEffect] = []
         self.turn_end_effects: List[PlayerGameEffect] = []
-        self.cleanup_start_effects: List[PlayerGameEffect] = []
+        self.buy_phase_end_effects: List[PlayerGameEffect] = []
+        self.cleanup_phase_start_effects: List[PlayerGameEffect] = []
 
     def reset(self) -> None:
         """
@@ -177,7 +178,8 @@ class EffectRegistry:
         self.trash_effects.clear()
         self.turn_start_effects.clear()
         self.turn_end_effects.clear()
-        self.cleanup_start_effects.clear()
+        self.buy_phase_end_effects.clear()
+        self.cleanup_phase_start_effects.clear()
 
     def _need_player_order(self, effects: Sequence[Effect]) -> bool:
         # if there is only one effect left, no need to prompt player
@@ -506,12 +508,19 @@ class EffectRegistry:
         """
         self._handle_player_game_effects(self.turn_end_effects, player, game)
 
-    def on_cleanup_start(self, player: "Player", game: "Game") -> None:
+    def on_buy_phase_end(self, player: "Player", game: "Game") -> None:
         """
-        Trigger clean-up start effects.
+        Trigger buy phase end effects.
 
         """
-        self._handle_player_game_effects(self.cleanup_start_effects, player, game)
+        self._handle_player_game_effects(self.buy_phase_end_effects, player, game)
+
+    def on_cleanup_phase_start(self, player: "Player", game: "Game") -> None:
+        """
+        Trigger clean-up phase start effects.
+
+        """
+        self._handle_player_game_effects(self.cleanup_phase_start_effects, player, game)
 
     def register_attack_effect(self, effect: AttackEffect) -> None:
         """
@@ -681,16 +690,30 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.turn_end_effects)
 
-    def register_cleanup_start_effect(self, effect: PlayerGameEffect) -> None:
+    def register_buy_phase_end_effect(self, effect: PlayerGameEffect) -> None:
         """
-        Register an effect to be triggered on clean-up start.
+        Register an effect to be triggered on buy phase end.
 
         """
-        self.cleanup_start_effects.append(effect)
+        self.buy_phase_end_effects.append(effect)
 
-    def unregister_cleanup_start_effect(self, id: int) -> None:
+    def unregister_buy_phase_end_effect(self, id: int) -> None:
         """
-        Unregister an effect from being triggered on clean-up start.
+        Unregister an effect from being triggered on buy phase end.
 
         """
-        self._unregister_effect_by_id(id, self.cleanup_start_effects)
+        self._unregister_effect_by_id(id, self.buy_phase_end_effects)
+
+    def register_cleanup_phase_start_effect(self, effect: PlayerGameEffect) -> None:
+        """
+        Register an effect to be triggered on clean-up phase start.
+
+        """
+        self.cleanup_phase_start_effects.append(effect)
+
+    def unregister_cleanup_phase_start_effect(self, id: int) -> None:
+        """
+        Unregister an effect from being triggered on clean-up phase start.
+
+        """
+        self._unregister_effect_by_id(id, self.cleanup_phase_start_effects)
