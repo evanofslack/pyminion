@@ -1309,6 +1309,16 @@ class Treasury(Action):
             effect = Treasury.TopdeckEffect(player, self)
             game.effect_registry.register_buy_phase_end_effect(effect)
 
+            unregister_effect = FuncPlayerGameEffect(
+                f"{self.name}: Unregister Buy Phase End Effect",
+                EffectAction.First,
+                lambda p, g: g.effect_registry.unregister_buy_phase_end_effect(
+                    effect.get_id()
+                ),
+                lambda p, g: p is player,
+            )
+            game.effect_registry.register_turn_end_effect(unregister_effect)
+
 
 class Warehouse(Action):
     """
