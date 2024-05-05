@@ -485,11 +485,11 @@ class Masquerade(Action):
         # prompt each player to choose a card to pass
         passed_cards: List[Card] = []
         for p in valid_players:
-            pass_cards = player.decider.pass_decision(
+            pass_cards = p.decider.pass_decision(
                 prompt="Pick a card to pass to the player on your left: ",
                 card=self,
                 valid_cards=p.hand.cards,
-                player=player,
+                player=p,
                 game=game,
                 min_num_pass=1,
                 max_num_pass=1,
