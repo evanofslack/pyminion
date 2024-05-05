@@ -926,17 +926,23 @@ class Remodel(Action):
 
         super().play(player, game, generic_play)
 
-        trash_cards = player.decider.trash_decision(
-            prompt="Trash a card from your hand: ",
-            card=self,
-            valid_cards=player.hand.cards,
-            player=player,
-            game=game,
-            min_num_trash=1,
-            max_num_trash=1,
-        )
-        assert len(trash_cards) == 1
-        trash_card = trash_cards[0]
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            trash_card = player.hand.cards[0]
+        else:
+            trash_cards = player.decider.trash_decision(
+                prompt="Trash a card from your hand: ",
+                card=self,
+                valid_cards=player.hand.cards,
+                player=player,
+                game=game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
 
         max_cost = trash_card.get_cost(player, game) + 2
         gain_cards = player.decider.gain_decision(
