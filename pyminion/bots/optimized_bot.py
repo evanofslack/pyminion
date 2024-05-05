@@ -632,7 +632,7 @@ class OptimizedBotDecider(BotDecider):
             else:
                 return player.hand.cards[-1]
         if gain:
-            if game.supply.pile_length(pile_name="Province") < 5:
+            if game.supply.pile_length("Province") < 5 and game.supply.pile_length("Duchy") > 0:
                 return duchy
             else:
                 return silver
@@ -646,7 +646,7 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> Card:
-        if game.supply.pile_length(pile_name="Province") < 3:
+        if game.supply.pile_length("Province") < 3 and game.supply.pile_length("Estate") > 0:
             return estate
         else:
             return silver
