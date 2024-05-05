@@ -848,6 +848,9 @@ class Replace(Action):
 
         super().play(player, game, generic_play)
 
+        if len(player.hand) == 0:
+            return
+
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
             card=self,
