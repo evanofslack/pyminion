@@ -1,5 +1,5 @@
 from pyminion.expansions.base import Estate, Silver, Smithy, smithy
-from pyminion.expansions.intrigue import Ironworks, Mill, ironworks, mill
+from pyminion.expansions.intrigue import Ironworks, Mill, intrigue_set, ironworks, mill
 from pyminion.game import Game
 from pyminion.human import Human
 import pytest
@@ -51,6 +51,7 @@ def test_ironworks_victory(human: Human, game: Game, monkeypatch):
     assert human.state.money == 0
 
 
+@pytest.mark.expansions([intrigue_set])
 @pytest.mark.kingdom_cards([mill])
 def test_ironworks_action_victory(human: Human, game: Game, monkeypatch):
     human.hand.add(ironworks)

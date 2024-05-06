@@ -1,11 +1,12 @@
-from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, cast, overload
 
 from pyminion.bots.bot import Bot, BotDecider
-from pyminion.core import CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
+from pyminion.core import Action, CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
 from pyminion.decider import Decider
 from pyminion.exceptions import InvalidBotImplementation
 from pyminion.expansions.base import duchy, estate, curse, gold, silver, copper
 from pyminion.expansions.intrigue import Baron, Courtier, Lurker, Minion, Nobles, Pawn, Steward, Torturer
+from pyminion.expansions.seaside import NativeVillage
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -63,27 +64,22 @@ class OptimizedBotDecider(BotDecider):
             return score_cards + non_score_cards
 
     @staticmethod
-    def sort_for_trash(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:
-        num_provinces = game.supply.pile_length(pile_name="Province")
-        deck_money = player.get_deck_money()
+    def determine_set_aside_cards(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:
+        num_terminal = sum(1 for c in get_action_cards(cards) if c.actions == 0)
 
         prioritized_cards: List[Tuple[int, Card]] = []
         for card in cards:
-            if CardType.Curse in card.type:
-                priority = 1
-            elif card.name == "Estate" and num_provinces >= 5:
-                priority = 2
-            elif card.name == "Copper" and deck_money > 3:
-                priority = 3
-                deck_money -= 1
-            else:
+            # set aside terminal action cards if we don't have enough actions to play them
+            if num_terminal > player.state.actions and CardType.Action in card.type and cast(Action, card).actions == 0:
                 priority = 100 + card.get_cost(player, game)
+            else:
+                priority = 200 + card.get_cost(player, game)
 
             prioritized_cards.append((priority, card))
 
         prioritized_cards.sort(key=lambda x: x[0])
-        trash_cards = [x[1] for x in prioritized_cards]
-        return trash_cards
+        set_aside_cards = [x[1] for x in prioritized_cards]
+        return set_aside_cards
 
     @staticmethod
     def get_optional_discard(cards: List[Card], player: Player) -> List[Card]:
@@ -101,8 +97,9 @@ class OptimizedBotDecider(BotDecider):
 
         return discard_cards
 
+    @staticmethod
     def determine_trash_cards(
-        self, valid_cards: List[Card], player: Player, game: "Game"
+        valid_cards: List[Card], player: Player, game: "Game", required: bool = False
     ) -> List[Card]:
         """
         Determine which cards should be trashed:
@@ -110,32 +107,33 @@ class OptimizedBotDecider(BotDecider):
         Always trash Curse
         Trash Estate if number of provinces in supply >= 5
         Trash Copper if money in deck > 3 (keep enough to buy silver)
-        Finally, sort the cards as to prioritize trashing estate over copper
+        If trashing is required, sort cards by increasing cost
 
         """
 
+        num_provinces = game.supply.pile_length("Province")
         deck_money = player.get_deck_money()
-        trash_cards = []
+
+        prioritized_cards: List[Tuple[int, Card]] = []
         for card in valid_cards:
             if CardType.Curse in card.type:
-                trash_cards.append(card)
-            elif (
-                card.name == "Estate"
-                and game.supply.pile_length(pile_name="Province") >= 5
-            ):
-                trash_cards.append(card)
+                priority = 1
+            elif card.name == "Estate" and num_provinces >= 5:
+                priority = 2
             elif card.name == "Copper" and deck_money > 3:
-                trash_cards.append(card)
+                priority = 3
                 deck_money -= 1
+            elif required:
+                priority = 100 + card.get_cost(player, game)
+            else:
+                priority = 0
 
-        sorted_trash_cards = self.sort_for_discard(
-            cards=trash_cards,
-            actions=1,
-            player=player,
-            game=game,
-        )
+            if priority > 0:
+                prioritized_cards.append((priority, card))
 
-        return sorted_trash_cards
+        prioritized_cards.sort(key=lambda x: x[0])
+        trash_cards = [x[1] for x in prioritized_cards]
+        return trash_cards
 
     def binary_decision(
         self,
@@ -163,6 +161,12 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, binary=True)
         elif card.name == "Mining Village":
             return self.mining_village(player, game)
+        elif card.name == "Pirate":
+            return self.pirate_binary(player, game)
+        elif card.name == "Sailor":
+            return self.sailor_binary(prompt, player, game, relevant_cards)
+        elif card.name == "Treasury":
+            return self.treasury(prompt, player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -185,6 +189,9 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Minion":
             ret = self.minion(player, game)
+            return [ret]
+        elif card.name == "Native Village":
+            ret = self.native_village(player, game)
             return [ret]
         elif card.name == "Nobles":
             ret = self.nobles(player, game)
@@ -224,6 +231,15 @@ class OptimizedBotDecider(BotDecider):
             return self.mill(player, game, discard=True)
         elif card.name == "Torturer":
             return self.torturer(player, game, valid_cards=valid_cards, num_discard=min_num_discard, discard=True)
+        elif card.name == "Lookout":
+            ret = self.lookout(player, game, valid_cards, discard=True)
+            return [ret]
+        elif card.name == "Sea Witch":
+            return self.sea_witch(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Tide Pools":
+            return self.tide_pools(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
+        elif card.name == "Warehouse":
+            return self.warehouse(player, game, valid_cards=valid_cards, num_discard=min_num_discard)
         else:
             return super().discard_decision(prompt, card, valid_cards, player, game, min_num_discard, max_num_discard)
 
@@ -262,6 +278,15 @@ class OptimizedBotDecider(BotDecider):
             return self.trading_post(player, game, valid_cards)
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Lookout":
+            ret = self.lookout(player, game, valid_cards, trash=True)
+            return [ret]
+        elif card.name == "Sailor":
+            ret = self.sailor_trash(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Salvager":
+            ret = self.salvager(player, game, valid_cards)
             return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
@@ -302,6 +327,15 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Upgrade":
             ret = self.upgrade(player, game, valid_cards, gain=True)
+            return [ret]
+        elif card.name == "Blockade":
+            ret = self.blockade(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Pirate":
+            ret = self.pirate_gain(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Smugglers":
+            ret = self.smugglers(player, game, valid_cards)
             return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
@@ -410,6 +444,25 @@ class OptimizedBotDecider(BotDecider):
             return self.throne_room(player=player, game=game, valid_cards=valid_cards)
         else:
             return super().multi_play_decision(prompt, card, valid_cards, player, game, required)
+
+    def set_aside_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_set_aside: int = 0,
+        max_num_set_aside: int = -1,
+    ) -> List["Card"]:
+        if card.name == "Haven":
+            ret = self.haven(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Island":
+            ret = self.island(player, game, valid_cards)
+            return [ret]
+        else:
+            return super().set_aside_decision(prompt, card, valid_cards, player, game, min_num_set_aside, max_num_set_aside)
 
     # CARD SPECIFIC IMPLEMENTATIONS
 
@@ -561,8 +614,7 @@ class OptimizedBotDecider(BotDecider):
         trash_cards = self.determine_trash_cards(
             valid_cards=valid_cards, player=player, game=game
         )
-        while len(trash_cards) > 4:
-            trash_cards.pop()
+        trash_cards = trash_cards[:4]
         return trash_cards
 
     def artisan(
@@ -883,7 +935,7 @@ class OptimizedBotDecider(BotDecider):
     ) -> Union[bool, Card]:
         if pass_:
             assert valid_cards is not None
-            cards = self.determine_trash_cards(valid_cards, player, game)
+            cards = self.determine_trash_cards(valid_cards, player, game, required=True)
             return cards[0]
         elif binary:
             cards = self.determine_trash_cards(player.hand.cards, player, game)
@@ -1144,7 +1196,7 @@ class OptimizedBotDecider(BotDecider):
         trash: bool = False,
     ) -> Union[int, List[Card]]:
         if options:
-            trash_cards = self.determine_trash_cards(player.hand.cards, player, game)
+            trash_cards = self.determine_trash_cards(player.hand.cards, player, game, required=False)
             if player.state.actions > 0:
                 return Steward.Choice.Cards
             elif len(trash_cards) >= 2:
@@ -1154,7 +1206,7 @@ class OptimizedBotDecider(BotDecider):
 
         if trash:
             assert valid_cards is not None
-            trash_cards = self.determine_trash_cards(valid_cards, player, game)
+            trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
             return trash_cards[:2]
 
         raise InvalidBotImplementation(
@@ -1251,7 +1303,7 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         valid_cards: List[Card],
     ) -> List[Card]:
-        trash_cards = self.sort_for_trash(valid_cards, player, game)
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
         return trash_cards[:2]
 
     def upgrade(
@@ -1280,6 +1332,187 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
     ) -> Card:
         return copper
+
+    def blockade(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        best_victory = self.get_best_victory_card(valid_cards, player)
+        if game.supply.pile_length(pile_name="Province") < 3 and best_victory is not None:
+            return best_victory
+        return silver
+
+    def haven(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        cards = self.determine_set_aside_cards(valid_cards, player, game)
+        return cards[0]
+
+    def island(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        deck_money = player.get_deck_money()
+
+        prioritized_cards: List[Tuple[int, Card]] = []
+        for card in valid_cards:
+            if len(card.type) == 1 and card.type[0] == CardType.Victory:
+                priority = 1
+            elif card.name == "Copper" and deck_money > 3:
+                priority = 2
+            elif card.name == "Curse":
+                priority = 3
+            else:
+                priority = 100 + card.get_cost(player, game)
+
+            prioritized_cards.append((priority, card))
+
+        result = min(prioritized_cards, key=lambda x: x[0])
+        return result[1]
+
+    def lookout(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        trash: bool = False,
+        discard: bool = False,
+    ) -> Card:
+        if trash:
+            cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+            return cards[0]
+
+        if discard:
+            cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
+            return cards[0]
+
+        raise InvalidBotImplementation(
+            "Either trash or discard must be true when playing lookout"
+        )
+
+    def native_village(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        mat_count = len(player.get_mat("Native Village"))
+        if mat_count == 0:
+            return NativeVillage.Choice.AddToMat
+
+        native_village_card_count = sum(1 for c in player.hand.cards if c.name == "Native Village")
+        if native_village_card_count > 0:
+            return NativeVillage.Choice.AddToMat
+
+        return NativeVillage.Choice.GetFromMat
+
+    def pirate_binary(
+        self,
+        player: Player,
+        game: "Game",
+    ) -> bool:
+        return True
+
+    def pirate_gain(
+        self,
+        player: Player,
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        most_expensive_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+        return most_expensive_card
+
+    def sailor_binary(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]],
+    ) -> bool:
+        if "trash" in prompt:
+            assert valid_cards is not None
+            trash_cards = self.determine_trash_cards(valid_cards, player, game, required=False)
+            return len(trash_cards) > 0
+        elif "play" in prompt:
+            return True
+
+        raise InvalidBotImplementation("Unknown prompt for sailor")
+
+    def sailor_trash(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=False)
+        return trash_cards[0]
+
+    def salvager(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+        return trash_cards[0]
+
+    def sea_witch(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        num_discard: int,
+    ) -> List[Card]:
+        cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
+        cards = cards[:num_discard]
+        return cards
+
+    def smugglers(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        card = max(valid_cards, key=lambda card: card.get_cost(player, game))
+        return card
+
+    def tide_pools(
+            self,
+            player: "Player",
+            game: "Game",
+            valid_cards: List[Card],
+            num_discard: int,
+    ) -> List[Card]:
+        actions = player.state.actions
+        cards = self.sort_for_discard(valid_cards, actions, player, game)
+        cards = cards[:num_discard]
+        return cards
+
+    def treasury(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]],
+    ) -> bool:
+        return True
+
+    def warehouse(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+        num_discard: int,
+    ) -> List[Card]:
+        cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
+        cards = cards[:num_discard]
+        return cards
 
 
 class OptimizedBot(Bot):

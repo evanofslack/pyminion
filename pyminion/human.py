@@ -570,6 +570,32 @@ class HumanDecider:
 
         return result
 
+    @validate_input(exceptions=InvalidMultiCardInput)
+    def set_aside_decision(
+        self,
+        prompt: str,
+        card: "Card",
+        valid_cards: List["Card"],
+        player: "Player",
+        game: "Game",
+        min_num_set_aside: int = 0,
+        max_num_set_aside: int = -1,
+    ) -> List["Card"]:
+
+        result = multiple_card_decision(prompt, valid_cards)
+        len_result = len(result)
+
+        if len_result < min_num_set_aside:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you must set aside at least {min_num_set_aside} card(s)"
+            )
+        elif max_num_set_aside >= 0 and len_result > max_num_set_aside:
+            raise InvalidMultiCardInput(
+                f"Invalid response, you cannot set aside more than {max_num_set_aside} card(s)"
+            )
+
+        return result
+
 
 class Human(Player):
     """

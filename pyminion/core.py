@@ -1,19 +1,20 @@
+from collections import Counter
+from enum import Enum, unique
 import logging
 import random
-from collections import Counter
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Set, Tuple
+
+from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
 
 if TYPE_CHECKING:
     from pyminion.game import Game
     from pyminion.player import Player
 
-from enum import Enum
-from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
-
 
 logger = logging.getLogger()
 
 
+@unique
 class CardType(Enum):
     """
     Enum class for all card types that are currently used in the implemented expansions
@@ -25,6 +26,7 @@ class CardType(Enum):
     Action = 4
     Attack = 5
     Reaction = 6
+    Duration = 7
 
 
 class Card:
@@ -89,7 +91,9 @@ class Treasure(Card):
         Specific play method unique to each treasure card
 
         """
-        raise NotImplementedError(f"Play method must be implemented for {self.name}")
+        player.playmat.add(self)
+        player.hand.remove(self)
+        player.state.money += self.money
 
 
 class Action(Card):
@@ -102,12 +106,14 @@ class Action(Card):
         draw: int = 0,
         money: int = 0,
         buys: int = 0,
+        discard: int = 0,
     ):
         super().__init__(name, cost, type)
         self.actions = actions
         self.draw = draw
         self.money = money
         self.buys = buys
+        self.discard = discard
 
     def play(self, player: "Player", game: "Game", generic_play: bool = True) -> None:
         """
@@ -121,9 +127,28 @@ class Action(Card):
 
         if self.draw > 0:
             player.draw(self.draw)
+
         player.state.actions += self.actions
         player.state.money += self.money
         player.state.buys += self.buys
+
+        if self.discard > 0 and len(player.hand) > 0:
+            if len(player.hand) <= self.discard:
+                discard_cards = player.hand.cards[:]
+            else:
+                discard_cards = player.decider.discard_decision(
+                    prompt=f"Discard {self.discard} card(s) from your hand: ",
+                    card=self,
+                    valid_cards=player.hand.cards,
+                    player=player,
+                    game=game,
+                    min_num_discard=self.discard,
+                    max_num_discard=self.discard,
+                )
+                assert len(discard_cards) == self.discard
+
+            for discard_card in discard_cards:
+                player.discard(game, discard_card)
 
     def generic_play(self, player: "Player") -> None:
         """
@@ -139,7 +164,7 @@ class Action(Card):
         player.hand.remove(self)
         player.state.actions -= 1
 
-    def multi_play(self, player: "Player", game: "Game", state: Any, generic_play: bool = True) -> Any:
+    def multi_play(self, player: "Player", game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
         """
         Called by "Throne Room variants" to play a card multiple times.
         By default this just calls self.play() but can be overridden by derived
@@ -177,8 +202,11 @@ class AbstractDeck:
     def __repr__(self):
         return str(DeckCounter(self.cards))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cards)
+
+    def __iter__(self) -> Iterator[Card]:
+        return iter(self.cards)
 
     def add(self, card: Card) -> None:
         self.cards.append(card)
@@ -379,6 +407,17 @@ class Supply:
         """
         pile = self.get_pile(pile_name)
         return len(pile)
+
+
+def plural(word: str, count: int) -> str:
+    """
+    Makes a word plural if needed based on the count.
+
+    """
+    if count == 1:
+        return word
+
+    return word + "s"
 
 
 def get_action_cards(cards: Iterable[Card]) -> Iterator[Action]:

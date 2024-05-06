@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
-from pyminion.exceptions import EmptyPile
 from pyminion.player import Player
 
 if TYPE_CHECKING:
@@ -28,11 +27,6 @@ class Copper(Treasure):
         num_players = len(game.players)
         return 60 - (7 * num_players)
 
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
-
 
 class Silver(Treasure):
     def __init__(
@@ -47,11 +41,6 @@ class Silver(Treasure):
     def get_pile_starting_count(self, game: "Game") -> int:
         return 40
 
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
-
 
 class Gold(Treasure):
     def __init__(
@@ -65,11 +54,6 @@ class Gold(Treasure):
 
     def get_pile_starting_count(self, game: "Game") -> int:
         return 30
-
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
 
 
 class Estate(Victory):
@@ -154,7 +138,7 @@ class Gardens(Victory):
         super().__init__(name, cost, type)
 
     def score(self, player: Player) -> int:
-        total_count = len(player.get_all_cards())
+        total_count = player.get_all_cards_count()
         vp = math.floor(total_count / 10)
         return vp
 
@@ -624,9 +608,8 @@ class CouncilRoom(Action):
 
         super().play(player, game, generic_play)
 
-        for p in game.players:
-            if p is not player:
-                p.draw()
+        for p in game.get_opponents(player):
+            p.draw()
 
 
 class Witch(Action):
@@ -652,18 +635,7 @@ class Witch(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
-
-                    # attempt to gain a curse. if curse pile is empty, proceed
-                    try:
-                        opponent.gain(
-                            card=curse,
-                            game=game,
-                        )
-                    except EmptyPile:
-                        pass
+        game.distribute_curses(player, self)
 
 
 class Moat(Action):
@@ -715,20 +687,19 @@ class Moat(Action):
         )
         game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        hand_remove_effect = FuncPlayerCardGameEffect(
-            "Moat: Hand Remove",
-            EffectAction.Other,
-            self.on_hand_remove,
-            lambda p, c, g: c.name == self.name,
-        )
-        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
-
     def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
         effect = Moat.MoatAttackEffect(player)
         game.effect_registry.register_attack_effect(effect)
 
-    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects(f"Moat: {player.player_id} block attack")
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Moat: Hand Remove",
+            EffectAction.Other,
+            lambda p, c, g: g.effect_registry.unregister_attack_effect(
+                effect.get_id()
+            ),
+            lambda p, c, g: p is player and c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
 
 class Merchant(Action):
@@ -739,22 +710,20 @@ class Merchant(Action):
 
     """
 
-    MONEY_EFFECT_NAME = "Merchant: +$1"
-
     class MoneyEffect(PlayerCardGameEffect):
-        def __init__(self):
-            super().__init__(Merchant.MONEY_EFFECT_NAME)
-            self.first_play = True
+        def __init__(self, player: Player):
+            super().__init__("Merchant: +$1")
+            self.player = player
 
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
         def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
-            return card.name == "Silver" and self.first_play
+            return player is self.player and card.name == "Silver"
 
         def handler(self, player: Player, card: Card, game: "Game") -> None:
             player.state.money += 1
-            self.first_play = False
+            game.effect_registry.unregister_play_effect(self.get_id())
 
     def __init__(
         self,
@@ -772,14 +741,18 @@ class Merchant(Action):
 
         super().play(player, game, generic_play)
 
-        money_effect = Merchant.MoneyEffect()
+        money_effect = Merchant.MoneyEffect(player)
         game.effect_registry.register_play_effect(money_effect)
 
-        reset_effect = FuncPlayerGameEffect("Merchant: reset", EffectAction.Other, self.remove_play_handlers)
-        game.effect_registry.register_turn_end_effect(reset_effect)
-
-    def remove_play_handlers(self, player: "Player", game: "Game") -> None:
-        game.effect_registry.unregister_play_effects(self.MONEY_EFFECT_NAME)
+        unregister_effect = FuncPlayerGameEffect(
+            f"{self.name}: Unregister money",
+            EffectAction.Last,
+            lambda p, g: g.effect_registry.unregister_play_effect(
+                money_effect.get_id()
+            ),
+            lambda p, g: p is player,
+        )
+        game.effect_registry.register_turn_start_effect(unregister_effect)
 
 
 class Bandit(Action):
@@ -804,39 +777,35 @@ class Bandit(Action):
         super().play(player, game, generic_play)
 
         # attempt to gain a gold. if gold pile is empty, proceed
-        try:
-            player.gain(card=gold, game=game)
-        except EmptyPile:
-            pass
+        player.try_gain(card=gold, game=game)
 
-        for opponent in game.players:
-            if opponent is not player:
-                if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(attacking_player=player, attack_card=self, game=game):
 
-                    revealed_cards = AbstractDeck()
-                    opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
+                revealed_cards = AbstractDeck()
+                opponent.draw(num_cards=2, destination=revealed_cards, silent=True)
 
-                    opponent.reveal(revealed_cards.cards, game)
+                opponent.reveal(revealed_cards.cards, game)
 
-                    trash_card = None
-                    for card in revealed_cards.cards:
-                        if card.name == "Silver":
-                            trash_card = card
-                        elif card.name == "Gold" and not trash_card:
-                            trash_card = card
-                        elif (
-                            CardType.Treasure in card.type
-                            and card.name != "Copper"
-                            and not trash_card
-                        ):
-                            trash_card = card
+                trash_card = None
+                for card in revealed_cards.cards:
+                    if card.name == "Silver":
+                        trash_card = card
+                    elif card.name == "Gold" and not trash_card:
+                        trash_card = card
+                    elif (
+                        CardType.Treasure in card.type
+                        and card.name != "Copper"
+                        and not trash_card
+                    ):
+                        trash_card = card
 
-                    if trash_card:
-                        game.trash.add(revealed_cards.remove(trash_card))
+                if trash_card:
+                    game.trash.add(revealed_cards.remove(trash_card))
 
-                    revealed_cards_copy = revealed_cards.cards[:]
-                    for card in revealed_cards_copy:
-                        opponent.discard(game, card, revealed_cards)
+                revealed_cards_copy = revealed_cards.cards[:]
+                for card in revealed_cards_copy:
+                    opponent.discard(game, card, revealed_cards)
 
 
 class Bureaucrat(Action):
@@ -861,13 +830,10 @@ class Bureaucrat(Action):
         super().play(player, game, generic_play)
 
         # attempt to gain a silver. if silver pile is empty, proceed
-        try:
-            player.gain(card=silver, game=game, destination=player.deck)
-        except EmptyPile:
-            pass
+        player.try_gain(card=silver, game=game, destination=player.deck)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(
                 attacking_player=player, attack_card=self, game=game
             ):
 
@@ -936,7 +902,7 @@ class ThroneRoom(Action):
                 player.playmat.add(player.hand.remove(card))
                 state = None
                 for i in range(2):
-                    state = player.multi_play(card=card, game=game, state=state, generic_play=False)
+                    state = player.multi_play(card=card, game=game, multi_play_card=self, state=state, generic_play=False)
                 return
 
 
@@ -1081,8 +1047,8 @@ class Militia(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(
                 attacking_player=player, attack_card=self, game=game
             ):
 

@@ -19,6 +19,8 @@ class EffectAction(IntEnum):
     HandAddCards = 1
     HandRemoveCards = 2
     HandAddRemoveCards = 3
+    First = 4
+    Last = 5
 
 
 class Effect:
@@ -154,7 +156,8 @@ class EffectRegistry:
         self.trash_effects: List[PlayerCardGameEffect] = []
         self.turn_start_effects: List[PlayerGameEffect] = []
         self.turn_end_effects: List[PlayerGameEffect] = []
-        self.cleanup_start_effects: List[PlayerGameEffect] = []
+        self.buy_phase_end_effects: List[PlayerGameEffect] = []
+        self.cleanup_phase_start_effects: List[PlayerGameEffect] = []
 
     def reset(self) -> None:
         """
@@ -175,7 +178,8 @@ class EffectRegistry:
         self.trash_effects.clear()
         self.turn_start_effects.clear()
         self.turn_end_effects.clear()
-        self.cleanup_start_effects.clear()
+        self.buy_phase_end_effects.clear()
+        self.cleanup_phase_start_effects.clear()
 
     def _need_player_order(self, effects: Sequence[Effect]) -> bool:
         # if there is only one effect left, no need to prompt player
@@ -215,39 +219,57 @@ class EffectRegistry:
         # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
         while not effect_ids.issubset(handled_ids):
-            # handle all effects where order doesn't matter
-            handled_other = False
+            handled_effect = False
+
+            # handle effects that happen before others
             for effect in effects:
-                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, game):
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.First and effect.is_triggered(player, game):
                     effect.handler(player, game)
                     handled_ids.add(effect.get_id())
-                    handled_other = True
+                    handled_effect = True
                     break
 
+            # handle all effects where order doesn't matter
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, game):
+                        effect.handler(player, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
+
             # if there were no "other" effects to handle, check if there were non-"other" effects
-            if not handled_other:
+            if not handled_effect:
                 # build data structures of non-"other" effects that are triggered
                 order_effects: List[PlayerGameEffect] = [
                     effect for effect in effects
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, game)
+                    if effect.get_id() not in handled_ids and effect.get_action() in {EffectAction.HandAddCards, EffectAction.HandRemoveCards, EffectAction.HandAddRemoveCards} and effect.is_triggered(player, game)
                 ]
 
-                # if there were no more effects to handle we should have exited the loop by now
-                assert len(order_effects) > 0
+                if len(order_effects) > 0:
+                    if self._need_player_order(order_effects):
+                        # ask user to specify next effect to execute
+                        effect_index = player.decider.effects_order_decision(
+                            order_effects,
+                            player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
 
-                if self._need_player_order(order_effects):
-                    # ask user to specify next effect to execute
-                    effect_index = player.decider.effects_order_decision(
-                        order_effects,
-                        player,
-                        game,
-                    )
-                else:
-                    effect_index = 0
+                    effect = order_effects[effect_index]
+                    effect.handler(player, game)
+                    handled_ids.add(effect.get_id())
+                    handled_effect = True
 
-                effect = order_effects[effect_index]
-                effect.handler(player, game)
-                handled_ids.add(effect.get_id())
+            # handle effects that happen after others
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Last and effect.is_triggered(player, game):
+                        effect.handler(player, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
 
             # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
@@ -268,58 +290,73 @@ class EffectRegistry:
         # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
         while not effect_ids.issubset(handled_ids):
-            # handle all effects where order doesn't matter
-            handled_other = False
+            handled_effect = False
+
+            # handle effects that happen before others
             for effect in effects:
-                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, card, game):
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.First and effect.is_triggered(player, card, game):
                     effect.handler(player, card, game)
                     handled_ids.add(effect.get_id())
-                    handled_other = True
+                    handled_effect = True
                     break
 
+            # handle all effects where order doesn't matter
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, card, game):
+                        effect.handler(player, card, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
+
             # if there were no "other" effects to handle, check if there were non-"other" effects
-            if not handled_other:
+            if not handled_effect:
                 # build data structures of non-"other" effects that are triggered
                 order_effects: List[PlayerCardGameEffect] = [
                     effect for effect in effects
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(player, card, game)
+                    if effect.get_id() not in handled_ids and effect.get_action() in {EffectAction.HandAddCards, EffectAction.HandRemoveCards, EffectAction.HandAddRemoveCards} and effect.is_triggered(player, card, game)
                 ]
 
-                # if there were no more effects to handle we should have exited the loop by now
-                assert len(order_effects) > 0
+                if len(order_effects) > 0:
+                    if self._need_player_order(order_effects):
+                        # ask user to specify next effect to execute
+                        effect_index = player.decider.effects_order_decision(
+                            order_effects,
+                            player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
 
-                if self._need_player_order(order_effects):
-                    # ask user to specify next effect to execute
-                    effect_index = player.decider.effects_order_decision(
-                        order_effects,
-                        player,
-                        game,
-                    )
-                else:
-                    effect_index = 0
+                    effect = order_effects[effect_index]
+                    effect.handler(player, card, game)
+                    handled_ids.add(effect.get_id())
+                    handled_effect = True
 
-                effect = order_effects[effect_index]
-                effect.handler(player, card, game)
-                handled_ids.add(effect.get_id())
+            # handle effects that happen after others
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Last and effect.is_triggered(player, card, game):
+                        effect.handler(player, card, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
 
             # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
 
-    def _unregister_effects(
+    def _unregister_effect_by_id(
             self,
-            name: str,
+            id: int,
             effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect], List[AttackEffect]],
-            max_unregister: int,
     ) -> None:
-        unregister_count = 0
         i = 0
-        while i < len(effect_list) and (max_unregister < 0 or unregister_count < max_unregister):
+        while i < len(effect_list):
             effect = effect_list[i]
-            if effect.get_name() == name:
+            if effect.get_id() == id:
                 effect_list.pop(i)
-                unregister_count += 1
-            else:
-                i += 1
+                return
+            i += 1
 
     def on_attack(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
         """
@@ -337,39 +374,57 @@ class EffectRegistry:
         # reevaluate which other effects need to be handled
         effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
         while not effect_ids.issubset(handled_ids):
-            # handle all effects where order doesn't matter
-            handled_other = False
+            handled_effect = False
+
+            # handle effects that happen before others
             for effect in self.attack_effects:
-                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.First and effect.is_triggered(attacking_player, defending_player, attack_card, game):
                     attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
                     handled_ids.add(effect.get_id())
-                    handled_other = True
+                    handled_effect = True
                     break
 
+            # handle all effects where order doesn't matter
+            if not handled_effect:
+                for effect in self.attack_effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                        attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
+
             # if there were no "other" effects to handle, check if there were non-"other" effects
-            if not handled_other:
+            if not handled_effect:
                 # build data structures of non-"other" effects that are triggered
                 order_effects: List[AttackEffect] = [
                     effect for effect in self.attack_effects
-                    if effect.get_id() not in handled_ids and effect.get_action() != EffectAction.Other and effect.is_triggered(attacking_player, defending_player, attack_card, game)
+                    if effect.get_id() not in handled_ids and effect.get_action() in {EffectAction.HandAddCards, EffectAction.HandRemoveCards, EffectAction.HandAddRemoveCards} and effect.is_triggered(attacking_player, defending_player, attack_card, game)
                 ]
 
-                # if there were no more effects to handle we should have exited the loop by now
-                assert len(order_effects) > 0
+                if len(order_effects) > 0:
+                    if self._need_player_order(order_effects):
+                        # ask user to specify next effect to execute
+                        effect_index = defending_player.decider.effects_order_decision(
+                            order_effects,
+                            defending_player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
 
-                if self._need_player_order(order_effects):
-                    # ask user to specify next effect to execute
-                    effect_index = defending_player.decider.effects_order_decision(
-                        order_effects,
-                        defending_player,
-                        game,
-                    )
-                else:
-                    effect_index = 0
+                    effect = order_effects[effect_index]
+                    attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+                    handled_ids.add(effect.get_id())
+                    handled_effect = True
 
-                effect = order_effects[effect_index]
-                attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
-                handled_ids.add(effect.get_id())
+            # handle effects that happen after others
+            if not handled_effect:
+                for effect in self.attack_effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Last and effect.is_triggered(attacking_player, defending_player, attack_card, game):
+                        attacked &= effect.handler(attacking_player, defending_player, attack_card, game)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
 
             # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in self.attack_effects if e.is_triggered(attacking_player, defending_player, attack_card, game))
@@ -453,12 +508,19 @@ class EffectRegistry:
         """
         self._handle_player_game_effects(self.turn_end_effects, player, game)
 
-    def on_cleanup_start(self, player: "Player", game: "Game") -> None:
+    def on_buy_phase_end(self, player: "Player", game: "Game") -> None:
         """
-        Trigger clean-up start effects.
+        Trigger buy phase end effects.
 
         """
-        self._handle_player_game_effects(self.cleanup_start_effects, player, game)
+        self._handle_player_game_effects(self.buy_phase_end_effects, player, game)
+
+    def on_cleanup_phase_start(self, player: "Player", game: "Game") -> None:
+        """
+        Trigger clean-up phase start effects.
+
+        """
+        self._handle_player_game_effects(self.cleanup_phase_start_effects, player, game)
 
     def register_attack_effect(self, effect: AttackEffect) -> None:
         """
@@ -467,12 +529,12 @@ class EffectRegistry:
         """
         self.attack_effects.append(effect)
 
-    def unregister_attack_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_attack_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on attacking.
 
         """
-        self._unregister_effects(name, self.attack_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.attack_effects)
 
     def register_buy_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -481,12 +543,12 @@ class EffectRegistry:
         """
         self.buy_effects.append(effect)
 
-    def unregister_buy_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_buy_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on buying.
 
         """
-        self._unregister_effects(name, self.buy_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.buy_effects)
 
     def register_discard_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -495,12 +557,12 @@ class EffectRegistry:
         """
         self.discard_effects.append(effect)
 
-    def unregister_discard_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_discard_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on discarding.
 
         """
-        self._unregister_effects(name, self.discard_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.discard_effects)
 
     def register_gain_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -509,12 +571,12 @@ class EffectRegistry:
         """
         self.gain_effects.append(effect)
 
-    def unregister_gain_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_gain_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on gaining.
 
         """
-        self._unregister_effects(name, self.gain_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.gain_effects)
 
     def register_hand_add_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -523,12 +585,12 @@ class EffectRegistry:
         """
         self.hand_add_effects.append(effect)
 
-    def unregister_hand_add_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_hand_add_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on hand adding.
 
         """
-        self._unregister_effects(name, self.hand_add_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.hand_add_effects)
 
     def register_hand_remove_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -537,12 +599,12 @@ class EffectRegistry:
         """
         self.hand_remove_effects.append(effect)
 
-    def unregister_hand_remove_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_hand_remove_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on hand removing.
 
         """
-        self._unregister_effects(name, self.hand_remove_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.hand_remove_effects)
 
     def register_play_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -551,12 +613,12 @@ class EffectRegistry:
         """
         self.play_effects.append(effect)
 
-    def unregister_play_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_play_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on playing.
 
         """
-        self._unregister_effects(name, self.play_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.play_effects)
 
     def register_reveal_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -565,12 +627,12 @@ class EffectRegistry:
         """
         self.reveal_effects.append(effect)
 
-    def unregister_reveal_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_reveal_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on revealing.
 
         """
-        self._unregister_effects(name, self.reveal_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.reveal_effects)
 
     def register_shuffle_effect(self, effect: PlayerGameEffect) -> None:
         """
@@ -579,12 +641,12 @@ class EffectRegistry:
         """
         self.shuffle_effects.append(effect)
 
-    def unregister_shuffle_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_shuffle_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on shuffling.
 
         """
-        self._unregister_effects(name, self.shuffle_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.shuffle_effects)
 
     def register_trash_effect(self, effect: PlayerCardGameEffect) -> None:
         """
@@ -593,12 +655,12 @@ class EffectRegistry:
         """
         self.trash_effects.append(effect)
 
-    def unregister_trash_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_trash_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on trashing.
 
         """
-        self._unregister_effects(name, self.trash_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.trash_effects)
 
     def register_turn_start_effect(self, effect: PlayerGameEffect) -> None:
         """
@@ -607,12 +669,12 @@ class EffectRegistry:
         """
         self.turn_start_effects.append(effect)
 
-    def unregister_turn_start_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_turn_start_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on turn start.
 
         """
-        self._unregister_effects(name, self.turn_start_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.turn_start_effects)
 
     def register_turn_end_effect(self, effect: PlayerGameEffect) -> None:
         """
@@ -621,23 +683,37 @@ class EffectRegistry:
         """
         self.turn_end_effects.append(effect)
 
-    def unregister_turn_end_effects(self, name: str, max_unregister: int = -1) -> None:
+    def unregister_turn_end_effect(self, id: int) -> None:
         """
         Unregister an effect from being triggered on turn end.
 
         """
-        self._unregister_effects(name, self.turn_end_effects, max_unregister)
+        self._unregister_effect_by_id(id, self.turn_end_effects)
 
-    def register_cleanup_start_effect(self, effect: PlayerGameEffect) -> None:
+    def register_buy_phase_end_effect(self, effect: PlayerGameEffect) -> None:
         """
-        Register an effect to be triggered on clean-up start.
-
-        """
-        self.cleanup_start_effects.append(effect)
-
-    def unregister_cleanup_start_effects(self, name: str, max_unregister: int = -1) -> None:
-        """
-        Unregister an effect from being triggered on clean-up start.
+        Register an effect to be triggered on buy phase end.
 
         """
-        self._unregister_effects(name, self.cleanup_start_effects, max_unregister)
+        self.buy_phase_end_effects.append(effect)
+
+    def unregister_buy_phase_end_effect(self, id: int) -> None:
+        """
+        Unregister an effect from being triggered on buy phase end.
+
+        """
+        self._unregister_effect_by_id(id, self.buy_phase_end_effects)
+
+    def register_cleanup_phase_start_effect(self, effect: PlayerGameEffect) -> None:
+        """
+        Register an effect to be triggered on clean-up phase start.
+
+        """
+        self.cleanup_phase_start_effects.append(effect)
+
+    def unregister_cleanup_phase_start_effect(self, id: int) -> None:
+        """
+        Unregister an effect from being triggered on clean-up phase start.
+
+        """
+        self._unregister_effect_by_id(id, self.cleanup_phase_start_effects)

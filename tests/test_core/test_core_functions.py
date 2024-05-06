@@ -1,4 +1,4 @@
-from pyminion.core import Action, CardType, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
+from pyminion.core import Action, CardType, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards, plural
 from pyminion.expansions.base import gold, silver, copper, province, duchy, estate, curse, market, smithy
 from pyminion.expansions.intrigue import nobles
 from pyminion.game import Game
@@ -6,6 +6,13 @@ from pyminion.player import Player
 
 test_action = Action("test", 1, (CardType.Action,))
 test_victory = Victory("test", 1, (CardType.Victory,))
+
+
+def test_plural():
+    assert plural("card", 0) == "cards"
+    assert plural("card", 1) == "card"
+    assert plural("card", 2) == "cards"
+
 
 def test_get_action_cards():
     cards_in = [

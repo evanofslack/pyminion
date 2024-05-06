@@ -1,15 +1,16 @@
 from enum import IntEnum, unique
 import logging
 import random
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
-from pyminion.core import CardType, Card, Deck, DeckCounter, DiscardPile, Pile, Supply, Trash
+from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.effects import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
 from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
+
 
 logger = logging.getLogger()
 
@@ -53,6 +54,7 @@ class Game:
         if len(players) > 4:
             raise InvalidPlayerCount("Game can have at most four players")
         self.players = players
+        self.current_player = self.players[0]
         self.expansions = expansions
         self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
         self.all_game_cards: List[Card] = []
@@ -229,19 +231,77 @@ class Game:
 
         return False
 
+    def play_turn(self, player: Player) -> None:
+        extra_turn_count = 0
+        take_turn = True
+        while take_turn:
+            player.take_turn(self, is_extra_turn=extra_turn_count > 0)
+
+            # reset card cost reduction
+            self.card_cost_reduction = 0
+
+            if self.is_over():
+                return
+
+            extra_turn_count += 1
+            take_turn = player.take_extra_turn and extra_turn_count < 2
+
+        # reset extra turn flag
+        player.take_extra_turn = False
+
     def play(self) -> GameResult:
         self.start()
         while True:
             for player in self.players:
-                player.take_turn(self)
-
-                # reset card cost reduction
-                self.card_cost_reduction = 0
+                self.current_player = player
+                self.play_turn(player)
 
                 if self.is_over():
                     result = self.summarize_game()
                     logging.info(f"\n{result}")
                     return result
+
+    def get_left_player(self, player: Player) -> Player:
+        """
+        Returns the player to the left of the given player.
+
+        """
+        player_idx = self.players.index(player)
+        left_player_idx = (player_idx + 1) % len(self.players)
+        left_player = self.players[left_player_idx]
+        return left_player
+
+    def get_right_player(self, player: Player) -> Player:
+        """
+        Returns the player to the right of the given player.
+
+        """
+        player_idx = self.players.index(player)
+        right_player_idx = (player_idx - 1) % len(self.players)
+        right_player = self.players[right_player_idx]
+        return right_player
+
+    def get_opponents(self, player: Player) -> Iterator[Player]:
+        """
+        Iterate over the given player's opponents in turn order.
+
+        """
+        start_idx = self.players.index(player) + 1
+        num_players = len(self.players)
+        for i in range(num_players - 1):
+            idx = (start_idx + i) % num_players
+            opponent = self.players[idx]
+            yield opponent
+
+    def distribute_curses(self, attacking_player: Player, attack_card: Card) -> None:
+        """
+        Distribute curses in turn order.
+
+        """
+        for opponent in self.get_opponents(attacking_player):
+            if opponent.is_attacked(attacking_player, attack_card, self):
+                # attempt to gain a curse. if curse pile is empty, proceed
+                opponent.try_gain(curse, self)
 
     def get_winners(self) -> List[Player]:
         """

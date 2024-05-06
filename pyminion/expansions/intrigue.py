@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
-from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect
-from pyminion.exceptions import EmptyPile
+from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect
 from pyminion.expansions.base import curse, duchy, estate, gold, silver
 
 if TYPE_CHECKING:
@@ -282,20 +281,19 @@ class Diplomat(Action):
         )
         game.effect_registry.register_hand_add_effect(hand_add_effect)
 
-        hand_remove_effect = FuncPlayerCardGameEffect(
-            "Diplomat: Hand Remove",
-            EffectAction.Other,
-            self.on_hand_remove,
-            lambda p, c, g: c.name == self.name,
-        )
-        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
-
     def on_hand_add(self, player: Player, card: Card, game: "Game") -> None:
         effect = Diplomat.DiplomatAttackEffect(player)
         game.effect_registry.register_attack_effect(effect)
 
-    def on_hand_remove(self, player: Player, card: Card, game: "Game") -> None:
-        game.effect_registry.unregister_attack_effects(f"Diplomat: {player.player_id} attack reaction")
+        hand_remove_effect = FuncPlayerCardGameEffect(
+            "Diplomat: Hand Remove",
+            EffectAction.Other,
+            lambda p, c, g: g.effect_registry.unregister_attack_effect(
+                effect.get_id()
+            ),
+            lambda p, c, g: p is player and c.name == self.name,
+        )
+        game.effect_registry.register_hand_remove_effect(hand_remove_effect)
 
 
 class Duke(Victory):
@@ -324,11 +322,6 @@ class Harem(Treasure, Victory):
             type=(CardType.Treasure, CardType.Victory),
             money=2,
         )
-
-    def play(self, player: Player, game: "Game") -> None:
-        player.playmat.add(self)
-        player.hand.remove(self)
-        player.state.money += self.money
 
     def score(self, player: Player) -> int:
         vp = 2
@@ -607,23 +600,17 @@ class MiningVillage(Action):
         self, player: Player, game: "Game", generic_play: bool = True
     ) -> None:
 
-        logger.info(f"{player} plays {self}")
-
-        if generic_play:
-            super().generic_play(player)
-
         self._play(player, game, None, generic_play)
 
     def multi_play(
-        self, player: Player, game: "Game", state: Any, generic_play: bool = True
+        self, player: Player, game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True
     ) -> Any:
         return self._play(player, game, state, generic_play)
 
     def _play(
         self, player: Player, game: "Game", state: Any, generic_play: bool = True
     ) -> Any:
-        player.draw(1)
-        player.state.actions += 2
+        super().play(player, game, generic_play)
 
         trashed = False if state is None else bool(state)
 
@@ -669,10 +656,9 @@ class Minion(Action):
 
         # opponents react to the card before the choice is made
         is_attacked: List[bool] = []
-        for opponent in game.players:
-            if opponent is not player:
-                ret = opponent.is_attacked(player, self, game)
-                is_attacked.append(ret)
+        for opponent in game.get_opponents(player):
+            ret = opponent.is_attacked(player, self, game)
+            is_attacked.append(ret)
 
         options = [
             "+2 Money",
@@ -694,14 +680,12 @@ class Minion(Action):
                 player.discard(game, player.hand.cards[0])
             player.draw(4)
 
-            i = 0
-            for opponent in game.players:
-                if opponent is not player and is_attacked[i]:
+            for i, opponent in enumerate(game.get_opponents(player)):
+                if is_attacked[i]:
                     if len(opponent.hand) >= 5:
                         for _ in range(len(opponent.hand.cards)):
                             opponent.discard(game, opponent.hand.cards[0])
                         opponent.draw(4)
-                    i += 1
         else:
             raise ValueError(f"Unknown minion choice '{choice}'")
 
@@ -902,13 +886,7 @@ class Replace(Action):
             player.gain(gain_card, game)
 
         if CardType.Victory in gain_card.type:
-            for opponent in game.players:
-                if opponent is not player and opponent.is_attacked(player, self, game):
-                    # attempt to gain a curse. if curse pile is empty, proceed
-                    try:
-                        opponent.gain(curse, game)
-                    except EmptyPile:
-                        pass
+            game.distribute_curses(player, self)
 
 
 class SecretPassage(Action):
@@ -1065,8 +1043,8 @@ class Swindler(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(player, self, game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
                 revealed_cards = AbstractDeck()
                 opponent.draw(num_cards=1, destination=revealed_cards, silent=True)
                 trashed_card = revealed_cards.cards[0]
@@ -1118,8 +1096,8 @@ class Torturer(Action):
 
         super().play(player, game, generic_play)
 
-        for opponent in game.players:
-            if opponent is not player and opponent.is_attacked(player, self, game):
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
                 options = [
                     "Discard 2 cards",
                     "Gain a Curse to your hand",
@@ -1136,7 +1114,7 @@ class Torturer(Action):
                 if choice == Torturer.Choice.Discard:
                     self._discard(opponent, game)
                 elif choice == Torturer.Choice.GainCurse:
-                    self._gain_curse(opponent, game)
+                    opponent.try_gain(curse, game, opponent.hand)
                 else:
                     raise ValueError(f"Unknown torturer choice '{choice}'")
 
@@ -1158,16 +1136,6 @@ class Torturer(Action):
 
         for card in discard_cards:
             opponent.discard(game, target_card=card)
-
-    def _gain_curse(self, opponent: Player, game: "Game") -> None:
-        try:
-            opponent.gain(
-                card=curse,
-                game=game,
-                destination=opponent.hand,
-            )
-        except EmptyPile:
-            pass
 
 
 class TradingPost(Action):
@@ -1208,10 +1176,7 @@ class TradingPost(Action):
         if len(trash_cards) == 2:
             # attempt to gain a silver to player's hand.
             # if silver pile is empty, proceed
-            try:
-                player.gain(silver, game, player.hand)
-            except EmptyPile:
-                pass
+            player.try_gain(silver, game, player.hand)
 
 
 class Upgrade(Action):

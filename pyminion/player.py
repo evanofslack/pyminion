@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -50,11 +50,18 @@ class Player:
         self.discard_pile = discard_pile if discard_pile else DiscardPile()
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
+        self.set_aside = AbstractDeck()
+        self.mats: Dict[str, AbstractDeck] = {}
         self.state = state if state else State()
         self.player_id = player_id
         self.turns: int = 0
         self.shuffles: int = 0
         self.actions_played_this_turn: int = 0
+        self.playmat_persist_counts: Dict[str, int] = {}
+        self.current_turn_gains: List[Tuple[Game.Phase, Card]] = []
+        self.last_turn_gains: List[Tuple[Game.Phase, Card]] = []
+        self.take_extra_turn: bool = False
+        self.next_turn_draw: int = 5
 
     def __repr__(self):
         return f"{self.player_id}"
@@ -71,6 +78,38 @@ class Player:
         self.deck.cards = []
         self.discard_pile.cards = []
         self.hand.cards = []
+        self.playmat.cards = []
+        self.set_aside.cards = []
+        self.mats = {}
+        self.playmat_persist_counts = {}
+        self.current_turn_gains = []
+        self.last_turn_gains = []
+        self.take_extra_turn = False
+        self.next_turn_draw = 5
+
+    def add_playmat_persistent_card(self, card: Card) -> None:
+        name = card.name
+        if name in self.playmat_persist_counts:
+            self.playmat_persist_counts[name] += 1
+        else:
+            self.playmat_persist_counts[name] = 1
+
+    def remove_playmat_persistent_card(self, card: Card) -> None:
+        name = card.name
+        assert self.playmat_persist_counts[name] > 0, f"self.playmat_persist_counts['{name}'] = {self.playmat_persist_counts[name]}"
+        self.playmat_persist_counts[name] -= 1
+
+    def get_mat(self, name: str) -> AbstractDeck:
+        """
+        Get a mat by name. If the mat does not exist, it is created.
+
+        """
+        mat = self.mats.get(name)
+        if mat is None:
+            mat = AbstractDeck()
+            self.mats[name] = mat
+
+        return mat
 
     def draw(
         self,
@@ -173,7 +212,7 @@ class Player:
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
 
-    def multi_play(self, card: Card, game: "Game", state: Any, generic_play: bool = True) -> Any:
+    def multi_play(self, card: Card, game: "Game", multi_play_card: Card, state: Any, generic_play: bool = True) -> Any:
         """
         Similar to previous exact_play method, except card's multi_play method is called.
         This method is necessary when playing "Throne Room variants".
@@ -182,7 +221,7 @@ class Player:
         if CardType.Action in card.type:
             assert isinstance(card, Action)
             self.actions_played_this_turn += 1
-            state = card.multi_play(player=self, game=game, state=state, generic_play=generic_play)
+            state = card.multi_play(self, game, multi_play_card, state, generic_play)
             game.effect_registry.on_play(self, card, game)
         else:
             raise InvalidCardPlay(f"Unable to play {card} with type {card.type}")
@@ -210,6 +249,7 @@ class Player:
         self.state.money -= card.get_cost(self, game)
         self.state.buys -= 1
         self.discard_pile.add(card)
+        self.current_turn_gains.append((game.current_phase, card))
         game.effect_registry.on_buy(self, card, game)
         logger.info(f"{self} buys {card}")
 
@@ -221,7 +261,7 @@ class Player:
         source: Optional[AbstractDeck] = None,
     ) -> None:
         """
-        Gain a card from the supply and add to destination.
+        Gain a card from source (supply by default) and adds it to destination.
         Defaults to adding the card to the player's discard pile.
 
         """
@@ -232,8 +272,28 @@ class Player:
 
         gain_card = source.remove(card)
         destination.add(gain_card)
+        self.current_turn_gains.append((game.current_phase, card))
         game.effect_registry.on_gain(self, card, game)
         logger.info(f"{self} gains {gain_card}")
+
+    def try_gain(
+        self,
+        card: Card,
+        game: "Game",
+        destination: Optional[AbstractDeck] = None,
+        source: Optional[AbstractDeck] = None,
+    ) -> None:
+        """
+        Gain a card from source (supply by default) and adds it to destination.
+        Defaults to adding the card to the player's discard pile.
+        If the source does not contain the card, nothing will happen.
+
+        """
+        try:
+            self.gain(card, game, destination, source)
+        except EmptyPile:
+            # do nothing if the source was empty
+            pass
 
     def trash(
         self, target_card: Card, game: "Game", source: Optional[AbstractDeck] = None
@@ -254,7 +314,7 @@ class Player:
 
                 break
 
-    def reveal(self, cards: Union[Card, List[Card]], game: "Game", message: Optional[str] = None) -> None:
+    def reveal(self, cards: Union[Card, Iterable[Card]], game: "Game", message: Optional[str] = None) -> None:
         """
         Reveal cards.
 
@@ -268,16 +328,32 @@ class Player:
         for card in cards:
             game.effect_registry.on_reveal(self, card, game)
 
-    def start_turn(self) -> None:
+    def start_turn(self, game: "Game", is_extra_turn: bool = False) -> None:
         """
         Increase turn counter and reset state
 
         """
-        self.turns += 1
         self.actions_played_this_turn = 0
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
+
+        if is_extra_turn:
+            logger.info(f"\nTurn {self.turns} (extra) - {self.player_id}")
+        else:
+            # extra turns do not count toward the total number of turns
+            self.turns += 1
+            logger.info(f"\nTurn {self.turns} - {self.player_id}")
+
+        for mat_name in self.mats:
+            mat = self.mats[mat_name]
+            if len(mat) > 0:
+                logger.info(f"{self.player_id}'s {mat_name} mat: {mat}")
+
+        if len(self.playmat) > 0:
+            logger.info(f"{self.player_id}'s cards in play: {self.playmat}")
+
+        game.effect_registry.on_turn_start(self, game)
 
     def start_action_phase(self, game: "Game") -> None:
         game.current_phase = game.Phase.Action
@@ -336,56 +412,90 @@ class Player:
 
             self.buy(card, game)
 
+        game.effect_registry.on_buy_phase_end(self, game)
+
     def start_cleanup_phase(self, game: "Game") -> None:
         """
         Move hand and playmat cards into discard pile and draw 5 new cards.
 
         """
         game.current_phase = game.Phase.CleanUp
-        game.effect_registry.on_cleanup_start(self, game)
+        game.effect_registry.on_cleanup_phase_start(self, game)
 
         hand_copy = self.hand.cards[:]
         for card in hand_copy:
             self.discard(game, card, silent=True)
+
+        persist_counts: Dict[str, int] = {}
         playmat_copy = self.playmat.cards[:]
         for card in playmat_copy:
-            self.discard(game, card, self.playmat, silent=True)
-        self.draw(5)
+            persist_count = persist_counts.get(card.name, 0)
+            target_persist_count = self.playmat_persist_counts.get(card.name, 0)
+            if persist_count < target_persist_count:
+                if card.name in persist_counts:
+                    persist_counts[card.name] += 1
+                else:
+                    persist_counts[card.name] = 1
+            else:
+                self.discard(game, card, self.playmat, silent=True)
+
+        self.draw(self.next_turn_draw)
+        self.next_turn_draw = 5
         self.state.actions = 1
         self.state.money = 0
         self.state.buys = 1
 
-    def take_turn(self, game: "Game") -> None:
-        game.effect_registry.on_turn_start(self, game)
+    def end_turn(self, game: "Game") -> None:
+        game.effect_registry.on_turn_end(self, game)
 
-        self.start_turn()
-        logger.info(f"\nTurn {self.turns} - {self.player_id}")
+        self.last_turn_gains = self.current_turn_gains
+        self.current_turn_gains = []
+
+    def take_turn(self, game: "Game", is_extra_turn: bool = False) -> None:
+        self.start_turn(game, is_extra_turn)
         self.start_action_phase(game)
         self.start_treasure_phase(game)
         self.start_buy_phase(game)
         self.start_cleanup_phase(game)
+        self.end_turn(game)
 
-        game.effect_registry.on_turn_end(self, game)
-
-    def get_all_cards(self) -> List[Card]:
+    def get_all_cards(self) -> Iterator[Card]:
         """
-        Get a list of all the cards the player has in their possession.
+        Get all the cards the player has in their possession.
 
         """
-        all_cards = (
-            self.deck.cards
-            + self.discard_pile.cards
-            + self.playmat.cards
-            + self.hand.cards
-        )
-        return all_cards
+        for card in self.deck:
+            yield card
+
+        for card in self.discard_pile:
+            yield card
+
+        for card in self.playmat:
+            yield card
+
+        for card in self.hand:
+            yield card
+
+        for card in self.set_aside:
+            yield card
+
+        for mat in self.mats.values():
+            for card in mat:
+                yield card
+
+    def get_all_cards_count(self) -> int:
+        """
+        Get all the cards the player has in their possession.
+
+        """
+        return sum(1 for _ in self.get_all_cards())
 
     def get_card_count(self, card: Card) -> int:
         """
         Get count of a specific card in player's whole deck.
 
         """
-        return self.get_all_cards().count(card)
+        return sum(1 for c in self.get_all_cards() if c == card)
 
     def get_victory_points(self) -> int:
         """

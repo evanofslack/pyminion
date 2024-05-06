@@ -109,7 +109,8 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.trash_effects) == 0
     assert len(effect_registry.turn_start_effects) == 0
     assert len(effect_registry.turn_end_effects) == 0
-    assert len(effect_registry.cleanup_start_effects) == 0
+    assert len(effect_registry.buy_phase_end_effects) == 0
+    assert len(effect_registry.cleanup_phase_start_effects) == 0
 
     effect_registry.register_attack_effect(AttackEffectTest())
     effect_registry.register_buy_effect(PlayerCardGameEffectTest())
@@ -123,7 +124,8 @@ def test_register_effects(effect_registry: EffectRegistry):
     effect_registry.register_trash_effect(PlayerCardGameEffectTest())
     effect_registry.register_turn_start_effect(PlayerGameEffectTest())
     effect_registry.register_turn_end_effect(PlayerGameEffectTest())
-    effect_registry.register_cleanup_start_effect(PlayerGameEffectTest())
+    effect_registry.register_buy_phase_end_effect(PlayerGameEffectTest())
+    effect_registry.register_cleanup_phase_start_effect(PlayerGameEffectTest())
 
     assert len(effect_registry.attack_effects) == 1
     assert len(effect_registry.buy_effects) == 1
@@ -137,10 +139,11 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.trash_effects) == 1
     assert len(effect_registry.turn_start_effects) == 1
     assert len(effect_registry.turn_end_effects) == 1
-    assert len(effect_registry.cleanup_start_effects) == 1
+    assert len(effect_registry.buy_phase_end_effects) == 1
+    assert len(effect_registry.cleanup_phase_start_effects) == 1
 
 
-def test_unregister_effects(effect_registry: EffectRegistry):
+def test_unregister_effects_by_id(effect_registry: EffectRegistry):
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
     assert len(effect_registry.discard_effects) == 0
@@ -153,21 +156,38 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.trash_effects) == 0
     assert len(effect_registry.turn_start_effects) == 0
     assert len(effect_registry.turn_end_effects) == 0
-    assert len(effect_registry.cleanup_start_effects) == 0
+    assert len(effect_registry.buy_phase_end_effects) == 0
+    assert len(effect_registry.cleanup_phase_start_effects) == 0
 
-    effect_registry.register_attack_effect(AttackEffectTest())
-    effect_registry.register_buy_effect(PlayerCardGameEffectTest())
-    effect_registry.register_discard_effect(PlayerCardGameEffectTest())
-    effect_registry.register_gain_effect(PlayerCardGameEffectTest())
-    effect_registry.register_hand_add_effect(PlayerCardGameEffectTest())
-    effect_registry.register_hand_remove_effect(PlayerCardGameEffectTest())
-    effect_registry.register_play_effect(PlayerCardGameEffectTest())
-    effect_registry.register_reveal_effect(PlayerCardGameEffectTest())
-    effect_registry.register_shuffle_effect(PlayerGameEffectTest())
-    effect_registry.register_trash_effect(PlayerCardGameEffectTest())
-    effect_registry.register_turn_start_effect(PlayerGameEffectTest())
-    effect_registry.register_turn_end_effect(PlayerGameEffectTest())
-    effect_registry.register_cleanup_start_effect(PlayerGameEffectTest())
+    attack_effect = AttackEffectTest()
+    buy_effect = PlayerCardGameEffectTest()
+    discard_effect = PlayerCardGameEffectTest()
+    gain_effect = PlayerCardGameEffectTest()
+    hand_add_effect = PlayerCardGameEffectTest()
+    hand_remove_effect = PlayerCardGameEffectTest()
+    play_effect = PlayerCardGameEffectTest()
+    reveal_effect = PlayerCardGameEffectTest()
+    shuffle_effect = PlayerGameEffectTest()
+    trash_effect = PlayerCardGameEffectTest()
+    turn_start_effect = PlayerGameEffectTest()
+    turn_end_effect = PlayerGameEffectTest()
+    buy_phase_end_effect = PlayerGameEffectTest()
+    cleanup_phase_start_effect = PlayerGameEffectTest()
+
+    effect_registry.register_attack_effect(attack_effect)
+    effect_registry.register_buy_effect(buy_effect)
+    effect_registry.register_discard_effect(discard_effect)
+    effect_registry.register_gain_effect(gain_effect)
+    effect_registry.register_hand_add_effect(hand_add_effect)
+    effect_registry.register_hand_remove_effect(hand_remove_effect)
+    effect_registry.register_play_effect(play_effect)
+    effect_registry.register_reveal_effect(reveal_effect)
+    effect_registry.register_shuffle_effect(shuffle_effect)
+    effect_registry.register_trash_effect(trash_effect)
+    effect_registry.register_turn_start_effect(turn_start_effect)
+    effect_registry.register_turn_end_effect(turn_end_effect)
+    effect_registry.register_buy_phase_end_effect(buy_phase_end_effect)
+    effect_registry.register_cleanup_phase_start_effect(cleanup_phase_start_effect)
 
     assert len(effect_registry.attack_effects) == 1
     assert len(effect_registry.buy_effects) == 1
@@ -181,21 +201,23 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.trash_effects) == 1
     assert len(effect_registry.turn_start_effects) == 1
     assert len(effect_registry.turn_end_effects) == 1
-    assert len(effect_registry.cleanup_start_effects) == 1
+    assert len(effect_registry.buy_phase_end_effects) == 1
+    assert len(effect_registry.cleanup_phase_start_effects) == 1
 
-    effect_registry.unregister_attack_effects("AttackEffectTest")
-    effect_registry.unregister_buy_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_discard_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_gain_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_hand_add_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_hand_remove_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_play_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_reveal_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_shuffle_effects("PlayerGameEffectTest")
-    effect_registry.unregister_trash_effects("PlayerCardGameEffectTest")
-    effect_registry.unregister_turn_start_effects("PlayerGameEffectTest")
-    effect_registry.unregister_turn_end_effects("PlayerGameEffectTest")
-    effect_registry.unregister_cleanup_start_effects("PlayerGameEffectTest")
+    effect_registry.unregister_attack_effect(attack_effect.get_id())
+    effect_registry.unregister_buy_effect(buy_effect.get_id())
+    effect_registry.unregister_discard_effect(discard_effect.get_id())
+    effect_registry.unregister_gain_effect(gain_effect.get_id())
+    effect_registry.unregister_hand_add_effect(hand_add_effect.get_id())
+    effect_registry.unregister_hand_remove_effect(hand_remove_effect.get_id())
+    effect_registry.unregister_play_effect(play_effect.get_id())
+    effect_registry.unregister_reveal_effect(reveal_effect.get_id())
+    effect_registry.unregister_shuffle_effect(shuffle_effect.get_id())
+    effect_registry.unregister_trash_effect(trash_effect.get_id())
+    effect_registry.unregister_turn_start_effect(turn_start_effect.get_id())
+    effect_registry.unregister_turn_end_effect(turn_end_effect.get_id())
+    effect_registry.unregister_buy_phase_end_effect(buy_phase_end_effect.get_id())
+    effect_registry.unregister_cleanup_phase_start_effect(cleanup_phase_start_effect.get_id())
 
     assert len(effect_registry.attack_effects) == 0
     assert len(effect_registry.buy_effects) == 0
@@ -209,30 +231,8 @@ def test_unregister_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.trash_effects) == 0
     assert len(effect_registry.turn_start_effects) == 0
     assert len(effect_registry.turn_end_effects) == 0
-    assert len(effect_registry.cleanup_start_effects) == 0
-
-
-def test_register_unregister_multiple_effects(effect_registry: EffectRegistry):
-    assert len(effect_registry.attack_effects) == 0
-
-    effect_registry.register_attack_effect(AttackEffectTest("test1"))
-    effect_registry.register_attack_effect(AttackEffectTest("test1"))
-    effect_registry.register_attack_effect(AttackEffectTest("test2"))
-
-    assert len(effect_registry.attack_effects) == 3
-
-    effect_registry.unregister_attack_effects("test1")
-
-    assert len(effect_registry.attack_effects) == 1
-
-    effect_registry.register_attack_effect(AttackEffectTest("test1"))
-    effect_registry.register_attack_effect(AttackEffectTest("test1"))
-
-    assert len(effect_registry.attack_effects) == 3
-
-    effect_registry.unregister_attack_effects("test1", max_unregister=1)
-
-    assert len(effect_registry.attack_effects) == 2
+    assert len(effect_registry.buy_phase_end_effects) == 0
+    assert len(effect_registry.cleanup_phase_start_effects) == 0
 
 
 def test_order_player_card_game_other(multiplayer_game: Game):
@@ -317,6 +317,42 @@ def test_order_player_card_game_hand_add_remove(multiplayer_game: Game, monkeypa
     assert e2.order_count == 0
     assert e3.order_count == 1
     assert e1.order_count == 2
+
+
+def test_order_player_card_game_all(multiplayer_game: Game, monkeypatch):
+    order_counter = OrderCounter()
+    effect_registry = multiplayer_game.effect_registry
+    player = multiplayer_game.players[0]
+
+    e1 = PlayerCardGameEffectTest("e1", EffectAction.HandAddRemoveCards, order_counter)
+    effect_registry.register_reveal_effect(e1)
+
+    e2 = PlayerCardGameEffectTest("e2", EffectAction.Other, order_counter)
+    effect_registry.register_reveal_effect(e2)
+
+    e3 = PlayerCardGameEffectTest("e3", EffectAction.Last, order_counter)
+    effect_registry.register_reveal_effect(e3)
+
+    e4 = PlayerCardGameEffectTest("e4", EffectAction.First, order_counter)
+    effect_registry.register_reveal_effect(e4)
+
+    e5 = PlayerCardGameEffectTest("e5", EffectAction.HandRemoveCards, order_counter)
+    effect_registry.register_reveal_effect(e5)
+
+    e6 = PlayerCardGameEffectTest("e6", EffectAction.HandAddCards, order_counter)
+    effect_registry.register_reveal_effect(e6)
+
+    responses = ["3", "2"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+    player.reveal(player.hand.cards[0], multiplayer_game)
+    assert len(responses) == 0
+
+    assert e4.order_count == 0
+    assert e2.order_count == 1
+    assert e6.order_count == 2
+    assert e5.order_count == 3
+    assert e1.order_count == 4
+    assert e3.order_count == 5
 
 
 def test_effect_handler_register(multiplayer_game: Game):
@@ -496,11 +532,23 @@ def test_on_turn_start_end(game: Game):
     assert turn_end_effect.handler_called
 
 
-def test_on_cleanup_start(game: Game):
+def test_on_buy_phase_end(game: Game):
     reg = game.effect_registry
 
     effect = PlayerGameEffectTest()
-    reg.register_cleanup_start_effect(effect)
+    reg.register_buy_phase_end_effect(effect)
+
+    player = game.players[0]
+    player.start_buy_phase(game)
+
+    assert effect.handler_called
+
+
+def test_on_cleanup_phase_start(game: Game):
+    reg = game.effect_registry
+
+    effect = PlayerGameEffectTest()
+    reg.register_cleanup_phase_start_effect(effect)
 
     player = game.players[0]
     player.start_cleanup_phase(game)

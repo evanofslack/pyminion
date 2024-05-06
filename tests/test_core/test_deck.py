@@ -65,6 +65,31 @@ def test_abstract_deck_on_remove():
     assert cards[2] == copper
 
 
+def test_abstract_deck_move_to_handlers():
+    added_cards: List[Card] = []
+    removed_cards: List[Card] = []
+    deck_1 = AbstractDeck(
+        cards=[copper, copper],
+        on_remove=lambda c: removed_cards.append(c),
+    )
+    deck_2 = AbstractDeck(
+        cards=[estate, estate, estate],
+        on_add=lambda c: added_cards.append(c),
+    )
+
+    deck_1.move_to(deck_2)
+    assert len(deck_1) == 0
+    assert len(deck_2) == 5
+
+    assert len(added_cards) == 2
+    assert added_cards[0].name == "Copper"
+    assert added_cards[1].name == "Copper"
+
+    assert len(removed_cards) == 2
+    assert removed_cards[0].name == "Copper"
+    assert removed_cards[1].name == "Copper"
+
+
 def test_create_deck():
     start_cards: List[Card] = []
     start_cards += [copper for x in range(NUM_COPPER)] + [
@@ -105,6 +130,22 @@ def test_deck_remove(deck: Deck):
     assert len(deck) == 10
     deck.remove(copper)
     assert len(deck) == 9
+
+
+def test_deck_draw_on_remove():
+    cards: List[Card] = []
+    deck = Deck(
+        cards=[copper, estate, copper],
+        on_remove=lambda c: cards.append(c)
+    )
+    deck.draw()
+    deck.draw()
+    deck.draw()
+
+    assert len(cards) == 3
+    assert cards[0] == copper
+    assert cards[1] == estate
+    assert cards[2] == copper
 
 
 def test_deck_on_shuffle():

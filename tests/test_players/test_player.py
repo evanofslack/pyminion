@@ -1,5 +1,5 @@
 import pytest
-from pyminion.core import DiscardPile, Hand, Playmat
+from pyminion.core import AbstractDeck, DiscardPile, Hand, Playmat
 from pyminion.exceptions import (
     CardNotFound,
     InsufficientActions,
@@ -81,7 +81,7 @@ def test_draw_multiple(player: Player, game: Game):
 def test_play_copper(player: Player, game: Game):
     player.hand.add(copper)
     assert len(player.hand) == 1
-    player.hand.cards[0].play(player, game)
+    player.play(copper, game)
     assert len(player.hand) == 0
     assert len(player.playmat) == 1
 
@@ -154,18 +154,21 @@ def test_player_discard(player: Player, game: Game):
 
 
 def test_player_all_cards(player: Player):
-    assert len(player.get_all_cards()) == 10
+    assert player.get_all_cards_count() == 10
     player.hand.add(copper)
-    assert len(player.get_all_cards()) == 11
-    assert type(player.get_all_cards()) is list
+    assert player.get_all_cards_count() == 11
     player.discard_pile.add(copper)
-    assert len(player.get_all_cards()) == 12
+    assert player.get_all_cards_count() == 12
     player.deck.add(copper)
-    assert len(player.get_all_cards()) == 13
+    assert player.get_all_cards_count() == 13
     player.playmat.add(copper)
-    assert len(player.get_all_cards()) == 14
+    assert player.get_all_cards_count() == 14
     player.playmat.remove(copper)
-    assert len(player.get_all_cards()) == 13
+    assert player.get_all_cards_count() == 13
+    player.get_mat("test").add(copper)
+    assert player.get_all_cards_count() == 14
+    player.set_aside.add(copper)
+    assert player.get_all_cards_count() == 15
 
 
 def test_player_get_vp(player: Player):
@@ -183,30 +186,43 @@ def test_player_get_vp(player: Player):
 def test_play_treasure_increment_money(player: Player, game: Game):
     player.hand.add(copper)
     assert player.state.money == 0
-    player.hand.cards[0].play(player, game)
+    player.play(copper, game)
     assert player.state.money == 1
 
 
 def test_play_action_decrement_action(player: Player, game: Game):
     player.hand.add(smithy)
     assert player.state.actions == 1
-    player.hand.cards[0].play(player, game)
+    player.play(smithy, game)
     assert player.state.actions == 0
 
 
 def test_insufficient_actions(player: Player, game: Game):
     player.hand.add(smithy)
     player.hand.add(smithy)
-    player.hand.cards[0].play(player, game)
+    player.play(smithy, game)
     assert player.state.actions == 0
     with pytest.raises(InsufficientActions):
-        player.hand.cards[0].play(player, game)
+        player.play(smithy, game)
 
 
 def test_player_gain_card(player: Player, game: Game):
     player.gain(card=copper, game=game)
     assert player.discard_pile.cards[0] == copper
     assert len(player.discard_pile) == 1
+
+
+def test_player_try_gain_card(player: Player, game: Game):
+    copper_pile = game.supply.get_pile("Copper")
+    copper_pile.cards = copper_pile.cards[:3]
+    assert len(copper_pile) == 3
+
+    dest = AbstractDeck()
+    for _ in range(5):
+        player.try_gain(copper, game, destination=dest)
+
+    assert len(copper_pile) == 0
+    assert len(dest) == 3
 
 
 def test_player_draw_to_discard(player: Player, game: Game):
@@ -251,10 +267,10 @@ def test_deck_money(player: Player):
 
 
 def test_all_cards(player: Player):
-    assert len(player.get_all_cards()) == 10
+    assert player.get_all_cards_count() == 10
     player.hand.add(copper)
     player.discard_pile.add(copper)
-    assert len(player.get_all_cards()) == 12
+    assert player.get_all_cards_count() == 12
 
 
 def test_card_count(player: Player):
@@ -265,12 +281,12 @@ def test_card_count(player: Player):
     assert player.get_card_count(card=smithy) == 1
 
 
-def test_start_turn(player: Player):
+def test_start_turn(player: Player, game: Game):
     player.turns = 2
     player.state.money = 2
     player.state.actions = 2
     player.state.buys = 2
-    player.start_turn()
+    player.start_turn(game)
     assert player.turns == 3
     assert player.state.money == 0
     assert player.state.actions == 1
