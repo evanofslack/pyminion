@@ -810,7 +810,7 @@ class Bandit(Action):
                     trash_card = trash_cards[0]
 
                 if trash_card is not None:
-                    player.trash(trash_card, game, revealed_cards)
+                    opponent.trash(trash_card, game, revealed_cards)
 
                 revealed_cards_copy = revealed_cards.cards[:]
                 for card in revealed_cards_copy:
