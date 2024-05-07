@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
@@ -787,21 +787,30 @@ class Bandit(Action):
 
                 opponent.reveal(revealed_cards.cards, game)
 
-                trash_card = None
-                for card in revealed_cards.cards:
-                    if card.name == "Silver":
-                        trash_card = card
-                    elif card.name == "Gold" and not trash_card:
-                        trash_card = card
-                    elif (
-                        CardType.Treasure in card.type
-                        and card.name != "Copper"
-                        and not trash_card
-                    ):
-                        trash_card = card
+                non_copper_treasures = [
+                    card
+                    for card in revealed_cards
+                    if CardType.Treasure in card.type and card.name != "Copper"
+                ]
 
-                if trash_card:
-                    game.trash.add(revealed_cards.remove(trash_card))
+                trash_card: Optional[Card] = None
+                if len(non_copper_treasures) == 1:
+                    trash_card = non_copper_treasures[0]
+                elif len(non_copper_treasures) > 1:
+                    trash_cards = opponent.decider.trash_decision(
+                        prompt="Choose a card to trash",
+                        card=self,
+                        valid_cards=non_copper_treasures,
+                        player=opponent,
+                        game=game,
+                        min_num_trash=1,
+                        max_num_trash=1,
+                    )
+                    assert len(trash_cards) == 1
+                    trash_card = trash_cards[0]
+
+                if trash_card is not None:
+                    player.trash(trash_card, game, revealed_cards)
 
                 revealed_cards_copy = revealed_cards.cards[:]
                 for card in revealed_cards_copy:
