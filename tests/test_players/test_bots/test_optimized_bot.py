@@ -302,12 +302,14 @@ def test_bot_one_empty_pile_prioritize_victory(bot: OptimizedBot, game: Game):
 def test_remodel_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(remodel)
     bot.hand.add(copper)
+    bot.hand.add(copper)
     bot.play(remodel, game)
     assert bot.discard_pile.cards[-1].name == "Estate"
 
 
 def test_remodel_bot_gold(bot: OptimizedBot, game: Game):
     bot.hand.add(remodel)
+    bot.hand.add(gold)
     bot.hand.add(gold)
     bot.play(remodel, game)
     assert bot.discard_pile.cards[-1].name == "Province"
