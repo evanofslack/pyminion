@@ -1192,7 +1192,7 @@ class Library(Action):
         while len(player.hand) < 7:
 
             if len(player.deck) == 0 and len(player.discard_pile) == 0:
-                return
+                break
 
             player.draw(num_cards=1, destination=set_aside)
             drawn_card = set_aside.cards[-1]
