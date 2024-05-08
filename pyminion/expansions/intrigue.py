@@ -313,11 +313,11 @@ class Duke(Victory):
         return vp
 
 
-class Harem(Treasure, Victory):
+class Farm(Treasure, Victory):
     def __init__(self):
         Treasure.__init__(
             self,
-            name="Harem",
+            name="Farm",
             cost=6,
             type=(CardType.Treasure, CardType.Victory),
             money=2,
@@ -1296,7 +1296,7 @@ courtier = Courtier()
 courtyard = Courtyard()
 diplomat = Diplomat()
 duke = Duke()
-harem = Harem()
+farm = Farm()
 ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
@@ -1325,7 +1325,7 @@ intrigue_set: List[Card] = [
     courtyard,
     diplomat,
     duke,
-    harem,
+    farm,
     ironworks,
     lurker,
     masquerade,
