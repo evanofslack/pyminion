@@ -2,7 +2,7 @@ import logging
 import math
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
+from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory, plural
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
 from pyminion.player import Player
 
@@ -1113,21 +1113,26 @@ class Sentry(Action):
         looked_at = AbstractDeck()
         player.draw(num_cards=2, destination=looked_at, silent=True)
 
-        trash_cards = player.decider.trash_decision(
-            prompt="Enter the cards you would like to trash: ",
-            card=self,
-            valid_cards=looked_at.cards,
-            player=player,
-            game=game,
-            min_num_trash=0,
-            max_num_trash=2,
-        )
+        if len(looked_at) > 0:
+            s = plural("card", len(looked_at))
+            logger.info(f"Sentry {s}: {looked_at}")
+            trash_cards = player.decider.trash_decision(
+                prompt="Enter the cards you would like to trash: ",
+                card=self,
+                valid_cards=looked_at.cards,
+                player=player,
+                game=game,
+                min_num_trash=0,
+                max_num_trash=2,
+            )
 
-        for card in trash_cards:
-            looked_at.remove(card)
+            for card in trash_cards:
+                looked_at.remove(card)
 
         discard_cards: List[Card] = []
-        if len(looked_at.cards) > 0:
+        if len(looked_at) > 0:
+            s = plural("card", len(looked_at))
+            logger.info(f"Sentry {s}: {looked_at}")
             discard_cards = player.decider.discard_decision(
                 prompt="Enter the cards you would like to discard: ",
                 card=self,
@@ -1139,12 +1144,12 @@ class Sentry(Action):
                 looked_at.remove(card)
 
         reorder = False
-        if len(looked_at.cards) == 2:
+        if len(looked_at) == 2:
             logger.info(
                 f"Current order: {looked_at.cards[0]} (Top), {looked_at.cards[1]} (Bottom)"
             )
             reorder = player.decider.binary_decision(
-                prompt="Would you like to switch the order of the cards?",
+                prompt="Would you like to switch the order of the cards? y/n: ",
                 card=self,
                 player=player,
                 game=game,
@@ -1165,7 +1170,8 @@ class Sentry(Action):
             else:
                 for card in reversed(looked_at.cards):
                     player.deck.add(card)
-            logger.info(f"{player} topdecks {len(looked_at.cards)} cards")
+            s = plural("card", len(looked_at))
+            logger.info(f"{player} topdecks {len(looked_at)} {s}")
 
 
 class Library(Action):
