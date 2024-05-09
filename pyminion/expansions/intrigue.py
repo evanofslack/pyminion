@@ -910,17 +910,23 @@ class SecretPassage(Action):
 
         super().play(player, game, generic_play)
 
-        insert_cards = player.decider.topdeck_decision(
-            prompt="Enter the card you would like to insert in your deck: ",
-            card=self,
-            valid_cards=player.hand.cards,
-            player=player,
-            game=game,
-            min_num_topdeck=1,
-            max_num_topdeck=1,
-        )
-        assert len(insert_cards) == 1
-        insert_card = insert_cards[0]
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            insert_card = player.hand.cards[0]
+        else:
+            insert_cards = player.decider.topdeck_decision(
+                prompt="Enter the card you would like to insert in your deck: ",
+                card=self,
+                valid_cards=player.hand.cards,
+                player=player,
+                game=game,
+                min_num_topdeck=1,
+                max_num_topdeck=1,
+            )
+            assert len(insert_cards) == 1
+            insert_card = insert_cards[0]
 
         len_deck = len(player.deck)
         if len_deck == 0:
