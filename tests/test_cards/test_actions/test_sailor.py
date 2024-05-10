@@ -1,4 +1,4 @@
-from pyminion.expansions.base import copper, curse, silver, throne_room
+from pyminion.expansions.base import artisan, base_set, copper, curse, silver, throne_room
 from pyminion.expansions.seaside import Sailor, bazaar, fishing_village, seaside_set, sailor
 from pyminion.game import Game
 import pytest
@@ -193,6 +193,35 @@ def test_two_sailors_play(multiplayer_game: Game, monkeypatch):
     assert len(responses) == 0
     assert len(human.playmat) == 4
     assert len(human.discard_pile) == 2
+
+
+@pytest.mark.expansions([base_set, seaside_set])
+@pytest.mark.kingdom_cards([artisan, fishing_village, sailor])
+def test_sailor_play_gain_deck(multiplayer_game: Game, monkeypatch):
+    responses = ["Fishing Village", "y", "Silver"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    human = multiplayer_game.players[0]
+    human.hand.add(silver)
+    human.hand.add(sailor)
+    human.hand.add(artisan)
+
+    human.play(sailor, multiplayer_game)
+
+    # play artisan to gain a duration card to player's hand, then play it with sailor
+    human.play(artisan, multiplayer_game)
+
+    # gain a duration card and play it
+    assert len(responses) == 0
+    assert len(human.playmat) == 3
+    assert human.playmat.cards[0].name == "Sailor"
+    assert human.playmat.cards[1].name == "Artisan"
+    assert human.playmat.cards[2].name == "Fishing Village"
+    assert len(human.discard_pile) == 0
+    assert human.deck.cards[-1].name == "Silver"
+    assert human.state.actions == 2
+    assert human.state.money == 1
+
 
 
 @pytest.mark.expansions([seaside_set])

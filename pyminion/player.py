@@ -250,7 +250,7 @@ class Player:
         self.state.buys -= 1
         self.discard_pile.add(card)
         self.current_turn_gains.append((game.current_phase, card))
-        game.effect_registry.on_buy(self, card, game)
+        game.effect_registry.on_buy(self, card, game, self.discard_pile)
         logger.info(f"{self} buys {card}")
 
     def gain(
@@ -273,7 +273,7 @@ class Player:
         gain_card = source.remove(card)
         destination.add(gain_card)
         self.current_turn_gains.append((game.current_phase, card))
-        game.effect_registry.on_gain(self, card, game)
+        game.effect_registry.on_gain(self, card, game, destination)
         logger.info(f"{self} gains {gain_card}")
 
     def try_gain(

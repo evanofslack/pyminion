@@ -1,5 +1,5 @@
-from pyminion.core import Card
-from pyminion.effects import AttackEffect, Effect, EffectAction, EffectRegistry, FuncPlayerCardGameEffect, PlayerCardGameEffect, PlayerGameEffect
+from pyminion.core import AbstractDeck, Card
+from pyminion.effects import AttackEffect, Effect, EffectAction, EffectRegistry, FuncPlayerCardGameEffect, GainEffect, PlayerCardGameEffect, PlayerGameEffect
 from pyminion.expansions.base import gold, smithy, witch
 from pyminion.game import Game
 from pyminion.player import Player
@@ -37,6 +37,31 @@ class AttackEffectTest(AttackEffect):
         if self.order_counter is not None:
             self.order_count = self.order_counter.inc_count()
         return True
+
+
+class GainEffectTest(GainEffect):
+    def __init__(
+            self,
+            name: str = "PlayerCardGameEffectTest",
+            action: EffectAction = EffectAction.Other,
+            order_counter: Optional[OrderCounter] = None,
+    ):
+        super().__init__(name)
+        self._action = action
+        self.handler_called = False
+        self.order_counter = order_counter
+        self.order_count = -1
+
+    def get_action(self) -> EffectAction:
+        return self._action
+
+    def is_triggered(self, player: Player, card: Card, game: Game, destination: AbstractDeck) -> bool:
+        return True
+
+    def handler(self, player: Player, card: Card, game: Game, destination: AbstractDeck) -> None:
+        self.handler_called = True
+        if self.order_counter is not None:
+            self.order_count = self.order_counter.inc_count()
 
 
 class PlayerCardGameEffectTest(PlayerCardGameEffect):
@@ -113,9 +138,9 @@ def test_register_effects(effect_registry: EffectRegistry):
     assert len(effect_registry.cleanup_phase_start_effects) == 0
 
     effect_registry.register_attack_effect(AttackEffectTest())
-    effect_registry.register_buy_effect(PlayerCardGameEffectTest())
+    effect_registry.register_buy_effect(GainEffectTest())
     effect_registry.register_discard_effect(PlayerCardGameEffectTest())
-    effect_registry.register_gain_effect(PlayerCardGameEffectTest())
+    effect_registry.register_gain_effect(GainEffectTest())
     effect_registry.register_hand_add_effect(PlayerCardGameEffectTest())
     effect_registry.register_hand_remove_effect(PlayerCardGameEffectTest())
     effect_registry.register_play_effect(PlayerCardGameEffectTest())
@@ -160,9 +185,9 @@ def test_unregister_effects_by_id(effect_registry: EffectRegistry):
     assert len(effect_registry.cleanup_phase_start_effects) == 0
 
     attack_effect = AttackEffectTest()
-    buy_effect = PlayerCardGameEffectTest()
+    buy_effect = GainEffectTest()
     discard_effect = PlayerCardGameEffectTest()
-    gain_effect = PlayerCardGameEffectTest()
+    gain_effect = GainEffectTest()
     hand_add_effect = PlayerCardGameEffectTest()
     hand_remove_effect = PlayerCardGameEffectTest()
     play_effect = PlayerCardGameEffectTest()
@@ -392,8 +417,8 @@ def test_on_attack(multiplayer_game: Game):
 def test_on_buy(game: Game):
     reg = game.effect_registry
 
-    buy_effect = PlayerCardGameEffectTest()
-    gain_effect = PlayerCardGameEffectTest()
+    buy_effect = GainEffectTest()
+    gain_effect = GainEffectTest()
     reg.register_buy_effect(buy_effect)
     reg.register_gain_effect(gain_effect)
 
@@ -426,8 +451,8 @@ def test_on_discard(game: Game):
 def test_on_gain(game: Game):
     reg = game.effect_registry
 
-    buy_effect = PlayerCardGameEffectTest()
-    gain_effect = PlayerCardGameEffectTest()
+    buy_effect = GainEffectTest()
+    gain_effect = GainEffectTest()
     reg.register_buy_effect(buy_effect)
     reg.register_gain_effect(gain_effect)
 

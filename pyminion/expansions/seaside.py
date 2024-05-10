@@ -20,6 +20,7 @@ from pyminion.duration import (
 from pyminion.effects import (
     AttackEffect,
     EffectAction,
+    GainEffect,
     FuncPlayerCardGameEffect,
     FuncPlayerGameEffect,
     PlayerCardGameEffect,
@@ -80,7 +81,7 @@ class Blockade(ActionDuration):
 
     """
 
-    class CurseEffect(PlayerCardGameEffect):
+    class CurseEffect(GainEffect):
         def __init__(self, affected_players: Iterable[Player], card: Card):
             super().__init__(f"{blockade.name}: Gain curse")
             self.affected_players = set(affected_players)
@@ -89,7 +90,7 @@ class Blockade(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
-        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
             return (
                 player in self.affected_players
                 and player is game.current_player
@@ -97,7 +98,7 @@ class Blockade(ActionDuration):
                 and game.supply.pile_length("Curse") > 0
             )
 
-        def handler(self, player: Player, card: Card, game: "Game") -> None:
+        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
             player.gain(curse, game)
 
     def __init__(self):
@@ -588,7 +589,7 @@ class Monkey(ActionDuration):
 
     """
 
-    class Effect(PlayerCardGameEffect):
+    class Effect(GainEffect):
         def __init__(self, played_player: Player, right_player: Player):
             super().__init__(f"{monkey.name}: Draw card")
             self.played_player = played_player
@@ -597,10 +598,10 @@ class Monkey(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.Last
 
-        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
             return player is self.right_player
 
-        def handler(self, player: Player, card: Card, game: "Game") -> None:
+        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
             self.played_player.draw()
 
     def __init__(self):
@@ -762,7 +763,7 @@ class Pirate(ActionDuration):
 
             game.effect_registry.unregister_turn_start_effect(self.get_id())
 
-    class PlayEffect(PlayerCardGameEffect):
+    class PlayEffect(GainEffect):
         def __init__(self, pirate_player: Player, card: Card):
             super().__init__(f"Pirate: {pirate_player.player_id} play")
             self.pirate_player = pirate_player
@@ -771,10 +772,10 @@ class Pirate(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.HandRemoveCards
 
-        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
             return CardType.Treasure in card.type
 
-        def handler(self, player: Player, card: Card, game: "Game") -> None:
+        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
             play_card = self.pirate_player.decider.binary_decision(
                 "Would you like to play Pirate? y/n: ",
                 self.card,
@@ -842,7 +843,7 @@ class Sailor(ActionDuration):
 
     """
 
-    class PlayEffect(PlayerCardGameEffect):
+    class PlayEffect(GainEffect):
         def __init__(self, players: List[Player]):
             super().__init__("Sailor: Play Duration")
             self.player_sailor_counts: Dict[str, int] = {}
@@ -852,11 +853,11 @@ class Sailor(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
-        def is_triggered(self, player: Player, card: Card, game: "Game") -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
             sailor_counts = self.player_sailor_counts.get(player.player_id, 0)
             return sailor_counts > 0 and CardType.Duration in card.type
 
-        def handler(self, player: Player, card: Card, game: "Game") -> None:
+        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
             play = player.decider.binary_decision(
                 "Do you want to play your gained Duration card? y/n: ",
                 sailor,
@@ -868,7 +869,7 @@ class Sailor(ActionDuration):
             if not play:
                 return
 
-            player.discard_pile.remove(card)
+            destination.remove(card)
             player.playmat.add(card)
             player.exact_play(card, game, generic_play=False)
 
