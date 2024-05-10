@@ -1113,6 +1113,7 @@ class Sentry(Action):
         looked_at = AbstractDeck()
         player.draw(num_cards=2, destination=looked_at, silent=True)
 
+        trash_cards: List[Card] = []
         if len(looked_at) > 0:
             s = plural("card", len(looked_at))
             logger.info(f"Sentry {s}: {looked_at}")
