@@ -26,38 +26,96 @@ def test_str():
 
 
 def test_eq():
-    c1 = Cost(0)
-    c2 = Cost(1)
-    c3 = Cost(1)
-    c4 = Cost(1, 1)
-    c5 = Cost(1, 1)
-    c6 = Cost(2, 1)
+    assert Cost(0) == 0
+    assert not Cost(0) == 1
 
-    assert c1 == 0
-    assert not c1 == 1
+    assert Cost(1) == Cost(1)
+    assert not Cost(1) == Cost(0)
 
-    assert c2 == c3
-    assert not c2 == c1
-
-    assert not c4 == 1
-    assert c4 == c5
-    assert not c5 == c6
+    assert not Cost(1, 1) == 1
+    assert Cost(1, 1) == Cost(1, 1)
+    assert not Cost(1, 1) == Cost(2, 1)
 
 
 def test_ne():
-    c1 = Cost(0)
-    c2 = Cost(1)
-    c3 = Cost(1)
-    c4 = Cost(1, 1)
-    c5 = Cost(1, 1)
-    c6 = Cost(2, 1)
+    assert not  Cost(0) != 0
+    assert  Cost(0) != 1
 
-    assert not c1 != 0
-    assert c1 != 1
+    assert not  Cost(1) != Cost(1)
+    assert  Cost(1) !=  Cost(0)
 
-    assert not c2 != c3
-    assert c2 != c1
+    assert Cost(1, 1) != 1
+    assert not Cost(1, 1) != Cost(1, 1)
+    assert Cost(1, 1) != Cost(2, 1)
 
-    assert c4 != 1
-    assert not c4 != c5
-    assert c5 != c6
+
+def test_lt():
+    assert Cost(0) < 1
+    assert not Cost(2) < 2
+    assert not Cost(3) < 2
+
+    assert Cost(0) < Cost(1)
+    assert not Cost(2) < Cost(2)
+    assert not Cost(3) < Cost(2)
+
+    assert Cost(2, 1) < Cost(3, 1)
+    assert not Cost(4, 1) < Cost(4, 1)
+    assert not Cost(4, 1) < Cost(3, 1)
+
+    assert Cost(2) < Cost(2, 1)
+    assert not Cost(1) < Cost(2, 1)
+    assert not Cost(3) < Cost(2, 1)
+
+
+def test_le():
+    assert Cost(0) <= 1
+    assert Cost(2) <= 2
+    assert not Cost(3) <= 2
+
+    assert Cost(0) <= Cost(1)
+    assert Cost(2) <= Cost(2)
+    assert not Cost(3) <= Cost(2)
+
+    assert Cost(2, 1) <= Cost(3, 1)
+    assert Cost(4, 1) <= Cost(4, 1)
+    assert not Cost(4, 1) <= Cost(3, 1)
+
+    assert Cost(2) <= Cost(2, 1)
+    assert not Cost(1) <= Cost(2, 1)
+    assert not Cost(3) <= Cost(2, 1)
+
+
+def test_gt():
+    assert not Cost(0) > 1
+    assert not Cost(2) > 2
+    assert Cost(3) > 2
+
+    assert not Cost(0) > Cost(1)
+    assert not Cost(2) > Cost(2)
+    assert Cost(3) > Cost(2)
+
+    assert not Cost(2, 1) > Cost(3, 1)
+    assert not Cost(4, 1) > Cost(4, 1)
+    assert Cost(4, 1) > Cost(3, 1)
+
+    assert not Cost(2) > Cost(2, 1)
+    assert not Cost(1) > Cost(2, 1)
+    assert not Cost(3) > Cost(2, 1)
+
+
+def test_ge():
+    assert not Cost(0) >= 1
+    assert Cost(2) >= 2
+    assert Cost(3) >= 2
+
+    assert not Cost(0) >= Cost(1)
+    assert Cost(2) >= Cost(2)
+    assert Cost(3) >= Cost(2)
+
+    assert not Cost(2, 1) >= Cost(3, 1)
+    assert Cost(4, 1) >= Cost(4, 1)
+    assert Cost(4, 1) >= Cost(3, 1)
+
+    assert not Cost(2) >= Cost(2, 1)
+    assert not Cost(1) >= Cost(2, 1)
+    assert not Cost(3) >= Cost(2, 1)

@@ -33,6 +33,12 @@ class Cost:
             s += f"p{self.potions}"
         return s
 
+    @staticmethod
+    def _to_tuple(obj: "int|Cost") -> tuple[int, int]:
+        if isinstance(obj, int):
+            return (obj, 0)
+        return (obj.money, obj.potions)
+
     def __eq__(self, other: "int|Cost") -> bool:
         if isinstance(other, int):
             return self.money == other and self.potions == 0
@@ -44,6 +50,51 @@ class Cost:
             return self.money != other or self.potions != 0
         else:
             return self.money != other.money or self.potions != other.potions
+
+    def __lt__(self, other: "int|Cost") -> bool:
+        other_money, other_potions = self._to_tuple(other)
+
+        if self.money == other_money:
+            return self.potions < other_potions
+        elif self.potions == other_potions:
+            return self.money < other_money
+        else:
+            # if neither money nor potions are equal, costs cannot be compared
+            return False
+
+    def __le__(self, other: "int|Cost") -> bool:
+        other_money, other_potions = self._to_tuple(other)
+
+        if self.money == other_money:
+            return self.potions <= other_potions
+        elif self.potions == other_potions:
+            return self.money <= other_money
+        else:
+            # if neither money nor potions are equal, costs cannot be compared
+            return False
+
+    def __gt__(self, other: "int|Cost") -> bool:
+        other_money, other_potions = self._to_tuple(other)
+
+        if self.money == other_money:
+            return self.potions > other_potions
+        elif self.potions == other_potions:
+            return self.money > other_money
+        else:
+            # if neither money nor potions are equal, costs cannot be compared
+            return False
+
+    def __ge__(self, other: "int|Cost") -> bool:
+        other_money, other_potions = self._to_tuple(other)
+
+        if self.money == other_money:
+            return self.potions >= other_potions
+        elif self.potions == other_potions:
+            return self.money >= other_money
+        else:
+            # if neither money nor potions are equal, costs cannot be compared
+            return False
+
 
 @unique
 class CardType(Enum):
