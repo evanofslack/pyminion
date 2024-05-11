@@ -128,6 +128,37 @@ def test_ge():
     assert not Cost(3) >= Cost(2, 1)
 
 
+def test_add():
+    c1 = Cost(0) + 3
+    assert c1.money == 3 and c1.potions == 0
+
+    c2 = Cost(4, 1) + 2
+    assert c2.money == 6 and c2.potions == 1
+
+    c3 = Cost(4, 1) + -2
+    assert c3.money == 2 and c3.potions == 1
+
+    c4 = Cost(4, 1) + -5
+    assert c4.money == 0 and c4.potions == 1
+
+    c5 = 2 + Cost(4, 1)
+    assert c5.money == 6 and c5.potions == 1
+
+
+def test_sub():
+    c1 = Cost(3) - 1
+    assert c1.money == 2 and c1.potions == 0
+
+    c2 = Cost(4, 1) - 2
+    assert c2.money == 2 and c2.potions == 1
+
+    c3 = Cost(2, 1) - 8
+    assert c3.money == 0 and c3.potions == 1
+
+    c4 = Cost(3) - -3
+    assert c4.money == 6 and c4.potions == 0
+
+
 def test_examples():
     # examples from https://wiki.dominionstrategy.com/index.php/Alchemy
 

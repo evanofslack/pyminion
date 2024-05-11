@@ -75,6 +75,19 @@ class Cost:
         other_money, other_potions = self._to_tuple(other)
         return self._money >= other_money and self._potions >= other_potions
 
+    def __add__(self, other: int) -> "Cost":
+        new_money = max(0, self._money + other)
+        new_cost = Cost(new_money, self._potions)
+        return new_cost
+
+    def __radd__(self, other: int) -> "Cost":
+        return self + other
+
+    def __sub__(self, other: int) -> "Cost":
+        new_money = max(0, self._money - other)
+        new_cost = Cost(new_money, self._potions)
+        return new_cost
+
     @property
     def money(self):
         return self._money
@@ -82,6 +95,7 @@ class Cost:
     @property
     def potions(self):
         return self._potions
+
 
 @unique
 class CardType(Enum):
