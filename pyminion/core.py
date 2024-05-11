@@ -22,14 +22,14 @@ class Cost:
     def __init__(self, money: int, potions: int = 0):
         assert money >= 0
         assert 0 <= potions <= 1
-        self.money = money
-        self.potions = potions
+        self._money = money
+        self._potions = potions
 
     def __str__(self) -> str:
         s = ""
-        if self.money > 0 or self.potions == 0:
-            s += f"${self.money}"
-        if self.potions > 0:
+        if self._money > 0 or self._potions == 0:
+            s += f"${self._money}"
+        if self._potions > 0:
             s += "P"
         return s
 
@@ -37,44 +37,51 @@ class Cost:
     def _to_tuple(obj: "int|Cost") -> tuple[int, int]:
         if isinstance(obj, int):
             return (obj, 0)
-        return (obj.money, obj.potions)
+        return (obj._money, obj._potions)
 
     def __eq__(self, other: "int|Cost") -> bool:
         if isinstance(other, int):
-            return self.money == other and self.potions == 0
+            return self._money == other and self._potions == 0
         else:
-            return self.money == other.money and self.potions == other.potions
+            return self._money == other._money and self._potions == other._potions
 
     def __ne__(self, other: "int|Cost") -> bool:
         if isinstance(other, int):
-            return self.money != other or self.potions != 0
+            return self._money != other or self._potions != 0
         else:
-            return self.money != other.money or self.potions != other.potions
+            return self._money != other._money or self._potions != other._potions
 
     def __lt__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
         return (
-            self.money < other_money and self.potions <= other_potions
+            self._money < other_money and self._potions <= other_potions
         ) or (
-            self.money == other_money and self.potions < other_potions
+            self._money == other_money and self._potions < other_potions
         )
 
     def __le__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-        return self.money <= other_money and self.potions <= other_potions
+        return self._money <= other_money and self._potions <= other_potions
 
     def __gt__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
         return (
-            self.money > other_money and self.potions >= other_potions
+            self._money > other_money and self._potions >= other_potions
         ) or (
-            self.money == other_money and self.potions > other_potions
+            self._money == other_money and self._potions > other_potions
         )
 
     def __ge__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-        return self.money >= other_money and self.potions >= other_potions
+        return self._money >= other_money and self._potions >= other_potions
 
+    @property
+    def money(self):
+        return self._money
+
+    @property
+    def potions(self):
+        return self._potions
 
 @unique
 class CardType(Enum):

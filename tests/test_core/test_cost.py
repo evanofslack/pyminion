@@ -1,4 +1,5 @@
 from pyminion.core import Cost
+import pytest
 
 
 def test_init():
@@ -9,6 +10,12 @@ def test_init():
     c2 = Cost(3, 1)
     assert c2.money == 3
     assert c2.potions == 1
+
+    with pytest.raises(AssertionError):
+        Cost(-1)
+
+    with pytest.raises(AssertionError):
+        Cost(1, 2)
 
 
 def test_str():
@@ -179,3 +186,13 @@ def test_examples():
     assert not Cost(5, 1) <= Cost(4, 1)
     assert not Cost(4, 1) >= Cost(5)
     assert not Cost(4, 1) >= Cost(5, 1)
+
+    # range comparisons
+
+    assert not 3 <= Cost(2) <= 6
+    assert not 3 <= Cost(2, 1) <= 6
+    for m in range(3, 7):
+        assert 3 <= Cost(m) <= 6
+        assert not 3 <= Cost(m, 1) <= 6
+    assert not 3 <= Cost(7) <= 6
+    assert not 3 <= Cost(7, 1) <= 6
