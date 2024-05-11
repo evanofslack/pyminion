@@ -14,6 +14,37 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
+class Cost:
+    """
+    The cost of a card in money and/or potions.
+
+    """
+    def __init__(self, money: int, potions: int = 0):
+        self.money = money
+        self.potions = potions
+
+    def __str__(self) -> str:
+        s = ""
+        if self.money > 0 or self.potions == 0:
+            s += f"${self.money}"
+        if self.potions > 0:
+            if self.money > 0:
+                s += " "
+            s += f"p{self.potions}"
+        return s
+
+    def __eq__(self, other: "int|Cost") -> bool:
+        if isinstance(other, int):
+            return self.money == other and self.potions == 0
+        else:
+            return self.money == other.money and self.potions == other.potions
+
+    def __ne__(self, other: "int|Cost") -> bool:
+        if isinstance(other, int):
+            return self.money != other or self.potions != 0
+        else:
+            return self.money != other.money or self.potions != other.potions
+
 @unique
 class CardType(Enum):
     """
