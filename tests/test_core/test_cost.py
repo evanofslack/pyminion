@@ -19,10 +19,10 @@ def test_str():
     assert str(c2) == "$5"
 
     c3 = Cost(0, 1)
-    assert str(c3) == "p1"
+    assert str(c3) == "P"
 
     c4 = Cost(2, 1)
-    assert str(c4) == "$2 p1"
+    assert str(c4) == "$2P"
 
 
 def test_eq():
@@ -63,7 +63,7 @@ def test_lt():
     assert not Cost(4, 1) < Cost(3, 1)
 
     assert Cost(2) < Cost(2, 1)
-    assert not Cost(1) < Cost(2, 1)
+    assert Cost(1) < Cost(2, 1)
     assert not Cost(3) < Cost(2, 1)
 
 
@@ -81,7 +81,7 @@ def test_le():
     assert not Cost(4, 1) <= Cost(3, 1)
 
     assert Cost(2) <= Cost(2, 1)
-    assert not Cost(1) <= Cost(2, 1)
+    assert Cost(1) <= Cost(2, 1)
     assert not Cost(3) <= Cost(2, 1)
 
 
@@ -119,3 +119,63 @@ def test_ge():
     assert not Cost(2) >= Cost(2, 1)
     assert not Cost(1) >= Cost(2, 1)
     assert not Cost(3) >= Cost(2, 1)
+
+
+def test_examples():
+    # examples from https://wiki.dominionstrategy.com/index.php/Alchemy
+
+    # $3 < $3P
+
+    assert Cost(3) < Cost(3, 1)
+    assert Cost(3, 1) > Cost(3)
+
+    # comparisons with not potions in cost
+
+    for m in range(5):
+        assert Cost(m) < 5
+        assert not Cost(m, 1) < 5
+        assert 5 > Cost(m)
+        assert not 5 > Cost(m, 1)
+        assert Cost(m) <= 5
+        assert not Cost(m, 1) <= 5
+        assert 5 >= Cost(m)
+        assert not 5 >= Cost(m, 1)
+
+    assert not Cost(5) < 5
+    assert not Cost(5, 1) < 5
+    assert not 5 > Cost(5)
+    assert not 5 > Cost(5, 1)
+    assert Cost(5) <= 5
+    assert not Cost(5, 1) <= 5
+    assert 5 >= Cost(5)
+    assert not 5 >= Cost(5, 1)
+
+    # comparisons with potions in cost
+
+    for m in range(4):
+        assert Cost(m) < Cost(4, 1)
+        assert Cost(m, 1) < Cost(4, 1)
+        assert Cost(4, 1) > Cost(m)
+        assert Cost(4, 1) > Cost(m, 1)
+        assert Cost(m) <= Cost(4, 1)
+        assert Cost(m, 1) <= Cost(4, 1)
+        assert Cost(4, 1) >= Cost(m)
+        assert Cost(4, 1) >= Cost(m, 1)
+
+    assert Cost(4) < Cost(4, 1)
+    assert not Cost(4, 1) < Cost(4, 1)
+    assert Cost(4, 1) > Cost(4)
+    assert not Cost(4, 1) > Cost(4, 1)
+    assert Cost(4) <= Cost(4, 1)
+    assert Cost(4, 1) <= Cost(4, 1)
+    assert Cost(4, 1) >= Cost(4)
+    assert Cost(4, 1) >= Cost(4, 1)
+
+    assert not Cost(5) < Cost(4, 1)
+    assert not Cost(5, 1) < Cost(4, 1)
+    assert not Cost(4, 1) > Cost(5)
+    assert not Cost(4, 1) > Cost(5, 1)
+    assert not Cost(5) <= Cost(4, 1)
+    assert not Cost(5, 1) <= Cost(4, 1)
+    assert not Cost(4, 1) >= Cost(5)
+    assert not Cost(4, 1) >= Cost(5, 1)

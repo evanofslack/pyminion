@@ -20,6 +20,8 @@ class Cost:
 
     """
     def __init__(self, money: int, potions: int = 0):
+        assert money >= 0
+        assert 0 <= potions <= 1
         self.money = money
         self.potions = potions
 
@@ -28,9 +30,7 @@ class Cost:
         if self.money > 0 or self.potions == 0:
             s += f"${self.money}"
         if self.potions > 0:
-            if self.money > 0:
-                s += " "
-            s += f"p{self.potions}"
+            s += "P"
         return s
 
     @staticmethod
@@ -53,47 +53,27 @@ class Cost:
 
     def __lt__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-
-        if self.money == other_money:
-            return self.potions < other_potions
-        elif self.potions == other_potions:
-            return self.money < other_money
-        else:
-            # if neither money nor potions are equal, costs cannot be compared
-            return False
+        return (
+            self.money < other_money and self.potions <= other_potions
+        ) or (
+            self.money == other_money and self.potions < other_potions
+        )
 
     def __le__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-
-        if self.money == other_money:
-            return self.potions <= other_potions
-        elif self.potions == other_potions:
-            return self.money <= other_money
-        else:
-            # if neither money nor potions are equal, costs cannot be compared
-            return False
+        return self.money <= other_money and self.potions <= other_potions
 
     def __gt__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-
-        if self.money == other_money:
-            return self.potions > other_potions
-        elif self.potions == other_potions:
-            return self.money > other_money
-        else:
-            # if neither money nor potions are equal, costs cannot be compared
-            return False
+        return (
+            self.money > other_money and self.potions >= other_potions
+        ) or (
+            self.money == other_money and self.potions > other_potions
+        )
 
     def __ge__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
-
-        if self.money == other_money:
-            return self.potions >= other_potions
-        elif self.potions == other_potions:
-            return self.money >= other_money
-        else:
-            # if neither money nor potions are equal, costs cannot be compared
-            return False
+        return self.money >= other_money and self.potions >= other_potions
 
 
 @unique
