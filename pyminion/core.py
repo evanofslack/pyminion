@@ -119,16 +119,19 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
         self.name = name
-        self._cost = cost
+        if isinstance(cost, int):
+            self._cost = Cost(cost)
+        else:
+            self._cost = cost
         self.type = type
 
     def __repr__(self):
         return f"{self.name}"
 
-    def get_cost(self, player: "Player", game: "Game") -> int:
-        cost = max(0, self._cost - game.card_cost_reduction)
+    def get_cost(self, player: "Player", game: "Game") -> Cost:
+        cost = self._cost - game.card_cost_reduction
         return cost
 
     def get_pile_starting_count(self, game: "Game") -> int:
@@ -139,7 +142,7 @@ class Card:
 
 
 class ScoreCard(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def score(self, player: "Player") -> int:
@@ -151,7 +154,7 @@ class ScoreCard(Card):
 
 
 class Victory(ScoreCard):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def get_pile_starting_count(self, game: "Game") -> int:
@@ -165,7 +168,7 @@ class Victory(ScoreCard):
 
 
 class Treasure(Card):
-    def __init__(self, name: str, cost: int, type: Tuple[CardType, ...], money: int):
+    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...], money: int):
         super().__init__(name, cost, type)
         self.money = money
 
@@ -183,7 +186,7 @@ class Action(Card):
     def __init__(
         self,
         name: str,
-        cost: int,
+        cost: int|Cost,
         type: Tuple[CardType, ...],
         actions: int = 0,
         draw: int = 0,
@@ -419,7 +422,7 @@ class Supply:
         if len(pile) == 0:
             s += " $-"
         else:
-            s += f" ${pile.cards[0].get_cost(player, game)}"
+            s += f" {pile.cards[0].get_cost(player, game)}"
         s += f" {pile.name:{name_padding}}"
         return s
 

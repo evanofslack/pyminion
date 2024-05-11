@@ -167,7 +167,7 @@ def test_examples():
     assert Cost(3) < Cost(3, 1)
     assert Cost(3, 1) > Cost(3)
 
-    # comparisons with not potions in cost
+    # comparisons with no potions in cost
 
     for m in range(5):
         assert Cost(m) < 5

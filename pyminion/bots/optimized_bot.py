@@ -71,9 +71,9 @@ class OptimizedBotDecider(BotDecider):
         for card in cards:
             # set aside terminal action cards if we don't have enough actions to play them
             if num_terminal > player.state.actions and CardType.Action in card.type and cast(Action, card).actions == 0:
-                priority = 100 + card.get_cost(player, game)
+                priority = 100 + card.get_cost(player, game).money
             else:
-                priority = 200 + card.get_cost(player, game)
+                priority = 200 + card.get_cost(player, game).money
 
             prioritized_cards.append((priority, card))
 
@@ -124,7 +124,7 @@ class OptimizedBotDecider(BotDecider):
                 priority = 3
                 deck_money -= 1
             elif required:
-                priority = 100 + card.get_cost(player, game)
+                priority = 100 + card.get_cost(player, game).money
             else:
                 priority = 0
 
@@ -1382,7 +1382,7 @@ class OptimizedBotDecider(BotDecider):
             elif card.name == "Curse":
                 priority = 3
             else:
-                priority = 100 + card.get_cost(player, game)
+                priority = 100 + card.get_cost(player, game).money
 
             prioritized_cards.append((priority, card))
 

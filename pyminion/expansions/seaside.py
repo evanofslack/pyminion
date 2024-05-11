@@ -1011,7 +1011,7 @@ class Salvager(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-        player.state.money += trash_card.get_cost(player, game)
+        player.state.money += trash_card.get_cost(player, game).money
 
         player.trash(trash_card, game)
 

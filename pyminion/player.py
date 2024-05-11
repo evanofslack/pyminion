@@ -25,6 +25,7 @@ class State:
 
     actions: int = 1
     money: int = 0
+    potions: int = 0
     buys: int = 1
 
 
@@ -234,7 +235,8 @@ class Player:
 
         """
         assert isinstance(card, Card)
-        if card.get_cost(self, game) > self.state.money:
+        cost = card.get_cost(self, game)
+        if cost.money > self.state.money or cost.potions > self.state.potions:
             raise InsufficientMoney(
                 f"{self.player_id}: Not enough money to buy {card.name}"
             )
@@ -246,7 +248,8 @@ class Player:
             game.supply.gain_card(card)
         except EmptyPile as e:
             raise e
-        self.state.money -= card.get_cost(self, game)
+        self.state.money -= cost.money
+        self.state.potions -= cost.potions
         self.state.buys -= 1
         self.discard_pile.add(card)
         self.current_turn_gains.append((game.current_phase, card))
@@ -398,7 +401,8 @@ class Player:
             valid_cards = [
                 c
                 for c in game.supply.available_cards()
-                if c.get_cost(self, game) <= self.state.money
+                if c.get_cost(self, game).money <= self.state.money and
+                   c.get_cost(self, game).potions <= self.state.potions
             ]
             card = self.decider.buy_phase_decision(
                 valid_cards=valid_cards,
