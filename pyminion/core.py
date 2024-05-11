@@ -19,7 +19,7 @@ class Cost:
     The cost of a card in money and/or potions.
 
     """
-    def __init__(self, money: int, potions: int = 0):
+    def __init__(self, money: int = 0, potions: int = 0):
         assert money >= 0
         assert 0 <= potions <= 1
         self._money = money

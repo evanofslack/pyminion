@@ -11,6 +11,10 @@ def test_init():
     assert c2.money == 3
     assert c2.potions == 1
 
+    c3 = Cost()
+    assert c3.money == 0
+    assert c3.potions == 0
+
     with pytest.raises(AssertionError):
         Cost(-1)
 
