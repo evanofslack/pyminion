@@ -22,6 +22,9 @@ class Potion(Treasure):
     def __init__(self):
         super().__init__("Potion", 4, (CardType.Treasure,), 0)
 
+    def get_pile_starting_count(self, game: "Game") -> int:
+        return 16
+
     def play(self, player: Player, game: "Game") -> None:
         super().play(player, game)
 

@@ -33,6 +33,11 @@ class Cost:
             s += "P"
         return s
 
+    def __format__(self, format_spec: str) -> str:
+        s = str(self)
+        fs = f"{s:{format_spec}}"
+        return fs
+
     @staticmethod
     def _to_tuple(obj: "int|Cost") -> tuple[int, int]:
         if isinstance(obj, int):
@@ -122,16 +127,20 @@ class Card:
     def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
         self.name = name
         if isinstance(cost, int):
-            self._cost = Cost(cost)
+            self._base_cost = Cost(cost)
         else:
-            self._cost = cost
+            self._base_cost = cost
         self.type = type
 
     def __repr__(self):
         return f"{self.name}"
 
+    @property
+    def base_cost(self) -> Cost:
+        return self._base_cost
+
     def get_cost(self, player: "Player", game: "Game") -> Cost:
-        cost = self._cost - game.card_cost_reduction
+        cost = self._base_cost - game.card_cost_reduction
         return cost
 
     def get_pile_starting_count(self, game: "Game") -> int:
@@ -420,9 +429,9 @@ class Supply:
         count_str = f"({len(pile)})"
         s = f"{count_str:>4}"
         if len(pile) == 0:
-            s += " $-"
+            s += "  $-"
         else:
-            s += f" {pile.cards[0].get_cost(player, game)}"
+            s += f" {pile.cards[0].get_cost(player, game):>3}"
         s += f" {pile.name:{name_padding}}"
         return s
 

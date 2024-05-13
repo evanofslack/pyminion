@@ -396,6 +396,8 @@ class Player:
         while self.state.buys > 0:
             logger.info(game.supply.get_pretty_string(self, game))
             logger.info(f"Money: {self.state.money}")
+            if self.state.potions > 0:
+                logger.info(f"Potions: {self.state.potions}")
             logger.info(f"Buys: {self.state.buys}")
 
             valid_cards = [

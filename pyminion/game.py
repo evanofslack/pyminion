@@ -8,6 +8,7 @@ from pyminion.effects import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
+from pyminion.expansions.alchemy import potion
 from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
 
@@ -102,7 +103,7 @@ class Game:
 
         return basic_piles
 
-    def _create_basic_treasure_piles(self) -> List[Pile]:
+    def _create_basic_treasure_piles(self, kingdom_piles: List[Pile]) -> List[Pile]:
         """
         Create the basic treasure piles that are applicable to almost all games of Dominion.
 
@@ -113,6 +114,11 @@ class Game:
             silver,
             gold,
         ]
+
+        for pile in kingdom_piles:
+            if pile.cards[0].base_cost.potions > 0:
+                basic_cards.insert(0, potion)
+                break
 
         basic_piles = [
             Pile([card] * card.get_pile_starting_count(self))
@@ -172,9 +178,9 @@ class Game:
 
         """
 
-        basic_score_piles = self._create_basic_score_piles()
-        basic_treasure_piles = self._create_basic_treasure_piles()
         kingdom_piles = self._create_kingdom_piles()
+        basic_score_piles = self._create_basic_score_piles()
+        basic_treasure_piles = self._create_basic_treasure_piles(kingdom_piles)
         all_piles = basic_score_piles + basic_treasure_piles + kingdom_piles
         self.all_game_cards = [pile.cards[0] for pile in all_piles]
         return Supply(basic_score_piles, basic_treasure_piles, kingdom_piles)
