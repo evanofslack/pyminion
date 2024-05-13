@@ -291,6 +291,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Salvager":
             ret = self.salvager(player, game, valid_cards)
             return [ret]
+        elif card.name == "Transmute":
+            ret = self.transmute(player, game, valid_cards)
+            return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
@@ -1525,6 +1528,15 @@ class OptimizedBotDecider(BotDecider):
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
+
+    def transmute(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+        return trash_cards[0]
 
 
 class OptimizedBot(Bot):

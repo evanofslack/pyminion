@@ -73,6 +73,9 @@ from pyminion.expansions.seaside import (
     treasury,
     warehouse,
 )
+from pyminion.expansions.alchemy import (
+    transmute,
+)
 from pyminion.game import Game
 import pytest
 
@@ -1077,3 +1080,17 @@ def test_warehouse_bot(bot: OptimizedBot, game: Game):
     assert counter[estate] == 1
     assert counter[duchy] == 1
     assert counter[copper] == 1
+
+
+def test_transmute_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(transmute)
+    bot.hand.add(estate)
+    bot.hand.add(silver)
+
+    bot.play(transmute, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Gold"
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Estate"
