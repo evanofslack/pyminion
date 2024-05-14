@@ -7,7 +7,7 @@ def test_bandit_gains_gold(multiplayer_game: Game):
     player = multiplayer_game.players[0]
     player.hand.add(bandit)
     assert len(player.hand) == 6
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(bandit, multiplayer_game)
     assert len(player.hand) == 5
     assert len(player.playmat) == 1
     assert type(player.playmat.cards[0]) is Bandit
@@ -25,13 +25,16 @@ def test_bandit_trash_one_silver(multiplayer_game: Game):
     opponent.deck.add(silver)
     assert len(opponent.discard_pile) == 0
     assert len(multiplayer_game.trash) == 0
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(bandit, multiplayer_game)
     assert len(multiplayer_game.trash) == 1
     assert type(multiplayer_game.trash.cards[0]) is Silver
     assert len(opponent.discard_pile) == 1
 
 
-def test_bandit_trash_silver_over_gold(multiplayer_game: Game):
+def test_bandit_trash_silver_over_gold(multiplayer_game: Game, monkeypatch):
+    responses = ["Silver"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop())
+
     player = multiplayer_game.players[0]
     opponent = multiplayer_game.players[1]
     player.hand.add(bandit)
@@ -39,7 +42,7 @@ def test_bandit_trash_silver_over_gold(multiplayer_game: Game):
     opponent.deck.add(gold)
     assert len(opponent.discard_pile) == 0
     assert len(multiplayer_game.trash) == 0
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(bandit, multiplayer_game)
     assert len(multiplayer_game.trash) == 1
     assert type(multiplayer_game.trash.cards[0]) is Silver
     assert len(opponent.discard_pile) == 1
@@ -53,14 +56,14 @@ def test_bandit_discard_two_non_treasure(multiplayer_game: Game):
     opponent.deck.add(copper)
     assert len(opponent.discard_pile) == 0
     assert len(multiplayer_game.trash) == 0
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(bandit, multiplayer_game)
     assert len(multiplayer_game.trash) == 0
     assert len(opponent.discard_pile) == 2
 
 
 def test_bandit_empty_gold(multiplayer_game: Game):
     """
-    with an empty gold pile, playing witch should only trash opponents cards
+    with an empty gold pile, playing bandit should only trash opponent's cards
 
     """
 
@@ -71,7 +74,7 @@ def test_bandit_empty_gold(multiplayer_game: Game):
 
     player = multiplayer_game.players[0]
     player.hand.add(bandit)
-    player.hand.cards[-1].play(player, multiplayer_game)
+    player.play(bandit, multiplayer_game)
 
     assert len(player.discard_pile) == 0
     assert len(player.playmat) == 1

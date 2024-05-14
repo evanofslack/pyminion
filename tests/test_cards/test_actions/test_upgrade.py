@@ -36,3 +36,20 @@ def test_upgrade_no_gain(human: Human, game: Game, monkeypatch):
     assert type(game.trash.cards[0]) is Copper
     assert len(human.discard_pile) == 0
     assert human.state.actions == 1
+
+
+def test_upgrade_empty_hand(human: Human, game: Game, monkeypatch):
+    human.deck.cards.clear()
+    human.discard_pile.cards.clear()
+    human.hand.add(upgrade)
+
+    responses = []
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop())
+
+    human.play(upgrade, game)
+    assert len(human.hand) == 0
+    assert len(human.playmat) == 1
+    assert type(human.playmat.cards[0]) is Upgrade
+    assert len(game.trash) == 0
+    assert len(human.discard_pile) == 0
+    assert human.state.actions == 1

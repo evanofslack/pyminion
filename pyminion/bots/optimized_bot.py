@@ -263,6 +263,9 @@ class OptimizedBotDecider(BotDecider):
             return self.chapel(player=player, game=game, valid_cards=valid_cards)
         elif card.name == "Sentry":
             return self.sentry(player=player, game=game, valid_cards=valid_cards, trash=True)
+        elif card.name == "Bandit":
+            ret = self.bandit(player, game, valid_cards)
+            return [ret]
         elif card.name == "Lurker":
             ret = self.lurker(player, game, valid_cards, trash=True)
             return [ret]
@@ -632,7 +635,7 @@ class OptimizedBotDecider(BotDecider):
             else:
                 return player.hand.cards[-1]
         if gain:
-            if game.supply.pile_length(pile_name="Province") < 5:
+            if game.supply.pile_length("Province") < 5 and game.supply.pile_length("Duchy") > 0:
                 return duchy
             else:
                 return silver
@@ -646,7 +649,7 @@ class OptimizedBotDecider(BotDecider):
         player: "Player",
         game: "Game",
     ) -> Card:
-        if game.supply.pile_length(pile_name="Province") < 3:
+        if game.supply.pile_length("Province") < 3 and game.supply.pile_length("Estate") > 0:
             return estate
         else:
             return silver
@@ -681,6 +684,15 @@ class OptimizedBotDecider(BotDecider):
         # Double play most expensive card
         max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
         return max_price_card
+
+    def bandit(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
+        return min_price_card
 
     def baron(
         self,

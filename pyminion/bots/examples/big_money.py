@@ -16,6 +16,9 @@ class BigMoneyDecider(BotDecider):
 
     """
 
+    def action_priority(self, player: Player, game: Game) -> Iterator[Card]:
+        return iter([])
+
     def buy_priority(self, player: Player, game: Game) -> Iterator[Card]:
         money = player.state.money
         if money >= 8:

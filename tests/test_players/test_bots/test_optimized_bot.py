@@ -3,6 +3,7 @@ from pyminion.core import CardType, DeckCounter
 from pyminion.expansions.base import (
     Smithy,
     artisan,
+    bandit,
     base_set,
     bureaucrat,
     cellar,
@@ -301,6 +302,7 @@ def test_bot_one_empty_pile_prioritize_victory(bot: OptimizedBot, game: Game):
 def test_remodel_bot(bot: OptimizedBot, game: Game):
     bot.hand.add(remodel)
     bot.hand.add(copper)
+    bot.hand.add(copper)
     bot.play(remodel, game)
     assert bot.discard_pile.cards[-1].name == "Estate"
 
@@ -308,8 +310,24 @@ def test_remodel_bot(bot: OptimizedBot, game: Game):
 def test_remodel_bot_gold(bot: OptimizedBot, game: Game):
     bot.hand.add(remodel)
     bot.hand.add(gold)
+    bot.hand.add(gold)
     bot.play(remodel, game)
     assert bot.discard_pile.cards[-1].name == "Province"
+
+
+def test_bandit_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.hand.add(bandit)
+
+    p2.deck.add(gold)
+    p2.deck.add(silver)
+
+    p1.play(bandit, multiplayer_bot_game)
+
+    assert p2.discard_pile.cards[-1].name == "Gold"
+    assert multiplayer_bot_game.trash.cards[0].name == "Silver"
 
 
 def test_sentry_bot_no_response(bot: OptimizedBot, game: Game):

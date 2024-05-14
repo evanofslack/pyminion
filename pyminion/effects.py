@@ -2,7 +2,7 @@ from enum import IntEnum, unique
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Set, Union
 
 if TYPE_CHECKING:
-    from pyminion.core import Card
+    from pyminion.core import AbstractDeck, Card
     from pyminion.game import Game
     from pyminion.player import Player
 
@@ -123,6 +123,17 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
         self.handler_func(player, card, game)
 
 
+class GainEffect(Effect):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    def is_triggered(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> bool:
+        raise NotImplementedError("PlayerCardGameEffect is_triggered is not implemented")
+
+    def handler(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> None:
+        raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
+
+
 class AttackEffect(Effect):
     def __init__(self, name: str, action: EffectAction):
         super().__init__(name)
@@ -145,9 +156,9 @@ class EffectRegistry:
     """
     def __init__(self):
         self.attack_effects: List[AttackEffect] = []
-        self.buy_effects: List[PlayerCardGameEffect] = []
+        self.buy_effects: List[GainEffect] = []
         self.discard_effects: List[PlayerCardGameEffect] = []
-        self.gain_effects: List[PlayerCardGameEffect] = []
+        self.gain_effects: List[GainEffect] = []
         self.hand_add_effects: List[PlayerCardGameEffect] = []
         self.hand_remove_effects: List[PlayerCardGameEffect] = []
         self.play_effects: List[PlayerCardGameEffect] = []
@@ -345,10 +356,82 @@ class EffectRegistry:
             # reevaluate which effects need to be handled
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
 
+    def _handle_player_card_game_destination_effects(
+            self,
+            effects: List[GainEffect],
+            player: "Player",
+            card: "Card",
+            game: "Game",
+            destination: "AbstractDeck",
+    ) -> None:
+        if len(effects) == 0:
+            return
+
+        handled_ids: Set[int] = set()
+
+        # one effect may change others, so after handling each effect we need to
+        # reevaluate which other effects need to be handled
+        effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game, destination))
+        while not effect_ids.issubset(handled_ids):
+            handled_effect = False
+
+            # handle effects that happen before others
+            for effect in effects:
+                if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.First and effect.is_triggered(player, card, game, destination):
+                    effect.handler(player, card, game, destination)
+                    handled_ids.add(effect.get_id())
+                    handled_effect = True
+                    break
+
+            # handle all effects where order doesn't matter
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Other and effect.is_triggered(player, card, game, destination):
+                        effect.handler(player, card, game, destination)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
+
+            # if there were no "other" effects to handle, check if there were non-"other" effects
+            if not handled_effect:
+                # build data structures of non-"other" effects that are triggered
+                order_effects: List[GainEffect] = [
+                    effect for effect in effects
+                    if effect.get_id() not in handled_ids and effect.get_action() in {EffectAction.HandAddCards, EffectAction.HandRemoveCards, EffectAction.HandAddRemoveCards} and effect.is_triggered(player, card, game, destination)
+                ]
+
+                if len(order_effects) > 0:
+                    if self._need_player_order(order_effects):
+                        # ask user to specify next effect to execute
+                        effect_index = player.decider.effects_order_decision(
+                            order_effects,
+                            player,
+                            game,
+                        )
+                    else:
+                        effect_index = 0
+
+                    effect = order_effects[effect_index]
+                    effect.handler(player, card, game, destination)
+                    handled_ids.add(effect.get_id())
+                    handled_effect = True
+
+            # handle effects that happen after others
+            if not handled_effect:
+                for effect in effects:
+                    if effect.get_id() not in handled_ids and effect.get_action() == EffectAction.Last and effect.is_triggered(player, card, game, destination):
+                        effect.handler(player, card, game, destination)
+                        handled_ids.add(effect.get_id())
+                        handled_effect = True
+                        break
+
+            # reevaluate which effects need to be handled
+            effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game, destination))
+
     def _unregister_effect_by_id(
             self,
             id: int,
-            effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect], List[AttackEffect]],
+            effect_list: Union[List[PlayerGameEffect], List[PlayerCardGameEffect], List[GainEffect], List[AttackEffect]],
     ) -> None:
         i = 0
         while i < len(effect_list):
@@ -431,12 +514,12 @@ class EffectRegistry:
 
         return attacked
 
-    def on_buy(self, player: "Player", card: "Card", game: "Game") -> None:
+    def on_buy(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> None:
         """
         Trigger buying effects.
 
         """
-        self._handle_player_card_game_effects(self.gain_effects + self.buy_effects, player, card, game)
+        self._handle_player_card_game_destination_effects(self.gain_effects + self.buy_effects, player, card, game, destination)
 
     def on_discard(self, player: "Player", card: "Card", game: "Game") -> None:
         """
@@ -445,12 +528,12 @@ class EffectRegistry:
         """
         self._handle_player_card_game_effects(self.discard_effects, player, card, game)
 
-    def on_gain(self, player: "Player", card: "Card", game: "Game") -> None:
+    def on_gain(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> None:
         """
         Trigger gaining effects.
 
         """
-        self._handle_player_card_game_effects(self.gain_effects, player, card, game)
+        self._handle_player_card_game_destination_effects(self.gain_effects, player, card, game, destination)
 
     def on_hand_add(self, player: "Player", card: "Card", game: "Game") -> None:
         """
@@ -536,7 +619,7 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.attack_effects)
 
-    def register_buy_effect(self, effect: PlayerCardGameEffect) -> None:
+    def register_buy_effect(self, effect: GainEffect) -> None:
         """
         Register an effect to be triggered on buying.
 
@@ -564,7 +647,7 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.discard_effects)
 
-    def register_gain_effect(self, effect: PlayerCardGameEffect) -> None:
+    def register_gain_effect(self, effect: GainEffect) -> None:
         """
         Register an effect to be triggered on gaining.
 

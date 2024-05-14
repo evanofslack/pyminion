@@ -1,8 +1,8 @@
 import logging
 import math
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory
+from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory, plural
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
 from pyminion.player import Player
 
@@ -787,21 +787,30 @@ class Bandit(Action):
 
                 opponent.reveal(revealed_cards.cards, game)
 
-                trash_card = None
-                for card in revealed_cards.cards:
-                    if card.name == "Silver":
-                        trash_card = card
-                    elif card.name == "Gold" and not trash_card:
-                        trash_card = card
-                    elif (
-                        CardType.Treasure in card.type
-                        and card.name != "Copper"
-                        and not trash_card
-                    ):
-                        trash_card = card
+                non_copper_treasures = [
+                    card
+                    for card in revealed_cards
+                    if CardType.Treasure in card.type and card.name != "Copper"
+                ]
 
-                if trash_card:
-                    game.trash.add(revealed_cards.remove(trash_card))
+                trash_card: Optional[Card] = None
+                if len(non_copper_treasures) == 1:
+                    trash_card = non_copper_treasures[0]
+                elif len(non_copper_treasures) > 1:
+                    trash_cards = opponent.decider.trash_decision(
+                        prompt="Choose a card to trash",
+                        card=self,
+                        valid_cards=non_copper_treasures,
+                        player=opponent,
+                        game=game,
+                        min_num_trash=1,
+                        max_num_trash=1,
+                    )
+                    assert len(trash_cards) == 1
+                    trash_card = trash_cards[0]
+
+                if trash_card is not None:
+                    opponent.trash(trash_card, game, revealed_cards)
 
                 revealed_cards_copy = revealed_cards.cards[:]
                 for card in revealed_cards_copy:
@@ -926,17 +935,23 @@ class Remodel(Action):
 
         super().play(player, game, generic_play)
 
-        trash_cards = player.decider.trash_decision(
-            prompt="Trash a card from your hand: ",
-            card=self,
-            valid_cards=player.hand.cards,
-            player=player,
-            game=game,
-            min_num_trash=1,
-            max_num_trash=1,
-        )
-        assert len(trash_cards) == 1
-        trash_card = trash_cards[0]
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            trash_card = player.hand.cards[0]
+        else:
+            trash_cards = player.decider.trash_decision(
+                prompt="Trash a card from your hand: ",
+                card=self,
+                valid_cards=player.hand.cards,
+                player=player,
+                game=game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
 
         max_cost = trash_card.get_cost(player, game) + 2
         gain_cards = player.decider.gain_decision(
@@ -1098,21 +1113,27 @@ class Sentry(Action):
         looked_at = AbstractDeck()
         player.draw(num_cards=2, destination=looked_at, silent=True)
 
-        trash_cards = player.decider.trash_decision(
-            prompt="Enter the cards you would like to trash: ",
-            card=self,
-            valid_cards=looked_at.cards,
-            player=player,
-            game=game,
-            min_num_trash=0,
-            max_num_trash=2,
-        )
+        trash_cards: List[Card] = []
+        if len(looked_at) > 0:
+            s = plural("card", len(looked_at))
+            logger.info(f"Sentry {s}: {looked_at}")
+            trash_cards = player.decider.trash_decision(
+                prompt="Enter the cards you would like to trash: ",
+                card=self,
+                valid_cards=looked_at.cards,
+                player=player,
+                game=game,
+                min_num_trash=0,
+                max_num_trash=2,
+            )
 
-        for card in trash_cards:
-            looked_at.remove(card)
+            for card in trash_cards:
+                looked_at.remove(card)
 
         discard_cards: List[Card] = []
-        if len(looked_at.cards) > 0:
+        if len(looked_at) > 0:
+            s = plural("card", len(looked_at))
+            logger.info(f"Sentry {s}: {looked_at}")
             discard_cards = player.decider.discard_decision(
                 prompt="Enter the cards you would like to discard: ",
                 card=self,
@@ -1124,12 +1145,12 @@ class Sentry(Action):
                 looked_at.remove(card)
 
         reorder = False
-        if len(looked_at.cards) == 2:
+        if len(looked_at) == 2:
             logger.info(
                 f"Current order: {looked_at.cards[0]} (Top), {looked_at.cards[1]} (Bottom)"
             )
             reorder = player.decider.binary_decision(
-                prompt="Would you like to switch the order of the cards?",
+                prompt="Would you like to switch the order of the cards? y/n: ",
                 card=self,
                 player=player,
                 game=game,
@@ -1150,7 +1171,8 @@ class Sentry(Action):
             else:
                 for card in reversed(looked_at.cards):
                     player.deck.add(card)
-            logger.info(f"{player} topdecks {len(looked_at.cards)} cards")
+            s = plural("card", len(looked_at))
+            logger.info(f"{player} topdecks {len(looked_at)} {s}")
 
 
 class Library(Action):
@@ -1177,7 +1199,7 @@ class Library(Action):
         while len(player.hand) < 7:
 
             if len(player.deck) == 0 and len(player.discard_pile) == 0:
-                return
+                break
 
             player.draw(num_cards=1, destination=set_aside)
             drawn_card = set_aside.cards[-1]

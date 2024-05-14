@@ -313,11 +313,11 @@ class Duke(Victory):
         return vp
 
 
-class Harem(Treasure, Victory):
+class Farm(Treasure, Victory):
     def __init__(self):
         Treasure.__init__(
             self,
-            name="Harem",
+            name="Farm",
             cost=6,
             type=(CardType.Treasure, CardType.Victory),
             money=2,
@@ -485,11 +485,11 @@ class Masquerade(Action):
         # prompt each player to choose a card to pass
         passed_cards: List[Card] = []
         for p in valid_players:
-            pass_cards = player.decider.pass_decision(
+            pass_cards = p.decider.pass_decision(
                 prompt="Pick a card to pass to the player on your left: ",
                 card=self,
                 valid_cards=p.hand.cards,
-                player=player,
+                player=p,
                 game=game,
                 min_num_pass=1,
                 max_num_pass=1,
@@ -848,6 +848,9 @@ class Replace(Action):
 
         super().play(player, game, generic_play)
 
+        if len(player.hand) == 0:
+            return
+
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
             card=self,
@@ -907,17 +910,23 @@ class SecretPassage(Action):
 
         super().play(player, game, generic_play)
 
-        insert_cards = player.decider.topdeck_decision(
-            prompt="Enter the card you would like to insert in your deck: ",
-            card=self,
-            valid_cards=player.hand.cards,
-            player=player,
-            game=game,
-            min_num_topdeck=1,
-            max_num_topdeck=1,
-        )
-        assert len(insert_cards) == 1
-        insert_card = insert_cards[0]
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            insert_card = player.hand.cards[0]
+        else:
+            insert_cards = player.decider.topdeck_decision(
+                prompt="Enter the card you would like to insert in your deck: ",
+                card=self,
+                valid_cards=player.hand.cards,
+                player=player,
+                game=game,
+                min_num_topdeck=1,
+                max_num_topdeck=1,
+            )
+            assert len(insert_cards) == 1
+            insert_card = insert_cards[0]
 
         len_deck = len(player.deck)
         if len_deck == 0:
@@ -1195,6 +1204,9 @@ class Upgrade(Action):
 
         super().play(player, game, generic_play)
 
+        if len(player.hand) == 0:
+            return
+
         trash_cards = player.decider.trash_decision(
             prompt="Trash a card from your hand: ",
             card=self,
@@ -1290,7 +1302,7 @@ courtier = Courtier()
 courtyard = Courtyard()
 diplomat = Diplomat()
 duke = Duke()
-harem = Harem()
+farm = Farm()
 ironworks = Ironworks()
 lurker = Lurker()
 masquerade = Masquerade()
@@ -1319,7 +1331,7 @@ intrigue_set: List[Card] = [
     courtyard,
     diplomat,
     duke,
-    harem,
+    farm,
     ironworks,
     lurker,
     masquerade,

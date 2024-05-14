@@ -1,6 +1,7 @@
 from pyminion.expansions.base import estate
 from pyminion.expansions.intrigue import Replace, intrigue_set, mill, replace
 from pyminion.game import Game
+from pyminion.player import Player
 import pytest
 
 def test_replace_gain_treasure(multiplayer_game: Game, monkeypatch):
@@ -74,3 +75,18 @@ def test_replace_gain_action_victory(multiplayer_game: Game, monkeypatch):
 
     assert len(p2.discard_pile) == 1
     assert p2.discard_pile.cards[0].name == "Curse"
+
+
+def test_replace_empty_hand(player: Player, game: Game, monkeypatch):
+    player.hand.add(replace)
+    assert len(player.hand) == 1
+
+    responses = []
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop())
+
+    player.play(replace, game)
+    assert len(player.hand) == 0
+    assert len(player.playmat) == 1
+    assert type(player.playmat.cards[0]) is Replace
+    assert len(player.discard_pile) == 0
+    assert len(game.trash) == 0
