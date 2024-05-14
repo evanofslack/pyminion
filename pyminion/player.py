@@ -339,6 +339,7 @@ class Player:
         self.actions_played_this_turn = 0
         self.state.actions = 1
         self.state.money = 0
+        self.state.potions = 0
         self.state.buys = 1
 
         if is_extra_turn:
