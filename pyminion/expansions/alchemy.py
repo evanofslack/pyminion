@@ -31,6 +31,30 @@ class Potion(Treasure):
         player.state.potions += 1
 
 
+class Familiar(Action):
+    """
+    +1 Card
+    +1 Action
+
+    Each other player gains a Curse.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Familiar",
+            cost=Cost(money=3, potions=1),
+            type=(CardType.Action, CardType.Attack),
+            actions=1,
+            draw=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        game.distribute_curses(player, self)
+
+
 class Transmute(Action):
     """
     Trash a card from your hand.
@@ -81,9 +105,11 @@ class Transmute(Action):
 
 potion = Potion()
 
+familiar = Familiar()
 transmute = Transmute()
 
 
 alchemy_set: list[Card] = [
+    familiar,
     transmute,
 ]
