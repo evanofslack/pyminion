@@ -7,6 +7,7 @@ from pyminion.core import (
     CardType,
     Cost,
     Treasure,
+    Victory,
 )
 from pyminion.expansions.base import duchy, gold
 from pyminion.player import Player
@@ -103,13 +104,32 @@ class Transmute(Action):
             player.try_gain(gold, game)
 
 
+class Vineyard(Victory):
+    """
+    Worth 1 VP per 3 Action cards you have (round down).
+
+    """
+
+    def __init__(self):
+        super().__init__("Vineyard", Cost(potions=1), (CardType.Victory,))
+
+    def score(self, player: Player) -> int:
+        actions_count = sum(
+            1 for card in player.get_all_cards() if CardType.Action in card.type
+        )
+        vp = actions_count // 3
+        return vp
+
+
 potion = Potion()
 
 familiar = Familiar()
 transmute = Transmute()
+vineyard = Vineyard()
 
 
 alchemy_set: list[Card] = [
     familiar,
     transmute,
+    vineyard,
 ]
