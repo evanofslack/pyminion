@@ -762,6 +762,10 @@ class Patrol(Action):
             player.hand.add(revealed.remove(card))
 
         num_topdeck = len(revealed.cards)
+
+        if num_topdeck > 0:
+            logger.info(f"Cards to topdeck: {revealed}")
+
         if num_topdeck <= 1:
             topdeck_cards = revealed.cards
         else:

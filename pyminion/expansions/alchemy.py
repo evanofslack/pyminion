@@ -2,6 +2,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from pyminion.core import (
+    AbstractDeck,
     Action,
     Card,
     CardType,
@@ -32,6 +33,63 @@ class Potion(Treasure):
         player.state.potions += 1
 
 
+class Apothecary(Action):
+    """
+    +1 Card
+    +1 Action
+
+    Reveal the top 4 cards of your deck. Put the Coppers and Potions into your hand.
+    Put the rest back in any order.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Apothecary",
+            cost=Cost(money=2, potions=1),
+            type=(CardType.Action,),
+            draw=1,
+            actions=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        revealed = AbstractDeck()
+        player.draw(4, revealed)
+        player.reveal(revealed, game)
+
+        copper_potion_cards: list[Card] = []
+        for card in revealed:
+            if card.name in {"Copper", "Potion"}:
+                copper_potion_cards.append(card)
+
+        for card in copper_potion_cards:
+            revealed.remove(card)
+            player.hand.add(card)
+
+        num_topdeck = len(revealed)
+
+        if num_topdeck > 0:
+            logger.info(f"Cards to topdeck: {revealed}")
+
+        if num_topdeck <= 1:
+            topdeck_cards = revealed.cards
+        else:
+            topdeck_cards = player.decider.topdeck_decision(
+                prompt="Enter the cards in the order you would like to topdeck: ",
+                card=self,
+                valid_cards=revealed.cards,
+                player=player,
+                game=game,
+                min_num_topdeck=num_topdeck,
+                max_num_topdeck=num_topdeck,
+            )
+
+        for card in topdeck_cards:
+            player.deck.add(card)
+
+
 class Familiar(Action):
     """
     +1 Card
@@ -46,8 +104,8 @@ class Familiar(Action):
             name="Familiar",
             cost=Cost(money=3, potions=1),
             type=(CardType.Action, CardType.Attack),
-            actions=1,
             draw=1,
+            actions=1,
         )
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
@@ -123,12 +181,14 @@ class Vineyard(Victory):
 
 potion = Potion()
 
+apothecary = Apothecary()
 familiar = Familiar()
 transmute = Transmute()
 vineyard = Vineyard()
 
 
 alchemy_set: list[Card] = [
+    apothecary,
     familiar,
     transmute,
     vineyard,

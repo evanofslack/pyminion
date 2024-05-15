@@ -373,6 +373,8 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Secret Passage":
             ret = self.secret_passage(player, game, valid_cards=valid_cards, topdeck=True)
             return [ret]
+        elif card.name == "Apothecary":
+            return self.apothecary(player, game, valid_cards)
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
 
@@ -1527,6 +1529,18 @@ class OptimizedBotDecider(BotDecider):
     ) -> List[Card]:
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
+        return cards
+
+    def apothecary(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> List[Card]:
+        cards = sorted(
+            valid_cards,
+            key=lambda card: card.get_cost(player, game),
+        )
         return cards
 
     def transmute(
