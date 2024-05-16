@@ -56,7 +56,7 @@ class Apothecary(Action):
         super().play(player, game, generic_play)
 
         revealed = AbstractDeck()
-        player.draw(4, revealed)
+        player.draw(4, revealed, silent=True)
         player.reveal(revealed, game)
 
         copper_potion_cards: list[Card] = []
@@ -112,6 +112,75 @@ class Familiar(Action):
         super().play(player, game, generic_play)
 
         game.distribute_curses(player, self)
+
+
+class ScryingPool(Action):
+    """
+    +1 Action
+
+    Each player (including you) reveals the top card of their deck and either
+    discards it or puts it back, your choice. Then reveal cards from your deck
+    until revealing one that isn't an Action. Put all of those revealed cards
+    into your hand.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Scrying Pool",
+            cost=Cost(money=2, potions=1),
+            type=(CardType.Action, CardType.Attack),
+            actions=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        # player checks their top card
+        self._check_top_card(player, player, game)
+
+        # player checks all opponents top cards
+        for opponent in game.get_opponents(player):
+            if opponent.is_attacked(player, self, game):
+                self._check_top_card(player, opponent, game)
+
+        # reveal cards until we find a non-Action card
+        revealed = AbstractDeck()
+        while len(player.deck) > 0 or len(player.discard_pile) > 0:
+            player.draw(1, revealed, silent=True)
+            card = revealed.cards[-1]
+            player.reveal(card, game)
+            if CardType.Action not in card.type:
+                break
+
+        revealed.move_to(player.hand)
+
+    def _check_top_card(self, attacking_player: Player, defending_player: Player, game: "Game") -> None:
+        revealed = AbstractDeck()
+        defending_player.draw(1, revealed, silent=True)
+        if len(revealed) == 0:
+            return
+
+        revealed_card = revealed.cards[0]
+        defending_player.reveal(revealed_card, game)
+
+        if attacking_player is defending_player:
+            prompt = f"Discard your {revealed_card}? (y/n): "
+        else:
+            prompt = f"Discard {defending_player}'s {revealed_card}? (y/n): "
+
+        discard = attacking_player.decider.binary_decision(
+            prompt,
+            self,
+            attacking_player,
+            game,
+            relevant_cards=[revealed_card],
+        )
+
+        if discard:
+            defending_player.discard(game, revealed_card, revealed)
+        else:
+            defending_player.deck.add(revealed_card)
 
 
 class Transmute(Action):
@@ -183,6 +252,7 @@ potion = Potion()
 
 apothecary = Apothecary()
 familiar = Familiar()
+scrying_pool = ScryingPool()
 transmute = Transmute()
 vineyard = Vineyard()
 
@@ -190,6 +260,7 @@ vineyard = Vineyard()
 alchemy_set: list[Card] = [
     apothecary,
     familiar,
+    scrying_pool,
     transmute,
     vineyard,
 ]

@@ -75,6 +75,7 @@ from pyminion.expansions.seaside import (
 )
 from pyminion.expansions.alchemy import (
     apothecary,
+    scrying_pool,
     transmute,
 )
 from pyminion.game import Game
@@ -1097,6 +1098,22 @@ def test_apothecary_bot(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-2].name == "Patrol"
     assert bot.deck.cards[-3].name == "Smithy"
     assert bot.deck.cards[-4].name == "Silver"
+
+
+def test_scrying_pool_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.deck.add(duchy)
+    p1.hand.add(scrying_pool)
+
+    p2.deck.add(duchy)
+
+    p1.play(scrying_pool, multiplayer_bot_game)
+
+    assert p1.discard_pile.cards[-1].name == "Duchy"
+
+    assert p2.deck.cards[-1].name == "Duchy"
 
 
 def test_transmute_bot(bot: OptimizedBot, game: Game):

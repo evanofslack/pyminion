@@ -167,6 +167,9 @@ class OptimizedBotDecider(BotDecider):
             return self.sailor_binary(prompt, player, game, relevant_cards)
         elif card.name == "Treasury":
             return self.treasury(prompt, player, game, relevant_cards)
+        elif card.name == "Scrying Pool":
+            assert relevant_cards is not None
+            return self.scrying_pool(prompt, player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -1542,6 +1545,22 @@ class OptimizedBotDecider(BotDecider):
             key=lambda card: card.get_cost(player, game),
         )
         return cards
+
+    def scrying_pool(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        relevant_cards: List[Card],
+    ) -> bool:
+        card = relevant_cards[0]
+        if "your" in prompt:
+            return CardType.Action not in card.type
+        else:
+            return not (
+                (CardType.Victory in card.type and len(card.type) == 1) or
+                card.name in {"Copper", "Curse"}
+            )
 
     def transmute(
         self,
