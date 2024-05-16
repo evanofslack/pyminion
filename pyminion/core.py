@@ -25,6 +25,9 @@ class Cost:
         self._money = money
         self._potions = potions
 
+    def __repr__(self) -> str:
+        return f"Cost({self._money}, {self._potions})"
+
     def __str__(self) -> str:
         s = ""
         if self._money > 0 or self._potions == 0:
@@ -37,6 +40,10 @@ class Cost:
         s = str(self)
         fs = f"{s:{format_spec}}"
         return fs
+
+    def __hash__(self) -> int:
+        h = hash((self._money, self._potions))
+        return h
 
     @staticmethod
     def _to_tuple(obj: "int|Cost") -> tuple[int, int]:

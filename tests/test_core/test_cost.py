@@ -22,6 +22,32 @@ def test_init():
         Cost(1, 2)
 
 
+def test_repr():
+    c1 = Cost(0)
+    assert repr(c1) == "Cost(0, 0)"
+
+    c2 = Cost(2, 1)
+    assert repr(c2) == "Cost(2, 1)"
+
+
+def test_format():
+    c1 = Cost(3)
+    assert f"{c1:>3}" == " $3"
+
+    c2 = Cost(6, 1)
+    assert f"{c2:<8}" == "$6P     "
+
+
+def test_hash():
+    c1 = Cost(3)
+    c2 = Cost(3)
+    assert hash(c1) == hash(c2)
+
+    c3 = Cost(2, 1)
+    c4 = Cost(2, 1)
+    assert hash(c3) == hash(c4)
+
+
 def test_str():
     c1 = Cost(0)
     assert str(c1) == "$0"
