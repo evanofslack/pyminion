@@ -1,7 +1,7 @@
 from enum import IntEnum, unique
 import logging
 import random
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, Tuple
 
 from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.effects import EffectRegistry
@@ -165,8 +165,12 @@ class Game:
 
         piles = chosen_piles + random_piles
 
+        def pile_sort(pile: Pile) -> Tuple[int, int, str]:
+            cost = pile.cards[0].base_cost
+            return (cost.money, cost.potions, pile.name)
+
         # sort piles by cost and name
-        piles.sort(key=lambda pile: (pile.cards[0].get_cost(self.players[0], self), pile.name))
+        piles.sort(key=pile_sort)
 
         return piles
 
