@@ -16,6 +16,16 @@ def test_create_supply():
     assert len(supply) == 6
 
 
+def test_supply_repr(supply: Supply):
+    s = repr(supply)
+    assert "Estate" in s
+    assert "Duchy" in s
+    assert "Province" in s
+    assert "Copper" in s
+    assert "Silver" in s
+    assert "Gold" in s
+
+
 def test_gain_card(supply: Supply):
     assert len(supply.piles[0]) == 8
     card = supply.gain_card(estate)
@@ -35,6 +45,17 @@ def test_pile_not_found(supply: Supply):
     fake_card = Card(name="fake", cost=0, type=(CardType.Action,))
     with pytest.raises(PileNotFound):
         supply.gain_card(fake_card)
+
+
+def test_return_card(supply: Supply):
+    estate_pile = supply.get_pile("Estate")
+    assert len(estate_pile) == 8
+
+    card = supply.gain_card(estate)
+    assert len(estate_pile) == 7
+
+    supply.return_card(card)
+    assert len(estate_pile) == 8
 
 
 def test_available_cards(supply: Supply):
