@@ -155,7 +155,9 @@ class ScryingPool(Action):
 
         revealed.move_to(player.hand)
 
-    def _check_top_card(self, attacking_player: Player, defending_player: Player, game: "Game") -> None:
+    def _check_top_card(
+        self, attacking_player: Player, defending_player: Player, game: "Game"
+    ) -> None:
         revealed = AbstractDeck()
         defending_player.draw(1, revealed, silent=True)
         if len(revealed) == 0:
@@ -231,6 +233,58 @@ class Transmute(Action):
             player.try_gain(gold, game)
 
 
+class University(Action):
+    """
+    +2 Actions
+
+    You may gain an Action card costing up to $5.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="University",
+            cost=Cost(money=2, potions=1),
+            type=(CardType.Action,),
+            actions=2,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        valid_cards = [
+            card
+            for card in game.supply.available_cards()
+            if CardType.Action in card.type and card.get_cost(player, game) <= 5
+        ]
+        if len(valid_cards) == 0:
+            return
+
+        gain = player.decider.binary_decision(
+            prompt="Do you want to gain an Action card costing up to 5 money? (y/n): ",
+            card=self,
+            player=player,
+            game=game,
+        )
+        if not gain:
+            return
+
+        gain_cards = player.decider.gain_decision(
+            prompt="Gain a card costing up to 5 money: ",
+            card=self,
+            valid_cards=valid_cards,
+            player=player,
+            game=game,
+            min_num_gain=1,
+            max_num_gain=1,
+        )
+        assert len(gain_cards) == 1
+        gain_card = gain_cards[0]
+        assert gain_card.get_cost(player, game) <= 5
+
+        player.gain(gain_card, game)
+
+
 class Vineyard(Victory):
     """
     Worth 1 VP per 3 Action cards you have (round down).
@@ -254,6 +308,7 @@ apothecary = Apothecary()
 familiar = Familiar()
 scrying_pool = ScryingPool()
 transmute = Transmute()
+university = University()
 vineyard = Vineyard()
 
 
@@ -262,5 +317,6 @@ alchemy_set: list[Card] = [
     familiar,
     scrying_pool,
     transmute,
+    university,
     vineyard,
 ]

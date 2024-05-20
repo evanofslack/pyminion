@@ -77,6 +77,7 @@ from pyminion.expansions.alchemy import (
     apothecary,
     scrying_pool,
     transmute,
+    university,
 )
 from pyminion.game import Game
 import pytest
@@ -1128,3 +1129,11 @@ def test_transmute_bot(bot: OptimizedBot, game: Game):
     assert bot.discard_pile.cards[0].name == "Gold"
     assert len(game.trash) == 1
     assert game.trash.cards[0].name == "Estate"
+
+
+def test_university_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(university)
+
+    bot.play(university, game)
+    assert len(bot.discard_pile) == 1
+    assert CardType.Action in bot.discard_pile.cards[0].type

@@ -170,6 +170,8 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Scrying Pool":
             assert relevant_cards is not None
             return self.scrying_pool(prompt, player, game, relevant_cards)
+        elif card.name == "University":
+            return self.university_binary(player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
@@ -345,6 +347,9 @@ class OptimizedBotDecider(BotDecider):
             return [ret]
         elif card.name == "Smugglers":
             ret = self.smugglers(player, game, valid_cards)
+            return [ret]
+        elif card.name == "University":
+            ret = self.university_gain(player, game, valid_cards)
             return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
@@ -1570,6 +1575,23 @@ class OptimizedBotDecider(BotDecider):
     ) -> Card:
         trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
         return trash_cards[0]
+
+    def university_binary(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: Optional[List[Card]],
+    ) -> bool:
+        return True
+
+    def university_gain(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        card = max(valid_cards, key=lambda c: c.get_cost(player, game))
+        return card
 
 
 class OptimizedBot(Bot):
