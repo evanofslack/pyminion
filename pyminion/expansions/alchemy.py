@@ -186,6 +186,26 @@ class Familiar(Action):
         game.distribute_curses(player, self)
 
 
+class PhilosophersStone(Treasure):
+    """
+    Count your deck and discard pile.
+    +$1 per 5 cards total between them (round down).
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            "Philosopher's Stone", Cost(money=3, potions=1), (CardType.Treasure,), 0
+        )
+
+    def play(self, player: Player, game: "Game") -> None:
+        super().play(player, game)
+
+        count = len(player.deck) + len(player.discard_pile)
+        money = count // 5
+        player.state.money += money
+
+
 class ScryingPool(Action):
     """
     +1 Action
@@ -379,6 +399,7 @@ potion = Potion()
 alchemist = Alchemist()
 apothecary = Apothecary()
 familiar = Familiar()
+philosophers_stone = PhilosophersStone()
 scrying_pool = ScryingPool()
 transmute = Transmute()
 university = University()
@@ -389,6 +410,7 @@ alchemy_set: list[Card] = [
     alchemist,
     apothecary,
     familiar,
+    philosophers_stone,
     scrying_pool,
     transmute,
     university,
