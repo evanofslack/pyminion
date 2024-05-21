@@ -74,7 +74,9 @@ from pyminion.expansions.seaside import (
     warehouse,
 )
 from pyminion.expansions.alchemy import (
+    alchemist,
     apothecary,
+    potion,
     scrying_pool,
     transmute,
     university,
@@ -1083,6 +1085,17 @@ def test_warehouse_bot(bot: OptimizedBot, game: Game):
     assert counter[estate] == 1
     assert counter[duchy] == 1
     assert counter[copper] == 1
+
+
+def test_alchemist_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(alchemist)
+    bot.hand.add(potion)
+
+    bot.play(alchemist, game)
+    bot.play(potion, game)
+
+    bot.start_cleanup_phase(game)
+    assert "Alchemist" in [card.name for card in bot.hand]
 
 
 def test_apothecary_bot(bot: OptimizedBot, game: Game):

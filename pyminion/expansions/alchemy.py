@@ -10,6 +10,7 @@ from pyminion.core import (
     Treasure,
     Victory,
 )
+from pyminion.effects import EffectAction, PlayerGameEffect
 from pyminion.expansions.base import duchy, gold
 from pyminion.player import Player
 
@@ -31,6 +32,77 @@ class Potion(Treasure):
         super().play(player, game)
 
         player.state.potions += 1
+
+
+class Alchemist(Action):
+    """
+    +2 Cards
+    +1 Action
+
+    At the start of Clean-up this turn, if you have a Potion in play,
+    you may put this onto your deck.
+
+    """
+
+    class TopdeckEffect(PlayerGameEffect):
+        def __init__(self, card: Card):
+            super().__init__("Alchemist: Topdeck")
+            self.card = card
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            has_potion = any(card.name == "Potion" for card in player.playmat)
+            return has_potion
+
+        def handler(self, player: Player, game: "Game") -> None:
+            topdeck = player.decider.binary_decision(
+                "Would you like to topdeck Alchemist? (y/n): ",
+                self.card,
+                player,
+                game,
+            )
+
+            if topdeck:
+                logger.info(f"{player} topdecks {self.card}")
+                player.playmat.remove(self.card)
+                player.deck.add(self.card)
+
+    class UnregisterEffect(PlayerGameEffect):
+        def __init__(self, unregister_id: int):
+            super().__init__("Alchemist: Unregister topdeck")
+            self.unregister_id = unregister_id
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Last
+
+        def is_triggered(self, player: Player, game: "Game") -> bool:
+            return True
+
+        def handler(self, player: Player, game: "Game") -> None:
+            game.effect_registry.unregister_cleanup_phase_start_effect(
+                self.unregister_id
+            )
+            game.effect_registry.unregister_turn_end_effect(self.get_id())
+
+    def __init__(self):
+        super().__init__(
+            name="Alchemist",
+            cost=Cost(money=3, potions=1),
+            type=(CardType.Action,),
+            draw=2,
+            actions=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        topdeck_effect = Alchemist.TopdeckEffect(self)
+        game.effect_registry.register_cleanup_phase_start_effect(topdeck_effect)
+
+        unregister_effect = Alchemist.UnregisterEffect(topdeck_effect.get_id())
+        game.effect_registry.register_turn_end_effect(unregister_effect)
 
 
 class Apothecary(Action):
@@ -304,6 +376,7 @@ class Vineyard(Victory):
 
 potion = Potion()
 
+alchemist = Alchemist()
 apothecary = Apothecary()
 familiar = Familiar()
 scrying_pool = ScryingPool()
@@ -313,6 +386,7 @@ vineyard = Vineyard()
 
 
 alchemy_set: list[Card] = [
+    alchemist,
     apothecary,
     familiar,
     scrying_pool,

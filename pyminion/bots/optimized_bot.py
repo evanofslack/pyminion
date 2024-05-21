@@ -167,6 +167,8 @@ class OptimizedBotDecider(BotDecider):
             return self.sailor_binary(prompt, player, game, relevant_cards)
         elif card.name == "Treasury":
             return self.treasury(prompt, player, game, relevant_cards)
+        elif card.name == "Alchemist":
+            return self.alchemist(player, game)
         elif card.name == "Scrying Pool":
             assert relevant_cards is not None
             return self.scrying_pool(prompt, player, game, relevant_cards)
@@ -1538,6 +1540,13 @@ class OptimizedBotDecider(BotDecider):
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
+
+    def alchemist(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> bool:
+        return True
 
     def apothecary(
         self,
