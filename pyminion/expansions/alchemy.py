@@ -186,6 +186,68 @@ class Familiar(Action):
         game.distribute_curses(player, self)
 
 
+class Golem(Action):
+    """
+    Reveal cards from your deck until you reveal 2 Action cards other than Golems.
+    Discard the other cards, then play the Action cards in either order.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Golem",
+            cost=Cost(money=4, potions=1),
+            type=(CardType.Action,),
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        action_cards = AbstractDeck()
+        other_cards = AbstractDeck()
+        while len(action_cards) < 2 and len(player.deck) + len(player.discard_pile) > 0:
+            temp = AbstractDeck()
+            player.draw(1, temp, silent=True)
+            revealed_card = temp.cards[0]
+            player.reveal(revealed_card, game)
+
+            if CardType.Action in revealed_card.type and revealed_card.name != "Golem":
+                temp.move_to(action_cards)
+            else:
+                temp.move_to(other_cards)
+
+        while len(other_cards) > 0:
+            player.discard(game, other_cards.cards[0], other_cards)
+
+        if len(action_cards) == 0:
+            return
+
+        ordered_cards: list[Card]
+        if len(action_cards) == 1:
+            ordered_cards = [action_cards.cards[0]]
+        else:
+            options = [
+                f"Play {action_cards.cards[0]} first",
+                f"Play {action_cards.cards[1]} first",
+            ]
+            choices = player.decider.multiple_option_decision(
+                self,
+                options,
+                player,
+                game,
+            )
+            assert len(choices) == 1
+            choice = choices[0]
+
+            ordered_cards = action_cards.cards[:]
+            if choice == 1:
+                ordered_cards.reverse()
+
+        for card in ordered_cards:
+            player.playmat.add(card)
+            player.exact_play(card, game, generic_play=False)
+
+
 class PhilosophersStone(Treasure):
     """
     Count your deck and discard pile.
@@ -399,6 +461,7 @@ potion = Potion()
 alchemist = Alchemist()
 apothecary = Apothecary()
 familiar = Familiar()
+golem = Golem()
 philosophers_stone = PhilosophersStone()
 scrying_pool = ScryingPool()
 transmute = Transmute()
@@ -410,6 +473,7 @@ alchemy_set: list[Card] = [
     alchemist,
     apothecary,
     familiar,
+    golem,
     philosophers_stone,
     scrying_pool,
     transmute,

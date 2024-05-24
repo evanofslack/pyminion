@@ -211,6 +211,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Torturer":
             ret = self.torturer(player, game, options=True)
             return [ret]
+        elif card.name == "Golem":
+            ret = self.golem(player, game)
+            return [ret]
         else:
             return super().multiple_option_decision(card, options, player, game, num_choices, unique)
 
@@ -1559,6 +1562,13 @@ class OptimizedBotDecider(BotDecider):
             key=lambda card: card.get_cost(player, game),
         )
         return cards
+
+    def golem(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        return 0
 
     def scrying_pool(
         self,
