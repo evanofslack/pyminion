@@ -162,6 +162,56 @@ class Apothecary(Action):
             player.deck.add(card)
 
 
+class Apprentice(Action):
+    """
+    +1 Action
+
+    Trash a card from your hand.
+    +1 Card per $1 it costs.
+    +2 Cards if it has P in its cost.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Apprentice",
+            cost=5,
+            type=(CardType.Action,),
+            actions=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        if len(player.hand) == 0:
+            return
+
+        if len(player.hand) == 1:
+            trash_card = player.hand.cards[0]
+        else:
+            trash_cards = player.decider.trash_decision(
+                "Choose a card to trash",
+                self,
+                player.hand.cards,
+                player,
+                game,
+                min_num_trash=1,
+                max_num_trash=1,
+            )
+            assert len(trash_cards) == 1
+            trash_card = trash_cards[0]
+
+        player.trash(trash_card, game)
+
+        cost = trash_card.get_cost(player, game)
+
+        num_draw = cost.money
+        if cost.potions > 0:
+            num_draw += 2
+
+        player.draw(num_draw)
+
+
 class Familiar(Action):
     """
     +1 Card
@@ -460,6 +510,7 @@ potion = Potion()
 
 alchemist = Alchemist()
 apothecary = Apothecary()
+apprentice = Apprentice()
 familiar = Familiar()
 golem = Golem()
 philosophers_stone = PhilosophersStone()
@@ -472,6 +523,7 @@ vineyard = Vineyard()
 alchemy_set: list[Card] = [
     alchemist,
     apothecary,
+    apprentice,
     familiar,
     golem,
     philosophers_stone,

@@ -76,6 +76,7 @@ from pyminion.expansions.seaside import (
 from pyminion.expansions.alchemy import (
     alchemist,
     apothecary,
+    apprentice,
     golem,
     potion,
     scrying_pool,
@@ -1113,6 +1114,17 @@ def test_apothecary_bot(bot: OptimizedBot, game: Game):
     assert bot.deck.cards[-2].name == "Patrol"
     assert bot.deck.cards[-3].name == "Smithy"
     assert bot.deck.cards[-4].name == "Silver"
+
+
+def test_apprentice_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(apprentice)
+    bot.hand.add(copper)
+    bot.hand.add(estate)
+
+    bot.play(apprentice, game)
+    assert len(bot.hand) == 3
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Estate"
 
 
 def test_golem_bot(bot: OptimizedBot, game: Game):

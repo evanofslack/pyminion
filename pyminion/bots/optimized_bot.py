@@ -301,6 +301,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Salvager":
             ret = self.salvager(player, game, valid_cards)
             return [ret]
+        elif card.name == "Apprentice":
+            ret = self.apprentice(player, game, valid_cards)
+            return [ret]
         elif card.name == "Transmute":
             ret = self.transmute(player, game, valid_cards)
             return [ret]
@@ -1562,6 +1565,15 @@ class OptimizedBotDecider(BotDecider):
             key=lambda card: card.get_cost(player, game),
         )
         return cards
+
+    def apprentice(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: List[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+        return trash_cards[0]
 
     def golem(
         self,
