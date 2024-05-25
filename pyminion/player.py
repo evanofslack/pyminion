@@ -450,6 +450,7 @@ class Player:
         self.next_turn_draw = 5
         self.state.actions = 1
         self.state.money = 0
+        self.state.potions = 0
         self.state.buys = 1
 
     def end_turn(self, game: "Game") -> None:

@@ -20,8 +20,13 @@ from pyminion.expansions.base import (
     smithy,
     vassal,
 )
+from pyminion.expansions.alchemy import (
+    alchemy_set,
+    alchemist,
+)
 from pyminion.game import Game
 from pyminion.player import Player
+import pytest
 
 
 def test_create_player(decider, deck):
@@ -117,6 +122,19 @@ def test_buy_card_remove_from_supply(player: Player, multiplayer_game: Game):
     assert len(multiplayer_game.supply.get_pile("Estate")) == 7
 
 
+@pytest.mark.expansions([alchemy_set])
+@pytest.mark.kingdom_cards([alchemist])
+def test_buy_potions(player: Player, game: Game):
+    player.state.money = 3
+    player.state.potions = 1
+    player.buy(alchemist, game)
+    assert player.state.money == 0
+    assert player.state.potions == 0
+    assert len(player.discard_pile) == 1
+    assert player.discard_pile.cards[0].name == "Alchemist"
+    assert len(game.supply.get_pile("Alchemist")) == 9
+
+
 def test_buy_insufficient_buys(player: Player, game: Game):
     player.buy(copper, game)
     assert player.state.buys == 0
@@ -124,9 +142,15 @@ def test_buy_insufficient_buys(player: Player, game: Game):
         player.buy(copper, game)
 
 
+@pytest.mark.expansions([alchemy_set])
+@pytest.mark.kingdom_cards([alchemist])
 def test_buy_insufficient_money(player: Player, game: Game):
     with pytest.raises(InsufficientMoney):
         player.buy(estate, game)
+
+    player.state.money = 3
+    with pytest.raises(InsufficientMoney):
+        player.buy(alchemist, game)
 
 
 def test_player_trash(player: Player, game: Game):
@@ -289,6 +313,7 @@ def test_start_turn(player: Player, game: Game):
     player.start_turn(game)
     assert player.turns == 3
     assert player.state.money == 0
+    assert player.state.potions == 0
     assert player.state.actions == 1
     assert player.state.buys == 1
 
