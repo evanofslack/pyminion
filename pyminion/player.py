@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Iterable, Iterator
 
 from pyminion.core import (AbstractDeck, Action, CardType, Card, Deck, DiscardPile, Hand,
                            Playmat, Supply, Trash, Treasure, get_action_cards, get_treasure_cards,
@@ -39,11 +39,11 @@ class Player:
     def __init__(
         self,
         decider: Decider,
-        deck: Optional[Deck] = None,
-        discard_pile: Optional[DiscardPile] = None,
-        hand: Optional[Hand] = None,
-        playmat: Optional[Playmat] = None,
-        state: Optional[State] = None,
+        deck: Deck|None = None,
+        discard_pile: DiscardPile|None = None,
+        hand: Hand|None = None,
+        playmat: Playmat|None = None,
+        state: State|None = None,
         player_id: str = "",
     ):
         self.decider = decider
@@ -52,15 +52,15 @@ class Player:
         self.hand = hand if hand else Hand()
         self.playmat = playmat if playmat else Playmat()
         self.set_aside = AbstractDeck()
-        self.mats: Dict[str, AbstractDeck] = {}
+        self.mats: dict[str, AbstractDeck] = {}
         self.state = state if state else State()
         self.player_id = player_id
         self.turns: int = 0
         self.shuffles: int = 0
         self.actions_played_this_turn: int = 0
-        self.playmat_persist_counts: Dict[str, int] = {}
-        self.current_turn_gains: List[Tuple[Game.Phase, Card]] = []
-        self.last_turn_gains: List[Tuple[Game.Phase, Card]] = []
+        self.playmat_persist_counts: dict[str, int] = {}
+        self.current_turn_gains: list[tuple[Game.Phase, Card]] = []
+        self.last_turn_gains: list[tuple[Game.Phase, Card]] = []
         self.take_extra_turn: bool = False
         self.next_turn_draw: int = 5
 
@@ -115,7 +115,7 @@ class Player:
     def draw(
         self,
         num_cards: int = 1,
-        destination: Optional[AbstractDeck] = None,
+        destination: AbstractDeck|None = None,
         silent: bool = False,
     ) -> None:
         """
@@ -152,7 +152,7 @@ class Player:
             self,
             game: "Game",
             target_card: Card,
-            source: Optional[AbstractDeck] = None,
+            source: AbstractDeck|None = None,
             silent: bool = False,
     ) -> None:
         """
@@ -260,8 +260,8 @@ class Player:
         self,
         card: Card,
         game: "Game",
-        destination: Optional[AbstractDeck] = None,
-        source: Optional[AbstractDeck] = None,
+        destination: AbstractDeck|None = None,
+        source: AbstractDeck|None = None,
     ) -> None:
         """
         Gain a card from source (supply by default) and adds it to destination.
@@ -283,8 +283,8 @@ class Player:
         self,
         card: Card,
         game: "Game",
-        destination: Optional[AbstractDeck] = None,
-        source: Optional[AbstractDeck] = None,
+        destination: AbstractDeck|None = None,
+        source: AbstractDeck|None = None,
     ) -> None:
         """
         Gain a card from source (supply by default) and adds it to destination.
@@ -299,7 +299,7 @@ class Player:
             pass
 
     def trash(
-        self, target_card: Card, game: "Game", source: Optional[AbstractDeck] = None
+        self, target_card: Card, game: "Game", source: AbstractDeck|None = None
     ) -> None:
         """
         Move a card from source to the trash.
@@ -317,7 +317,7 @@ class Player:
 
                 break
 
-    def reveal(self, cards: Union[Card, Iterable[Card]], game: "Game", message: Optional[str] = None) -> None:
+    def reveal(self, cards: Card|Iterable[Card], game: "Game", message: str|None = None) -> None:
         """
         Reveal cards.
 
@@ -433,7 +433,7 @@ class Player:
         for card in hand_copy:
             self.discard(game, card, silent=True)
 
-        persist_counts: Dict[str, int] = {}
+        persist_counts: dict[str, int] = {}
         playmat_copy = self.playmat.cards[:]
         for card in playmat_copy:
             persist_count = persist_counts.get(card.name, 0)

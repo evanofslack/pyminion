@@ -1,11 +1,11 @@
 import functools
 import logging
 from collections import Counter
-from typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import TYPE_CHECKING, Callable, Sequence
 
-from pyminion.core import (CardType, Card, Deck)
+from pyminion.core import (Card, Deck)
 from pyminion.effects import Effect
-from pyminion.exceptions import (InsufficientMoney, InvalidBinaryInput,
+from pyminion.exceptions import (InvalidBinaryInput,
                                  InvalidMultiCardInput, InvalidMultiOptionInput,
                                  InvalidSingleCardInput, InvalidDeckPositionInput,
                                  InvalidEffectsOrderInput)
@@ -18,12 +18,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
-def get_matches(input_str: str, options: List[str]) -> List[str]:
+def get_matches(input_str: str, options: list[str]) -> list[str]:
     """
     Find matches in a list of options for a user input string
 
     """
-    matches: List[str] = []
+    matches: list[str] = []
 
     input_split = input_str.casefold().split()
     input_formatted = ' '.join(input_split)
@@ -44,8 +44,8 @@ def get_matches(input_str: str, options: List[str]) -> List[str]:
 
 
 def validate_input(
-    func: Optional[Callable] = None,
-    exceptions: Union[Tuple[Type[Exception], ...], Type[Exception]] = (),
+    func: Callable|None = None,
+    exceptions: tuple[type[Exception], ...]|type[Exception] = (),
 ):
     """
     Decorator to ensure that a user enters valid input when prompted.
@@ -112,8 +112,8 @@ def binary_decision(prompt: str) -> bool:
 
 
 def single_card_decision(
-    prompt: str, valid_cards: List[Card]
-) -> Optional[Card]:
+    prompt: str, valid_cards: list[Card]
+) -> Card|None:
     """
     Get user input when given the option to select one card
 
@@ -149,9 +149,9 @@ def single_card_decision(
 
 def multiple_card_decision(
     prompt: str,
-    valid_cards: List[Card],
+    valid_cards: list[Card],
     allow_all: bool = False,
-) -> List[Card]:
+) -> list[Card]:
     """
     Get user input when given the option to select multiple cards
 
@@ -200,10 +200,10 @@ def multiple_card_decision(
 
 
 def multiple_option_decision(
-    options: List[str],
+    options: list[str],
     num_choices: int = 1,
     unique: bool = True,
-) -> List[int]:
+) -> list[int]:
     """
     Get user input when given multiple options
 
@@ -226,7 +226,7 @@ def multiple_option_decision(
     if len(choice_strings) != num_choices:
         raise InvalidMultiOptionInput("Invalid input, chose incorrect number of options")
 
-    choices: List[int] = []
+    choices: list[int] = []
     for choice in choice_strings:
         try:
             choice_num = int(choice)
@@ -277,10 +277,10 @@ class HumanDecider:
     @validate_input(exceptions=InvalidSingleCardInput)
     def action_phase_decision(
         self,
-        valid_actions: List["Card"],
+        valid_actions: list[Card],
         player: "Player",
         game: "Game",
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         card = single_card_decision(
             prompt="Choose an action card to play: ",
             valid_cards=valid_actions,
@@ -291,10 +291,10 @@ class HumanDecider:
     @validate_input(exceptions=InvalidMultiCardInput)
     def treasure_phase_decision(
         self,
-        valid_treasures: List["Card"],
+        valid_treasures: list[Card],
         player: "Player",
         game: "Game",
-    ) -> List["Card"]:
+    ) -> list[Card]:
         cards = multiple_card_decision(
             prompt="Choose treasures to play: ",
             valid_cards=valid_treasures,
@@ -305,10 +305,10 @@ class HumanDecider:
     @validate_input(exceptions=InvalidSingleCardInput)
     def buy_phase_decision(
         self,
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         card = single_card_decision(
             prompt="Choose a card to buy: ",
             valid_cards=valid_cards,
@@ -332,7 +332,7 @@ class HumanDecider:
         card: Card,
         player: "Player",
         game: "Game",
-        relevant_cards: Optional[List[Card]] = None,
+        relevant_cards: list[Card]|None = None,
     ) -> bool:
         """
         Wrap binary_decision with @validate_input decorator to
@@ -344,13 +344,13 @@ class HumanDecider:
     @validate_input(exceptions=InvalidMultiOptionInput)
     def multiple_option_decision(
         self,
-        card: "Card",
-        options: List[str],
+        card: Card,
+        options: list[str],
         player: "Player",
         game: "Game",
         num_choices: int = 1,
         unique: bool = True,
-    ) -> List[int]:
+    ) -> list[int]:
         """
         Wrap multiple_option_decision with @validate_input decorator to
         repeat prompt if input is invalid.
@@ -362,13 +362,13 @@ class HumanDecider:
     def discard_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_discard: int = 0,
         max_num_discard: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
 
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
@@ -388,13 +388,13 @@ class HumanDecider:
     def trash_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_trash: int = 0,
         max_num_trash: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
 
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
@@ -414,13 +414,13 @@ class HumanDecider:
     def gain_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_gain: int = 0,
         max_num_gain: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
 
@@ -439,13 +439,13 @@ class HumanDecider:
     def topdeck_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_topdeck: int = 0,
         max_num_topdeck: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
 
@@ -464,7 +464,7 @@ class HumanDecider:
     def deck_position_decision(
         self,
         prompt: str,
-        card: "Card",
+        card: Card,
         player: "Player",
         game: "Game",
         num_deck_cards: int,
@@ -480,13 +480,13 @@ class HumanDecider:
     def reveal_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_reveal: int = 0,
         max_num_reveal: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
 
@@ -505,13 +505,13 @@ class HumanDecider:
     def pass_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_pass: int = 0,
         max_num_pass: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
 
@@ -530,13 +530,13 @@ class HumanDecider:
     def name_card_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_name: int = 0,
         max_num_name: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
 
@@ -555,12 +555,12 @@ class HumanDecider:
     def multi_play_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         required: bool = True,
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         result = single_card_decision(prompt, valid_cards)
 
         if required and result is None:
@@ -574,13 +574,13 @@ class HumanDecider:
     def set_aside_decision(
         self,
         prompt: str,
-        card: "Card",
-        valid_cards: List["Card"],
+        card: Card,
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_set_aside: int = 0,
         max_num_set_aside: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
 
         result = multiple_card_decision(prompt, valid_cards)
         len_result = len(result)
@@ -606,7 +606,7 @@ class Human(Player):
 
     def __init__(
         self,
-        deck: Optional[Deck] = None,
+        deck: Deck|None = None,
         player_id: str = "human",
     ):
         super().__init__(decider=HumanDecider(), deck=deck, player_id=player_id)

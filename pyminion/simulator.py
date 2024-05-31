@@ -1,6 +1,5 @@
 import copy
 import logging
-from typing import Dict, List
 
 from pyminion.game import Game
 from pyminion.player import Player
@@ -30,7 +29,7 @@ class Simulator:
     def __init__(self, game: Game, iterations: int = 100):
         self.game = game
         self.iterations = iterations
-        self.results: List[GameResult] = []
+        self.results: list[GameResult] = []
 
     def run(self) -> SimulatorResult:
         logger.info(f"Simulating {self.iterations} games...")
@@ -44,7 +43,7 @@ class Simulator:
     def get_sim_result(self) -> SimulatorResult:
 
         # make temp hashmap to store player sim results
-        player_results: Dict[Player, PlayerSimulatorResult] = {}
+        player_results: dict[Player, PlayerSimulatorResult] = {}
 
         # initialize each player result with default values
         for player in self.game.players:
@@ -69,7 +68,7 @@ class Simulator:
                 if player not in result.winners:
                     player_results[player].losses += 1
 
-        player_results_final: List[PlayerSimulatorResult] = list(
+        player_results_final: list[PlayerSimulatorResult] = list(
             player_results.values()
         )
 

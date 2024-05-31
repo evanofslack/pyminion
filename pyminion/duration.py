@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 from pyminion.core import Action, Card, CardType, plural
 from pyminion.effects import EffectAction, PlayerGameEffect
@@ -33,7 +33,7 @@ class BasicNextTurnEffect(PlayerGameEffect):
         super().__init__(self._create_name())
 
     def _create_name(self) -> str:
-        effects: List[str] = []
+        effects: list[str] = []
         if self.draw > 0:
             p = plural("Card", self.draw)
             effects.append(f"+{self.draw} {p}")
@@ -96,7 +96,7 @@ class BasicNextTurnEffect(PlayerGameEffect):
 
 
 class RemovePersistentCardsEffect(PlayerGameEffect):
-    def __init__(self, player: Player, cards: List[Card]):
+    def __init__(self, player: Player, cards: list[Card]):
         name = f"Remove Persistent Cards: " + ", ".join(c.name for c in cards)
         super().__init__(name)
         self.player = player
@@ -116,7 +116,7 @@ class RemovePersistentCardsEffect(PlayerGameEffect):
 
 
 class GetSetAsideCardEffect(PlayerGameEffect):
-    def __init__(self, playing_card_name: str, player: Player, cards: List[Card]):
+    def __init__(self, playing_card_name: str, player: Player, cards: list[Card]):
         cards_str = plural("card", len(cards))
         name = f"{playing_card_name}: Put {cards_str} in hand"
         super().__init__(name)
@@ -152,7 +152,7 @@ class ActionDuration(Action):
         self,
         name: str,
         cost: int,
-        type: Tuple[CardType, ...],
+        type: tuple[CardType, ...],
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -195,11 +195,11 @@ class ActionDuration(Action):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
     ) -> None:
         if count == 1:
-            persistent_cards: List[Card] = [self]
+            persistent_cards: list[Card] = [self]
             if multi_play_card is not None:
                 persistent_cards.append(multi_play_card)
 
@@ -213,7 +213,7 @@ class ActionDuration(Action):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:

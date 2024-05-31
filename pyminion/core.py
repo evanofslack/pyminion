@@ -2,7 +2,7 @@ from collections import Counter
 from enum import Enum, unique
 import logging
 import random
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator
 
 from pyminion.exceptions import EmptyPile, InsufficientActions, PileNotFound
 
@@ -131,7 +131,7 @@ class Card:
 
     """
 
-    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: tuple[CardType, ...]):
         self.name = name
         if isinstance(cost, int):
             self._base_cost = Cost(cost)
@@ -158,7 +158,7 @@ class Card:
 
 
 class ScoreCard(Card):
-    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def score(self, player: "Player") -> int:
@@ -170,7 +170,7 @@ class ScoreCard(Card):
 
 
 class Victory(ScoreCard):
-    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...]):
+    def __init__(self, name: str, cost: int|Cost, type: tuple[CardType, ...]):
         super().__init__(name, cost, type)
 
     def get_pile_starting_count(self, game: "Game") -> int:
@@ -184,7 +184,7 @@ class Victory(ScoreCard):
 
 
 class Treasure(Card):
-    def __init__(self, name: str, cost: int|Cost, type: Tuple[CardType, ...], money: int):
+    def __init__(self, name: str, cost: int|Cost, type: tuple[CardType, ...], money: int):
         super().__init__(name, cost, type)
         self.money = money
 
@@ -203,7 +203,7 @@ class Action(Card):
         self,
         name: str,
         cost: int|Cost,
-        type: Tuple[CardType, ...],
+        type: tuple[CardType, ...],
         actions: int = 0,
         draw: int = 0,
         money: int = 0,
@@ -290,9 +290,9 @@ class AbstractDeck:
 
     def __init__(
             self,
-            cards: Optional[List[Card]] = None,
-            on_add: Optional[Callable[[Card], None]] = None,
-            on_remove: Optional[Callable[[Card], None]] = None,
+            cards: list[Card]|None = None,
+            on_add: Callable[[Card], None]|None = None,
+            on_remove: Callable[[Card], None]|None = None,
     ):
         if cards:
             self.cards = cards
@@ -342,10 +342,10 @@ class AbstractDeck:
 class Deck(AbstractDeck):
     def __init__(
             self,
-            cards: Optional[List[Card]] = None,
-            on_add: Optional[Callable[[Card], None]] = None,
-            on_remove: Optional[Callable[[Card], None]] = None,
-            on_shuffle: Optional[Callable[[], None]] = None,
+            cards: list[Card]|None = None,
+            on_add: Callable[[Card], None]|None = None,
+            on_remove: Callable[[Card], None]|None = None,
+            on_shuffle: Callable[[], None]|None = None,
     ):
         super().__init__(cards, on_add, on_remove)
         self.on_shuffle = on_shuffle
@@ -363,27 +363,27 @@ class Deck(AbstractDeck):
 
 
 class DiscardPile(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
+    def __init__(self, cards: list[Card]|None = None):
         super().__init__(cards)
 
 
 class Hand(AbstractDeck):
     def __init__(
             self,
-            cards: Optional[List[Card]] = None,
-            on_add: Optional[Callable[[Card], None]] = None,
-            on_remove: Optional[Callable[[Card], None]] = None,
+            cards: list[Card]|None = None,
+            on_add: Callable[[Card], None]|None = None,
+            on_remove: Callable[[Card], None]|None = None,
     ):
         super().__init__(cards, on_add, on_remove)
 
 
 class Pile(AbstractDeck):
-    def __init__(self, cards: List[Card]):
+    def __init__(self, cards: list[Card]):
         super().__init__(cards)
         assert len(cards) > 0
 
-        all_names: Set[str] = set()
-        unique_names: List[str] = []
+        all_names: set[str] = set()
+        unique_names: list[str] = []
         for card in cards:
             name = card.name
             if name not in all_names:
@@ -400,12 +400,12 @@ class Pile(AbstractDeck):
 
 
 class Playmat(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
+    def __init__(self, cards: list[Card]|None = None):
         super().__init__(cards)
 
 
 class Trash(AbstractDeck):
-    def __init__(self, cards: Optional[List[Card]] = None):
+    def __init__(self, cards: list[Card]|None = None):
         super().__init__(cards)
 
 
@@ -417,9 +417,9 @@ class Supply:
 
     def __init__(
             self,
-            basic_score_piles: List[Pile],
-            basic_treasure_piles: List[Pile],
-            kingdom_piles: List[Pile],
+            basic_score_piles: list[Pile],
+            basic_treasure_piles: list[Pile],
+            kingdom_piles: list[Pile],
     ):
         self.basic_score_piles = basic_score_piles
         self.basic_treasure_piles = basic_treasure_piles
@@ -483,7 +483,7 @@ class Supply:
         pile = self.get_pile(card.name)
         pile.add(card)
 
-    def available_cards(self) -> List[Card]:
+    def available_cards(self) -> list[Card]:
         """
         Returns a list containing a single card from each non-empty pile in the supply.
 
