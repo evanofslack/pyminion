@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyminion.core import DeckCounter
@@ -68,9 +68,9 @@ class GameResult:
     """
 
     game: "Game"
-    winners: List["Player"]
+    winners: list["Player"]
     turns: int
-    player_summaries: List[PlayerSummary]
+    player_summaries: list[PlayerSummary]
 
     def __repr__(self):
         if len(self.winners) == 1:
@@ -101,8 +101,8 @@ class SimulatorResult:
     """
 
     iterations: int
-    game_results: List[GameResult]
-    player_results: List[PlayerSimulatorResult]
+    game_results: list[GameResult]
+    player_results: list[PlayerSimulatorResult]
 
     def __repr__(self):
         title = f"ran {self.iterations} games"
