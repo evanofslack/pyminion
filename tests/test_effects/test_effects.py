@@ -4,7 +4,6 @@ from pyminion.expansions.base import gold, smithy, witch
 from pyminion.game import Game
 from pyminion.player import Player
 import pytest
-from typing import Optional
 
 
 class OrderCounter:
@@ -22,7 +21,7 @@ class AttackEffectTest(AttackEffect):
         self,
         name: str = "AttackEffectTest",
         action: EffectAction = EffectAction.Other,
-        order_counter: Optional[OrderCounter] = None,
+        order_counter: OrderCounter|None = None,
     ):
         super().__init__(name, action)
         self.handler_called = False
@@ -44,7 +43,7 @@ class GainEffectTest(GainEffect):
             self,
             name: str = "PlayerCardGameEffectTest",
             action: EffectAction = EffectAction.Other,
-            order_counter: Optional[OrderCounter] = None,
+            order_counter: OrderCounter|None = None,
     ):
         super().__init__(name)
         self._action = action
@@ -69,7 +68,7 @@ class PlayerCardGameEffectTest(PlayerCardGameEffect):
             self,
             name: str = "PlayerCardGameEffectTest",
             action: EffectAction = EffectAction.Other,
-            order_counter: Optional[OrderCounter] = None,
+            order_counter: OrderCounter|None = None,
     ):
         super().__init__(name)
         self._action = action
@@ -94,7 +93,7 @@ class PlayerGameEffectTest(PlayerGameEffect):
         self,
         name: str = "PlayerGameEffectTest",
         action: EffectAction = EffectAction.Other,
-        order_counter: Optional[OrderCounter] = None,
+        order_counter: OrderCounter|None = None,
     ):
         super().__init__(name)
         self._action = action

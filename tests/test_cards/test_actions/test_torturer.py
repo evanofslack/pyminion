@@ -1,5 +1,3 @@
-from typing import List
-
 from pyminion.core import Card, CardType
 from pyminion.expansions.base import moat
 from pyminion.expansions.intrigue import Torturer, torturer
@@ -12,7 +10,7 @@ def test_torturer_discard(multiplayer_game: Game, monkeypatch):
     p1 = players[0]
     p2 = players[1]
 
-    p1_hand_cards: List[Card] = [torturer]
+    p1_hand_cards: list[Card] = [torturer]
     p1.hand.cards = p1_hand_cards
 
     responses = iter(["1", "copper, copper"])
@@ -32,7 +30,7 @@ def test_torturer_discard_no_cards(multiplayer_game: Game, monkeypatch):
     p1 = players[0]
     p2 = players[1]
 
-    p1_hand_cards: List[Card] = [torturer]
+    p1_hand_cards: list[Card] = [torturer]
     p1.hand.cards = p1_hand_cards
     p2.hand.cards = []
 
@@ -52,7 +50,7 @@ def test_torturer_gain_curse(multiplayer_game: Game, monkeypatch):
     p1 = players[0]
     p2 = players[1]
 
-    p1_hand_cards: List[Card] = [torturer]
+    p1_hand_cards: list[Card] = [torturer]
     p1.hand.cards = p1_hand_cards
 
     monkeypatch.setattr("builtins.input", lambda _: "2")
@@ -75,7 +73,7 @@ def test_torturer_gain_curse_no_curses(multiplayer_game: Game, monkeypatch):
     curse_pile = multiplayer_game.supply.get_pile("Curse")
     curse_pile.cards = []
 
-    p1_hand_cards: List[Card] = [torturer]
+    p1_hand_cards: list[Card] = [torturer]
     p1.hand.cards = p1_hand_cards
 
     monkeypatch.setattr("builtins.input", lambda _: "2")
@@ -95,7 +93,7 @@ def test_torturer_moat(multiplayer_game: Game, monkeypatch):
     p1 = players[0]
     p2 = players[1]
 
-    p1_hand_cards: List[Card] = [torturer]
+    p1_hand_cards: list[Card] = [torturer]
     p1.hand.cards = p1_hand_cards
 
     monkeypatch.setattr("builtins.input", lambda _: "y")

@@ -3,7 +3,6 @@ from pyminion.expansions.base import base_set, copper, estate
 from pyminion.game import Game
 from pyminion.human import Human
 from pyminion.player import Player
-from typing import List
 
 
 def test_deck_counter_no_args():
@@ -18,7 +17,7 @@ def test_deck_counter_empty():
 
 
 def test_deck_counter_starting_cards():
-    players: List[Player] = [Human(player_id=f"human{i}") for i in range(2)]
+    players: list[Player] = [Human(player_id=f"human{i}") for i in range(2)]
     game = Game(players, [base_set])
     game.start()
     player1 = game.players[0]

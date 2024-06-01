@@ -1,4 +1,3 @@
-from typing import List, Optional
 import pytest
 from pyminion.bots.bot import Bot
 from pyminion.bots.examples import BigMoney
@@ -34,10 +33,10 @@ def pytest_configure(config):
 class TestDecider:
     def buy_phase_decision(
         self,
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         return None
 
     def binary_decision(
@@ -46,7 +45,7 @@ class TestDecider:
         card: "Card",
         player: "Player",
         game: "Game",
-        relevant_cards: Optional[List["Card"]] = None,
+        relevant_cards: list[Card]|None = None,
     ) -> bool:
         return True
 
@@ -59,9 +58,9 @@ def decider():
 
 @pytest.fixture
 def deck():
-    copper_cards: List["Card"] = [copper] * START_COPPER
-    estate_cards: List["Card"] = [estate] * START_ESTATE
-    start_cards: List["Card"] = copper_cards + estate_cards
+    copper_cards: list[Card] = [copper] * START_COPPER
+    estate_cards: list[Card] = [estate] * START_ESTATE
+    start_cards: list[Card] = copper_cards + estate_cards
 
     deck = Deck(cards=start_cards)
     return deck
@@ -108,17 +107,17 @@ def trash():
 
 @pytest.fixture
 def supply():
-    estate_cards: List["Card"] = [estate] * 8
+    estate_cards: list[Card] = [estate] * 8
     estates = Pile(estate_cards)
-    duchy_cards: List["Card"] = [duchy] * 8
+    duchy_cards: list[Card] = [duchy] * 8
     duchies = Pile(duchy_cards)
-    province_cards: List["Card"] = [province] * 8
+    province_cards: list[Card] = [province] * 8
     provinces = Pile(province_cards)
-    copper_cards: List["Card"] = [copper] * 60
+    copper_cards: list[Card] = [copper] * 60
     coppers = Pile(copper_cards)
-    silver_cards: List["Card"] = [silver] * 40
+    silver_cards: list[Card] = [silver] * 40
     silvers = Pile(silver_cards)
-    gold_cards: List["Card"] = [gold] * 30
+    gold_cards: list[Card] = [gold] * 30
     golds = Pile(gold_cards)
     supply = Supply([estates, duchies, provinces], [coppers, silvers, golds], [])
     return supply

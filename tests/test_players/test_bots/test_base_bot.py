@@ -1,11 +1,9 @@
-import pytest
-from typing import List
-
 from pyminion.bots.bot import Bot
 from pyminion.core import Card
 from pyminion.effects import PlayerGameEffect
 from pyminion.expansions.base import copper, estate, gold, witch
 from pyminion.game import Game
+import pytest
 
 
 def test_effects_order_decision(base_bot: Bot, game: Game):
@@ -234,7 +232,7 @@ def test_action_decision(base_bot: Bot, game: Game):
 
 
 def test_treasure_decision(base_bot: Bot, game: Game):
-    treasures: List[Card] = [copper, gold]
+    treasures: list[Card] = [copper, gold]
     cards = base_bot.decider.treasure_phase_decision(treasures, base_bot, game)
     assert len(cards) == 2
     assert treasures[0] == copper
