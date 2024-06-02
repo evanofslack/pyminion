@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterator, List, Optional, Sequence
+from typing import TYPE_CHECKING, Iterator, Sequence
 
 from pyminion.core import Card
 from pyminion.decider import Decider
@@ -36,10 +36,10 @@ class BotDecider:
 
     def action_phase_decision(
         self,
-        valid_actions: List["Card"],
+        valid_actions: list[Card],
         player: "Player",
         game: "Game",
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         for card in self.action_priority(player, game):
             if card in player.hand.cards:
                 return card
@@ -48,10 +48,10 @@ class BotDecider:
 
     def treasure_phase_decision(
         self,
-        valid_treasures: List["Card"],
+        valid_treasures: list[Card],
         player: "Player",
         game: "Game",
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_treasures
 
     def buy_priority(self, player: "Player", game: "Game") -> Iterator[Card]:
@@ -66,10 +66,10 @@ class BotDecider:
 
     def buy_phase_decision(
         self,
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         for card in self.buy_priority(player, game):
             if game.supply.pile_length(card.name) > 0:
                 return card
@@ -90,67 +90,67 @@ class BotDecider:
         card: Card,
         player: "Player",
         game: "Game",
-        relevant_cards: Optional[List[Card]] = None,
+        relevant_cards: list[Card]|None = None,
     ) -> bool:
         return True
 
     def multiple_option_decision(
         self,
         card: "Card",
-        options: List[str],
+        options: list[str],
         player: "Player",
         game: "Game",
         num_choices: int = 1,
         unique: bool = True,
-    ) -> List[int]:
+    ) -> list[int]:
         return list(range(num_choices))
 
     def discard_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_discard: int = 0,
         max_num_discard: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_discard]
 
     def trash_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_trash: int = 0,
         max_num_trash: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_trash]
 
     def gain_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_gain: int = 0,
         max_num_gain: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_gain]
 
     def topdeck_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_topdeck: int = 0,
         max_num_topdeck: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_topdeck]
 
     def deck_position_decision(
@@ -167,47 +167,47 @@ class BotDecider:
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_reveal: int = 0,
         max_num_reveal: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_reveal]
 
     def pass_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_pass: int = 0,
         max_num_pass: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_pass]
 
     def name_card_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_name: int = 0,
         max_num_name: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_name]
 
     def multi_play_decision(
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         required: bool = True,
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         if required:
             return valid_cards[0]
         else:
@@ -217,12 +217,12 @@ class BotDecider:
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list[Card],
         player: "Player",
         game: "Game",
         min_num_set_aside: int = 0,
         max_num_set_aside: int = -1,
-    ) -> List["Card"]:
+    ) -> list[Card]:
         return valid_cards[:min_num_set_aside]
 
 
@@ -234,7 +234,7 @@ class Bot(Player):
 
     def __init__(
         self,
-        decider: Optional[Decider] = None,
+        decider: Decider|None = None,
         player_id: str = "bot",
     ):
         decider = decider if decider else BotDecider()

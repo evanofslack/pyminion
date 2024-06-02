@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import Any, Dict, Iterable, List, Optional, cast
+from typing import Any, Iterable, cast
 
 from pyminion.core import (
     AbstractDeck,
@@ -112,7 +112,7 @@ class Blockade(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -230,14 +230,14 @@ class Corsair(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
 
         super().duration_play(player, game, multi_play_card, count, generic_play)
 
-        effect_ids: List[int] = []
+        effect_ids: list[int] = []
         for opponent in game.get_opponents(player):
             if opponent.is_attacked(player, self, game):
                 effect = Corsair.TrashEffect(opponent)
@@ -253,7 +253,7 @@ class Corsair(ActionDuration):
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
     @staticmethod
-    def _unregister_effects(effect_ids: List[int], game: "Game") -> None:
+    def _unregister_effects(effect_ids: list[int], game: "Game") -> None:
         for effect_id in effect_ids:
             game.effect_registry.unregister_play_effect(effect_id)
 
@@ -328,7 +328,7 @@ class Haven(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -473,7 +473,7 @@ class Lighthouse(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -616,7 +616,7 @@ class Monkey(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -709,7 +709,7 @@ class Outpost(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -801,7 +801,7 @@ class Pirate(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -844,9 +844,9 @@ class Sailor(ActionDuration):
     """
 
     class PlayEffect(GainEffect):
-        def __init__(self, players: List[Player]):
+        def __init__(self, players: list[Player]):
             super().__init__("Sailor: Play Duration")
-            self.player_sailor_counts: Dict[str, int] = {}
+            self.player_sailor_counts: dict[str, int] = {}
             for player in players:
                 self.player_sailor_counts[player.player_id] = 0
 
@@ -929,7 +929,7 @@ class Sailor(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1071,7 +1071,7 @@ class SeaWitch(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1096,7 +1096,7 @@ class Smugglers(Action):
         super().play(player, game, generic_play)
 
         right_player = game.get_right_player(player)
-        valid_cards: List[Card] = [
+        valid_cards: list[Card] = [
             card
             for _, card in right_player.last_turn_gains
             if card.get_cost(player, game) <= 6
@@ -1139,7 +1139,7 @@ class Tactician(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1389,7 +1389,7 @@ warehouse = Warehouse()
 wharf = Wharf()
 
 
-seaside_set: List[Card] = [
+seaside_set: list[Card] = [
     astrolabe,
     bazaar,
     blockade,
