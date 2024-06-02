@@ -20,7 +20,7 @@ games through the command line and simulation of games between bots.
 
 ## Installation
 
-Pyminion requires at least Python 3.8 and can easily be installed through pypi
+Pyminion requires at least Python 3.10 and can easily be installed through pypi
 
 ```bash
 python3 -m pip install pyminion
