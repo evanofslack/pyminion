@@ -62,7 +62,7 @@ class FuncPlayerGameEffect(PlayerGameEffect):
         name: str,
         action: EffectAction,
         handler_func: PlayerGameEffectHandler,
-        is_triggered_func: PlayerGameEffectTriggerHandler|None = None,
+        is_triggered_func: PlayerGameEffectTriggerHandler | None = None,
     ):
         super().__init__(name)
         self._action = action
@@ -89,7 +89,9 @@ class PlayerCardGameEffect(Effect):
         super().__init__(name)
 
     def is_triggered(self, player: "Player", card: "Card", game: "Game") -> bool:
-        raise NotImplementedError("PlayerCardGameEffect is_triggered is not implemented")
+        raise NotImplementedError(
+            "PlayerCardGameEffect is_triggered is not implemented"
+        )
 
     def handler(self, player: "Player", card: "Card", game: "Game") -> None:
         raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
@@ -101,7 +103,7 @@ class FuncPlayerCardGameEffect(PlayerCardGameEffect):
         name: str,
         action: EffectAction,
         handler_func: PlayerCardGameEffectHandler,
-        is_triggered_func: PlayerCardGameEffectTriggerHandler|None = None,
+        is_triggered_func: PlayerCardGameEffectTriggerHandler | None = None,
     ):
         super().__init__(name)
         self._action = action
@@ -128,10 +130,10 @@ class GainEffect(Effect):
         super().__init__(name)
 
     def is_triggered(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> bool:
-        raise NotImplementedError("PlayerCardGameEffect is_triggered is not implemented")
+        raise NotImplementedError("GainEffect is_triggered is not implemented")
 
     def handler(self, player: "Player", card: "Card", game: "Game", destination: "AbstractDeck") -> None:
-        raise NotImplementedError("PlayerCardGameEffect handler is not implemented")
+        raise NotImplementedError("GainEffect handler is not implemented")
 
 
 class AttackEffect(Effect):
@@ -142,10 +144,22 @@ class AttackEffect(Effect):
     def get_action(self) -> EffectAction:
         return self._action
 
-    def is_triggered(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
+    def is_triggered(
+        self,
+        attacking_player: "Player",
+        defending_player: "Player",
+        attack_card: "Card",
+        game: "Game",
+    ) -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
 
-    def handler(self, attacking_player: "Player", defending_player: "Player", attack_card: "Card", game: "Game") -> bool:
+    def handler(
+        self,
+        attacking_player: "Player",
+        defending_player: "Player",
+        attack_card: "Card",
+        game: "Game",
+    ) -> bool:
         raise NotImplementedError("AttackEffect handler is not implemented")
 
 
@@ -154,6 +168,7 @@ class EffectRegistry:
     Registry for effects to be triggered on various game events.
 
     """
+
     def __init__(self):
         self.attack_effects: list[AttackEffect] = []
         self.buy_effects: list[GainEffect] = []
@@ -216,10 +231,10 @@ class EffectRegistry:
         return False
 
     def _handle_player_game_effects(
-            self,
-            effects: list[PlayerGameEffect],
-            player: "Player",
-            game: "Game",
+        self,
+        effects: list[PlayerGameEffect],
+        player: "Player",
+        game: "Game",
     ) -> None:
         if len(effects) == 0:
             return
@@ -286,11 +301,11 @@ class EffectRegistry:
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, game))
 
     def _handle_player_card_game_effects(
-            self,
-            effects: list[PlayerCardGameEffect],
-            player: "Player",
-            card: "Card",
-            game: "Game",
+        self,
+        effects: list[PlayerCardGameEffect],
+        player: "Player",
+        card: "Card",
+        game: "Game",
     ) -> None:
         if len(effects) == 0:
             return
@@ -357,12 +372,12 @@ class EffectRegistry:
             effect_ids = set(e.get_id() for e in effects if e.is_triggered(player, card, game))
 
     def _handle_player_card_game_destination_effects(
-            self,
-            effects: list[GainEffect],
-            player: "Player",
-            card: "Card",
-            game: "Game",
-            destination: "AbstractDeck",
+        self,
+        effects: list[GainEffect],
+        player: "Player",
+        card: "Card",
+        game: "Game",
+        destination: "AbstractDeck",
     ) -> None:
         if len(effects) == 0:
             return
