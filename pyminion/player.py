@@ -166,7 +166,7 @@ class Player:
                 self.discard_pile.add(source.remove(card))
                 if not silent:
                     logger.info(f"{self} discards {card}")
-                game.effect_registry.on_discard(self, card, game)
+                game.effect_registry.on_discard(self, card, game, source)
                 return
 
     def play(self, target_card: Card, game: "Game", generic_play: bool = True) -> None:

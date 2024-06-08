@@ -147,7 +147,7 @@ def test_register_effects(effect_registry: EffectRegistry):
 
     effect_registry.register_attack_effect(AttackEffectTest())
     effect_registry.register_buy_effect(PlayerCardGameDeckEffectTest())
-    effect_registry.register_discard_effect(PlayerCardGameEffectTest())
+    effect_registry.register_discard_effect(PlayerCardGameDeckEffectTest())
     effect_registry.register_gain_effect(PlayerCardGameDeckEffectTest())
     effect_registry.register_hand_add_effect(PlayerCardGameEffectTest())
     effect_registry.register_hand_remove_effect(PlayerCardGameEffectTest())
@@ -194,7 +194,7 @@ def test_unregister_effects_by_id(effect_registry: EffectRegistry):
 
     attack_effect = AttackEffectTest()
     buy_effect = PlayerCardGameDeckEffectTest()
-    discard_effect = PlayerCardGameEffectTest()
+    discard_effect = PlayerCardGameDeckEffectTest()
     gain_effect = PlayerCardGameDeckEffectTest()
     hand_add_effect = PlayerCardGameEffectTest()
     hand_remove_effect = PlayerCardGameEffectTest()
@@ -445,7 +445,7 @@ def test_on_buy(game: Game):
 def test_on_discard(game: Game):
     reg = game.effect_registry
 
-    discard_effect = PlayerCardGameEffectTest()
+    discard_effect = PlayerCardGameDeckEffectTest()
     reg.register_discard_effect(discard_effect)
 
     player = game.players[0]

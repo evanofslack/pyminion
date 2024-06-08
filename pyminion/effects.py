@@ -172,7 +172,7 @@ class EffectRegistry:
     def __init__(self):
         self.attack_effects: list[AttackEffect] = []
         self.buy_effects: list[PlayerCardGameDeckEffect] = []
-        self.discard_effects: list[PlayerCardGameEffect] = []
+        self.discard_effects: list[PlayerCardGameDeckEffect] = []
         self.gain_effects: list[PlayerCardGameDeckEffect] = []
         self.hand_add_effects: list[PlayerCardGameEffect] = []
         self.hand_remove_effects: list[PlayerCardGameEffect] = []
@@ -536,12 +536,12 @@ class EffectRegistry:
         """
         self._handle_player_card_game_deck_effects(self.gain_effects + self.buy_effects, player, card, game, deck)
 
-    def on_discard(self, player: "Player", card: "Card", game: "Game") -> None:
+    def on_discard(self, player: "Player", card: "Card", game: "Game", deck: "AbstractDeck") -> None:
         """
         Trigger discarding effects.
 
         """
-        self._handle_player_card_game_effects(self.discard_effects, player, card, game)
+        self._handle_player_card_game_deck_effects(self.discard_effects, player, card, game, deck)
 
     def on_gain(self, player: "Player", card: "Card", game: "Game", deck: "AbstractDeck") -> None:
         """
@@ -648,7 +648,7 @@ class EffectRegistry:
         """
         self._unregister_effect_by_id(id, self.buy_effects)
 
-    def register_discard_effect(self, effect: PlayerCardGameEffect) -> None:
+    def register_discard_effect(self, effect: PlayerCardGameDeckEffect) -> None:
         """
         Register an effect to be triggered on discarding.
 
