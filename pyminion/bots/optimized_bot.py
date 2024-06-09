@@ -169,6 +169,9 @@ class OptimizedBotDecider(BotDecider):
             return self.treasury(prompt, player, game, relevant_cards)
         elif card.name == "Alchemist":
             return self.alchemist(player, game)
+        elif card.name == "Herbalist":
+            assert relevant_cards is not None
+            return self.herbalist(player, game, relevant_cards[0])
         elif card.name == "Scrying Pool":
             assert relevant_cards is not None
             return self.scrying_pool(prompt, player, game, relevant_cards)
@@ -1581,6 +1584,14 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
     ) -> int:
         return 0
+
+    def herbalist(
+        self,
+        player: "Player",
+        game: "Game",
+        card: Card,
+    ) -> bool:
+        return card.name != "Copper"
 
     def scrying_pool(
         self,

@@ -331,6 +331,19 @@ class Player:
         for card in cards:
             game.effect_registry.on_reveal(self, card, game)
 
+    def topdeck(self, cards: Card|Iterable[Card], source: AbstractDeck) -> None:
+        """
+        Topdeck cards.
+
+        """
+        if isinstance(cards, Card):
+            cards = [cards]
+
+        logger.info(f"{self} topdecks " + ", ".join(card.name for card in cards))
+        for card in cards:
+            source.remove(card)
+            self.deck.add(card)
+
     def start_turn(self, game: "Game", is_extra_turn: bool = False) -> None:
         """
         Increase turn counter and reset state

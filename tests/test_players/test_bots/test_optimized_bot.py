@@ -75,9 +75,11 @@ from pyminion.expansions.seaside import (
 )
 from pyminion.expansions.alchemy import (
     alchemist,
+    alchemy_set,
     apothecary,
     apprentice,
     golem,
+    herbalist,
     potion,
     scrying_pool,
     transmute,
@@ -1136,6 +1138,28 @@ def test_golem_bot(bot: OptimizedBot, game: Game):
 
     assert len(bot.playmat) == 3
     assert sorted(card.name for card in bot.playmat) == ["Chapel", "Golem", "Mill"]
+
+
+@pytest.mark.expansions([alchemy_set])
+@pytest.mark.kingdom_cards([herbalist])
+def test_herbalist_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+
+    for _ in range(5):
+        bot.deck.add(estate)
+
+    bot.hand.add(herbalist)
+    bot.hand.add(copper)
+    bot.hand.add(gold)
+
+    bot.play(herbalist, multiplayer_bot_game)
+    bot.play(copper, multiplayer_bot_game)
+    bot.play(gold, multiplayer_bot_game)
+
+    bot.start_cleanup_phase(multiplayer_bot_game)
+
+    assert "Gold" in (card.name for card in bot.hand)
+    assert "Copper" not in (card.name for card in bot.hand)
 
 
 def test_scrying_pool_bot(multiplayer_bot_game: Game):

@@ -10,7 +10,12 @@ from pyminion.core import (
     Treasure,
     Victory,
 )
-from pyminion.effects import EffectAction, PlayerGameEffect
+from pyminion.effects import (
+    EffectAction,
+    FuncPlayerGameEffect,
+    PlayerGameEffect,
+    PlayerCardGameDeckEffect,
+)
 from pyminion.expansions.base import duchy, gold
 from pyminion.player import Player
 
@@ -298,6 +303,90 @@ class Golem(Action):
             player.exact_play(card, game, generic_play=False)
 
 
+class Herbalist(Action):
+    """
+    +1 Buy
+    +$1
+
+    Once this turn, when you discard a Treasure from play, you may put it onto your deck.
+
+    """
+
+    class TopdeckTreasureEffect(PlayerCardGameDeckEffect):
+        def __init__(self, herbalist: "Herbalist", players: list[Player]):
+            super().__init__("Herbalist: Topdeck Treasure")
+            self.herbalist = herbalist
+            self.player_herbalist_counts: dict[str, int] = {}
+            for player in players:
+                self.player_herbalist_counts[player.player_id] = 0
+
+        def get_action(self) -> EffectAction:
+            return EffectAction.Other
+
+        def is_triggered(
+            self, player: Player, card: Card, game: "Game", deck: AbstractDeck
+        ) -> bool:
+            herbalist_counts = self.player_herbalist_counts.get(player.player_id, 0)
+            return (
+                herbalist_counts > 0
+                and deck is player.playmat
+                and CardType.Treasure in card.type
+            )
+
+        def handler(
+            self, player: Player, card: Card, game: "Game", deck: AbstractDeck
+        ) -> None:
+            topdeck = player.decider.binary_decision(
+                f"Do you want to topdeck {card}? y/n: ",
+                self.herbalist,
+                player,
+                game,
+                relevant_cards=[card],
+            )
+
+            if topdeck:
+                player.topdeck(card, player.discard_pile)
+                self.player_herbalist_counts[player.player_id] -= 1
+
+    def __init__(self):
+        super().__init__(
+            name="Herbalist",
+            cost=2,
+            type=(CardType.Action,),
+            buys=1,
+            money=1,
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        effects = [
+            e
+            for e in game.effect_registry.discard_effects
+            if e.get_name() == "Herbalist: Topdeck Treasure"
+        ]
+        assert len(effects) == 1
+        topdeck_effect = effects[0]
+        assert isinstance(topdeck_effect, Herbalist.TopdeckTreasureEffect)
+        topdeck_effect.player_herbalist_counts[player.player_id] += 1
+
+    def set_up(self, game: "Game") -> None:
+        # register play treasure effect
+        topdeck_effect = Herbalist.TopdeckTreasureEffect(self, game.players)
+        game.effect_registry.register_discard_effect(topdeck_effect)
+
+        def reset_count(p: Player, g: "Game"):
+            topdeck_effect.player_herbalist_counts[p.player_id] = 0
+
+        # reset herbalist counts at the end of each turn
+        reset_effect = FuncPlayerGameEffect(
+            f"{self.name}: Reset count",
+            EffectAction.Last,
+            reset_count,
+        )
+        game.effect_registry.register_turn_end_effect(reset_effect)
+
+
 class PhilosophersStone(Treasure):
     """
     Count your deck and discard pile.
@@ -513,6 +602,7 @@ apothecary = Apothecary()
 apprentice = Apprentice()
 familiar = Familiar()
 golem = Golem()
+herbalist = Herbalist()
 philosophers_stone = PhilosophersStone()
 scrying_pool = ScryingPool()
 transmute = Transmute()
@@ -526,6 +616,7 @@ alchemy_set: list[Card] = [
     apprentice,
     familiar,
     golem,
+    herbalist,
     philosophers_stone,
     scrying_pool,
     transmute,
