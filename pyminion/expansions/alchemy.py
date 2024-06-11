@@ -18,6 +18,7 @@ from pyminion.effects import (
 )
 from pyminion.expansions.base import duchy, gold
 from pyminion.player import Player
+from typing import Any
 
 if TYPE_CHECKING:
     from pyminion.game import Game
@@ -101,13 +102,34 @@ class Alchemist(Action):
         )
 
     def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        self._play(player, game, 1, generic_play)
+
+    def multi_play(
+        self,
+        player: Player,
+        game: "Game",
+        multi_play_card: Card,
+        state: Any,
+        generic_play: bool = True,
+    ) -> Any:
+        if state is None:
+            count = 1
+        else:
+            count = int(state) + 1
+
+        self._play(player, game, count, generic_play)
+
+        return count
+
+    def _play(self, player: Player, game: "Game", count: int, generic_play: bool = True) -> None:
         super().play(player, game, generic_play)
 
-        topdeck_effect = Alchemist.TopdeckEffect(self)
-        game.effect_registry.register_cleanup_phase_start_effect(topdeck_effect)
+        if count == 1:
+            topdeck_effect = Alchemist.TopdeckEffect(self)
+            game.effect_registry.register_cleanup_phase_start_effect(topdeck_effect)
 
-        unregister_effect = Alchemist.UnregisterEffect(topdeck_effect.get_id())
-        game.effect_registry.register_turn_end_effect(unregister_effect)
+            unregister_effect = Alchemist.UnregisterEffect(topdeck_effect.get_id())
+            game.effect_registry.register_turn_end_effect(unregister_effect)
 
 
 class Apothecary(Action):
