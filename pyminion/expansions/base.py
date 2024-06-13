@@ -426,7 +426,7 @@ class Harbinger(Action):
 
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
-        player.deck.add(player.discard_pile.remove(topdeck_card))
+        player.topdeck(topdeck_card, player.discard_pile)
 
 
 class Vassal(Action):
@@ -531,10 +531,7 @@ class Artisan(Action):
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
 
-        for card in player.hand.cards:
-            if card == topdeck_card:
-                player.deck.add(player.hand.remove(card))
-                return
+        player.topdeck(topdeck_card, player.hand)
 
 
 class Poacher(Action):
@@ -846,10 +843,11 @@ class Bureaucrat(Action):
                 attacking_player=player, attack_card=self, game=game
             ):
 
-                victory_cards = []
-                for card in opponent.hand.cards:
-                    if CardType.Victory in card.type:
-                        victory_cards.append(card)
+                victory_cards = [
+                    card
+                    for card in opponent.hand.cards
+                    if CardType.Victory in card.type
+                ]
 
                 if not victory_cards:
                     opponent.reveal(opponent.hand.cards, game, f"{opponent} reveals hand: ")
@@ -867,8 +865,8 @@ class Bureaucrat(Action):
                 assert len(topdeck_cards) == 1
                 topdeck_card = topdeck_cards[0]
 
-                opponent.deck.add(opponent.hand.remove(topdeck_card))
-                opponent.reveal(topdeck_card, game, f"{opponent} reveals and topdecks ")
+                opponent.reveal(topdeck_card, game)
+                opponent.topdeck(topdeck_card, opponent.hand)
 
 
 class ThroneRoom(Action):
@@ -1165,14 +1163,10 @@ class Sentry(Action):
             player.discard(game, card, to_discard)
 
         if looked_at.cards:
-            if reorder:
-                for card in looked_at.cards:
-                    player.deck.add(card)
-            else:
-                for card in reversed(looked_at.cards):
-                    player.deck.add(card)
-            s = plural("card", len(looked_at))
-            logger.info(f"{player} topdecks {len(looked_at)} {s}")
+            topdeck_cards = looked_at.cards[:]
+            if not reorder:
+                topdeck_cards.reverse()
+            player.topdeck(topdeck_cards, looked_at)
 
 
 class Library(Action):

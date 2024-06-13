@@ -562,8 +562,7 @@ class Lookout(Action):
         # topdeck
 
         topdeck_card = top_cards.cards[0]
-        player.deck.add(top_cards.remove(topdeck_card))
-        logger.info(f"{player} topdecks {topdeck_card}")
+        player.topdeck(topdeck_card, top_cards)
 
 
 class MerchantShip(ActionDuration):
@@ -1273,8 +1272,7 @@ class Treasury(Action):
             )
 
             if topdeck:
-                player.playmat.remove(self.card)
-                player.deck.add(self.card)
+                player.topdeck(self.card, player.playmat)
 
     def __init__(self):
         super().__init__(

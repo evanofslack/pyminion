@@ -206,8 +206,7 @@ class Courtyard(Action):
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
 
-        player.hand.remove(topdeck_card)
-        player.deck.add(topdeck_card)
+        player.topdeck(topdeck_card, player.hand)
 
 
 class Diplomat(Action):
@@ -767,7 +766,7 @@ class Patrol(Action):
             logger.info(f"Cards to topdeck: {revealed}")
 
         if num_topdeck <= 1:
-            topdeck_cards = revealed.cards
+            topdeck_cards = revealed.cards[:]
         else:
             topdeck_cards = player.decider.topdeck_decision(
                 prompt="Enter the cards in the order you would like to topdeck: ",
@@ -779,8 +778,7 @@ class Patrol(Action):
                 max_num_topdeck=num_topdeck,
             )
 
-        for card in topdeck_cards:
-            player.deck.add(card)
+        player.topdeck(topdeck_cards, revealed)
 
 
 class Pawn(Action):
@@ -889,6 +887,7 @@ class Replace(Action):
 
         if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
             player.gain(gain_card, game, destination=player.deck)
+            logger.info(f"{player} topdecks {gain_card}")
         else:
             player.gain(gain_card, game)
 

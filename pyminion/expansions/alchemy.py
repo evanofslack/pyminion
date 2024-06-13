@@ -71,9 +71,7 @@ class Alchemist(Action):
             )
 
             if topdeck:
-                logger.info(f"{player} topdecks {self.card}")
-                player.playmat.remove(self.card)
-                player.deck.add(self.card)
+                player.topdeck(self.card, player.playmat)
 
     class UnregisterEffect(PlayerGameEffect):
         def __init__(self, unregister_id: int):
@@ -173,7 +171,7 @@ class Apothecary(Action):
             logger.info(f"Cards to topdeck: {revealed}")
 
         if num_topdeck <= 1:
-            topdeck_cards = revealed.cards
+            topdeck_cards = revealed.cards[:]
         else:
             topdeck_cards = player.decider.topdeck_decision(
                 prompt="Enter the cards in the order you would like to topdeck: ",
@@ -185,8 +183,7 @@ class Apothecary(Action):
                 max_num_topdeck=num_topdeck,
             )
 
-        for card in topdeck_cards:
-            player.deck.add(card)
+        player.topdeck(topdeck_cards, revealed)
 
 
 class Apprentice(Action):
