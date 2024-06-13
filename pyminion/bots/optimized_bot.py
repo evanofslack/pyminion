@@ -69,11 +69,12 @@ class OptimizedBotDecider(BotDecider):
 
         prioritized_cards: list[tuple[int, Card]] = []
         for card in cards:
+            cost = card.get_cost(player, game)
             # set aside terminal action cards if we don't have enough actions to play them
             if num_terminal > player.state.actions and CardType.Action in card.type and cast(Action, card).actions == 0:
-                priority = 100 + card.get_cost(player, game).money
+                priority = 100 + cost.money + 2 * cost.potions
             else:
-                priority = 200 + card.get_cost(player, game).money
+                priority = 200 + cost.money + 2 * cost.potions
 
             prioritized_cards.append((priority, card))
 
@@ -124,7 +125,8 @@ class OptimizedBotDecider(BotDecider):
                 priority = 3
                 deck_money -= 1
             elif required:
-                priority = 100 + card.get_cost(player, game).money
+                cost = card.get_cost(player, game)
+                priority = 100 + cost.money + 2 * cost.potions
             else:
                 priority = 0
 
