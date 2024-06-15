@@ -257,7 +257,13 @@ class Game:
             extra_turn_count += 1
             take_turn = player.take_extra_turn and extra_turn_count < 2
 
-        # reset extra turn flag
+        if player.take_possession_turn:
+            player.possess(self)
+            self.card_cost_reduction = 0
+            if self.is_over():
+                return
+
+        # reset extra turn flags
         player.take_extra_turn = False
 
     def play(self) -> GameResult:

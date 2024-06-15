@@ -119,7 +119,9 @@ class Alchemist(Action):
 
         return count
 
-    def _play(self, player: Player, game: "Game", count: int, generic_play: bool = True) -> None:
+    def _play(
+        self, player: Player, game: "Game", count: int, generic_play: bool = True
+    ) -> None:
         super().play(player, game, generic_play)
 
         if count == 1:
@@ -426,6 +428,29 @@ class PhilosophersStone(Treasure):
         player.state.money += money
 
 
+class Possession(Action):
+    """
+    The player to your left takes an extra turn after this one (but not a 2nd
+    extra turn in a row), in which you can see all cards they can and make all
+    decisions for them. Any cards or debt they would gain on that turn, you gain
+    instead; any cards of theirs that are trashed are set aside and put in their
+    discard pile at end of turn.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Possession",
+            cost=Cost(money=6, potions=1),
+            type=(CardType.Action,),
+        )
+
+    def play(self, player: Player, game: "Game", generic_play: bool = True) -> None:
+        super().play(player, game, generic_play)
+
+        player.take_possession_turn = True
+
+
 class ScryingPool(Action):
     """
     +1 Action
@@ -623,6 +648,7 @@ familiar = Familiar()
 golem = Golem()
 herbalist = Herbalist()
 philosophers_stone = PhilosophersStone()
+possession = Possession()
 scrying_pool = ScryingPool()
 transmute = Transmute()
 university = University()
@@ -637,6 +663,7 @@ alchemy_set: list[Card] = [
     golem,
     herbalist,
     philosophers_stone,
+    possession,
     scrying_pool,
     transmute,
     university,

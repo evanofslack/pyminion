@@ -62,6 +62,7 @@ class Player:
         self.current_turn_gains: list[tuple[Game.Phase, Card]] = []
         self.last_turn_gains: list[tuple[Game.Phase, Card]] = []
         self.take_extra_turn: bool = False
+        self.take_possession_turn: bool = False
         self.next_turn_draw: int = 5
 
     def __repr__(self):
@@ -86,6 +87,7 @@ class Player:
         self.current_turn_gains = []
         self.last_turn_gains = []
         self.take_extra_turn = False
+        self.take_possession_turn = False
         self.next_turn_draw = 5
 
     def add_playmat_persistent_card(self, card: Card) -> None:
@@ -479,6 +481,20 @@ class Player:
         self.start_buy_phase(game)
         self.start_cleanup_phase(game)
         self.end_turn(game)
+
+    def possess(self, game: "Game") -> None:
+        opponent = game.get_left_player(self)
+
+        # change opponent's decider
+        original_decider = opponent.decider
+        opponent.decider = self.decider
+
+        opponent.take_turn(game, is_extra_turn=True)
+
+        # reset opponent's decider
+        opponent.decider = original_decider
+
+        self.take_possession_turn = False
 
     def get_all_cards(self) -> Iterator[Card]:
         """
