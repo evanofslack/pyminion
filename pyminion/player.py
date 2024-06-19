@@ -63,6 +63,7 @@ class Player:
         self.last_turn_gains: list[tuple[Game.Phase, Card]] = []
         self.take_extra_turn: bool = False
         self.take_possession_turn: bool = False
+        self.possessing_player: Player|None = None
         self.next_turn_draw: int = 5
 
     def __repr__(self):
@@ -88,6 +89,7 @@ class Player:
         self.last_turn_gains = []
         self.take_extra_turn = False
         self.take_possession_turn = False
+        self.possessing_player = None
         self.next_turn_draw = 5
 
     def add_playmat_persistent_card(self, card: Card) -> None:
@@ -246,17 +248,23 @@ class Player:
             raise InsufficientBuys(
                 f"{self.player_id}: Not enough buys to buy {card.name}"
             )
-        try:
-            game.supply.gain_card(card)
-        except EmptyPile as e:
-            raise e
         self.state.money -= cost.money
         self.state.potions -= cost.potions
         self.state.buys -= 1
-        self.discard_pile.add(card)
-        self.current_turn_gains.append((game.current_phase, card))
+
         logger.info(f"{self} buys {card}")
-        game.effect_registry.on_buy(self, card, game, self.discard_pile)
+
+        if self.possessing_player is None:
+            try:
+                game.supply.gain_card(card)
+            except EmptyPile as e:
+                raise e
+            self.discard_pile.add(card)
+            self.current_turn_gains.append((game.current_phase, card))
+            game.effect_registry.on_buy(self, card, game, self.discard_pile)
+        else:
+            deck = self.possessing_player.deck # TODO: pick the correct destination
+            self.possessing_player.gain(card, game, deck)
 
     def gain(
         self,
@@ -275,11 +283,15 @@ class Player:
         if source is None:
             source = game.supply.get_pile(card.name)
 
-        gain_card = source.remove(card)
-        destination.add(gain_card)
-        self.current_turn_gains.append((game.current_phase, card))
-        logger.info(f"{self} gains {gain_card}")
-        game.effect_registry.on_gain(self, card, game, destination)
+        if self.possessing_player is None:
+            gain_card = source.remove(card)
+            destination.add(gain_card)
+            self.current_turn_gains.append((game.current_phase, card))
+            logger.info(f"{self} gains {gain_card}")
+            game.effect_registry.on_gain(self, card, game, destination)
+        else:
+            # TODO: pick the correct source and destination
+            self.possessing_player.gain(card, game)
 
     def try_gain(
         self,
@@ -358,7 +370,10 @@ class Player:
         self.state.buys = 1
 
         if is_extra_turn:
-            logger.info(f"\nTurn {self.turns} (extra) - {self.player_id}")
+            if self.possessing_player is None:
+                logger.info(f"\nTurn {self.turns} (extra) - {self.player_id}")
+            else:
+                logger.info(f"\nTurn {self.turns} (possession) - {self.player_id} possessed by {self.possessing_player}")
         else:
             # extra turns do not count toward the total number of turns
             self.turns += 1
@@ -488,11 +503,13 @@ class Player:
         # change opponent's decider
         original_decider = opponent.decider
         opponent.decider = self.decider
+        opponent.possessing_player = self
 
         opponent.take_turn(game, is_extra_turn=True)
 
-        # reset opponent's decider
+        # reset opponent's state
         opponent.decider = original_decider
+        opponent.possessing_player = None
 
         self.take_possession_turn = False
 
