@@ -263,8 +263,7 @@ class Player:
             self.current_turn_gains.append((game.current_phase, card))
             game.effect_registry.on_buy(self, card, game, self.discard_pile)
         else:
-            deck = self.possessing_player.deck # TODO: pick the correct destination
-            self.possessing_player.gain(card, game, deck)
+            self.possessing_player.gain(card, game, destination=self.possessing_player.discard_pile)
 
     def gain(
         self,
@@ -290,8 +289,7 @@ class Player:
             logger.info(f"{self} gains {gain_card}")
             game.effect_registry.on_gain(self, card, game, destination)
         else:
-            # TODO: pick the correct source and destination
-            self.possessing_player.gain(card, game)
+            self.possessing_player.gain(card, game, destination=self.possessing_player.discard_pile, source=source)
 
     def try_gain(
         self,
