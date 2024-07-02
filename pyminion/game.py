@@ -243,6 +243,14 @@ class Game:
         return False
 
     def play_turn(self, player: Player) -> None:
+        # if player played Possession while being possessed, take the extra turn
+        # before their main turn
+        if player.take_possession_turn:
+            player.possess(self)
+            self.card_cost_reduction = 0
+            if self.is_over():
+                return
+
         extra_turn_count = 0
         take_turn = True
         while take_turn:
@@ -257,6 +265,7 @@ class Game:
             extra_turn_count += 1
             take_turn = player.take_extra_turn and extra_turn_count < 2
 
+        # if player just played Possession, take the extra turn after their main turn
         if player.take_possession_turn:
             player.possess(self)
             self.card_cost_reduction = 0
