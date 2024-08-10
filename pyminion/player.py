@@ -64,6 +64,7 @@ class Player:
         self.take_extra_turn: bool = False
         self.take_possession_turn: bool = False
         self.possessing_player: Player|None = None
+        self.possession_trash = Trash()
         self.next_turn_draw: int = 5
 
     def __repr__(self):
@@ -323,7 +324,11 @@ class Player:
 
         for card in source.cards:
             if card == target_card:
-                game.trash.add(source.remove(card))
+                source.remove(card)
+                if self.possessing_player is None:
+                    game.trash.add(card)
+                else:
+                    self.possession_trash.add(card)
                 logger.info(f"{self} trashes {card}")
                 game.effect_registry.on_trash(self, card, game)
 
@@ -504,6 +509,9 @@ class Player:
         opponent.possessing_player = self
 
         opponent.take_turn(game, is_extra_turn=True)
+
+        if len(opponent.possession_trash) > 0:
+            opponent.possession_trash.move_to(opponent.discard_pile)
 
         # reset opponent's state
         opponent.decider = original_decider
