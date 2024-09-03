@@ -73,6 +73,18 @@ from pyminion.expansions.seaside import (
     treasury,
     warehouse,
 )
+from pyminion.expansions.alchemy import (
+    alchemist,
+    alchemy_set,
+    apothecary,
+    apprentice,
+    golem,
+    herbalist,
+    potion,
+    scrying_pool,
+    transmute,
+    university,
+)
 from pyminion.game import Game
 import pytest
 
@@ -1077,3 +1089,112 @@ def test_warehouse_bot(bot: OptimizedBot, game: Game):
     assert counter[estate] == 1
     assert counter[duchy] == 1
     assert counter[copper] == 1
+
+
+def test_alchemist_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(alchemist)
+    bot.hand.add(potion)
+
+    bot.play(alchemist, game)
+    bot.play(potion, game)
+
+    bot.start_cleanup_phase(game)
+    assert "Alchemist" in [card.name for card in bot.hand]
+
+
+def test_apothecary_bot(bot: OptimizedBot, game: Game):
+    bot.deck.add(silver)
+    bot.deck.add(gold)
+    bot.deck.add(smithy)
+    bot.deck.add(patrol)
+    bot.deck.add(estate)
+
+    bot.hand.add(apothecary)
+    bot.play(apothecary, game)
+    assert len(bot.deck) >= 4
+    assert bot.deck.cards[-1].name == "Gold"
+    assert bot.deck.cards[-2].name == "Patrol"
+    assert bot.deck.cards[-3].name == "Smithy"
+    assert bot.deck.cards[-4].name == "Silver"
+
+
+def test_apprentice_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(apprentice)
+    bot.hand.add(copper)
+    bot.hand.add(estate)
+
+    bot.play(apprentice, game)
+    assert len(bot.hand) == 3
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Estate"
+
+
+def test_golem_bot(bot: OptimizedBot, game: Game):
+    bot.deck.add(chapel)
+    bot.deck.add(mill)
+
+    bot.hand.add(golem)
+    bot.play(golem, game)
+
+    assert len(bot.playmat) == 3
+    assert sorted(card.name for card in bot.playmat) == ["Chapel", "Golem", "Mill"]
+
+
+@pytest.mark.expansions([alchemy_set])
+@pytest.mark.kingdom_cards([herbalist])
+def test_herbalist_bot(multiplayer_bot_game: Game):
+    bot = multiplayer_bot_game.players[0]
+
+    for _ in range(5):
+        bot.deck.add(estate)
+
+    bot.hand.add(herbalist)
+    bot.hand.add(copper)
+    bot.hand.add(gold)
+
+    bot.play(herbalist, multiplayer_bot_game)
+    bot.play(copper, multiplayer_bot_game)
+    bot.play(gold, multiplayer_bot_game)
+
+    bot.start_cleanup_phase(multiplayer_bot_game)
+
+    assert "Gold" in (card.name for card in bot.hand)
+    assert "Copper" not in (card.name for card in bot.hand)
+
+
+def test_scrying_pool_bot(multiplayer_bot_game: Game):
+    p1 = multiplayer_bot_game.players[0]
+    p2 = multiplayer_bot_game.players[1]
+
+    p1.deck.add(duchy)
+    p1.hand.add(scrying_pool)
+
+    p2.deck.add(duchy)
+
+    p1.play(scrying_pool, multiplayer_bot_game)
+
+    assert p1.discard_pile.cards[-1].name == "Duchy"
+
+    assert p2.deck.cards[-1].name == "Duchy"
+
+
+def test_transmute_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(transmute)
+    bot.hand.add(estate)
+    bot.hand.add(silver)
+
+    bot.play(transmute, game)
+    assert len(bot.hand) == 1
+    assert bot.hand.cards[0].name == "Silver"
+    assert len(bot.discard_pile) == 1
+    assert bot.discard_pile.cards[0].name == "Gold"
+    assert len(game.trash) == 1
+    assert game.trash.cards[0].name == "Estate"
+
+
+def test_university_bot(bot: OptimizedBot, game: Game):
+    bot.hand.add(university)
+
+    bot.play(university, game)
+    assert len(bot.discard_pile) == 1
+    assert CardType.Action in bot.discard_pile.cards[0].type

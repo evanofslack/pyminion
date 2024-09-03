@@ -4,6 +4,7 @@ from pyminion.core import CardType, Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (base_set, curse, duchy, estate, gold, province,
                                       smithy, witch)
+from pyminion.expansions.alchemy import alchemy_set
 from pyminion.game import Game
 from pyminion.human import Human
 from pyminion.player import Player
@@ -216,3 +217,26 @@ def test_distribute_curses(decider):
     assert len(player43.discard_pile) == 0
     assert len(player44.discard_pile) == 1
     assert player44.discard_pile.cards[0].name == "Curse"
+
+
+def test_include_potions(decider):
+    player1 = Player(decider)
+    player2 = Player(decider)
+
+    # game should not have potion when it has no cards with potion in the cost
+    game_no_potions = Game(
+        players=[player1, player2],
+        expansions=[base_set],
+        kingdom_cards=base_set[:10],
+    )
+    game_no_potions.start()
+    assert not any(pile.name == "Potion" for pile in game_no_potions.supply.piles)
+
+    # game should have potion when it has cards with potion in the cost
+    game_potions = Game(
+        players=[player1, player2],
+        expansions=[alchemy_set],
+        kingdom_cards=alchemy_set[:10],
+    )
+    game_potions.start()
+    assert any(pile.name == "Potion" for pile in game_potions.supply.piles)

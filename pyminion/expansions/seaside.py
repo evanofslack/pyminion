@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import Any, Dict, Iterable, List, Optional, cast
+from typing import Any, Iterable, cast
 
 from pyminion.core import (
     AbstractDeck,
@@ -20,9 +20,9 @@ from pyminion.duration import (
 from pyminion.effects import (
     AttackEffect,
     EffectAction,
-    GainEffect,
     FuncPlayerCardGameEffect,
     FuncPlayerGameEffect,
+    PlayerCardGameDeckEffect,
     PlayerCardGameEffect,
     PlayerGameEffect,
 )
@@ -81,7 +81,7 @@ class Blockade(ActionDuration):
 
     """
 
-    class CurseEffect(GainEffect):
+    class CurseEffect(PlayerCardGameDeckEffect):
         def __init__(self, affected_players: Iterable[Player], card: Card):
             super().__init__(f"{blockade.name}: Gain curse")
             self.affected_players = set(affected_players)
@@ -90,7 +90,7 @@ class Blockade(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
-        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> bool:
             return (
                 player in self.affected_players
                 and player is game.current_player
@@ -98,7 +98,7 @@ class Blockade(ActionDuration):
                 and game.supply.pile_length("Curse") > 0
             )
 
-        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
+        def handler(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> None:
             player.gain(curse, game)
 
     def __init__(self):
@@ -112,7 +112,7 @@ class Blockade(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -230,14 +230,14 @@ class Corsair(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
 
         super().duration_play(player, game, multi_play_card, count, generic_play)
 
-        effect_ids: List[int] = []
+        effect_ids: list[int] = []
         for opponent in game.get_opponents(player):
             if opponent.is_attacked(player, self, game):
                 effect = Corsair.TrashEffect(opponent)
@@ -253,7 +253,7 @@ class Corsair(ActionDuration):
         game.effect_registry.register_turn_start_effect(unregister_effect)
 
     @staticmethod
-    def _unregister_effects(effect_ids: List[int], game: "Game") -> None:
+    def _unregister_effects(effect_ids: list[int], game: "Game") -> None:
         for effect_id in effect_ids:
             game.effect_registry.unregister_play_effect(effect_id)
 
@@ -328,7 +328,7 @@ class Haven(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -473,7 +473,7 @@ class Lighthouse(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -562,8 +562,7 @@ class Lookout(Action):
         # topdeck
 
         topdeck_card = top_cards.cards[0]
-        player.deck.add(top_cards.remove(topdeck_card))
-        logger.info(f"{player} topdecks {topdeck_card}")
+        player.topdeck(topdeck_card, top_cards)
 
 
 class MerchantShip(ActionDuration):
@@ -589,7 +588,7 @@ class Monkey(ActionDuration):
 
     """
 
-    class Effect(GainEffect):
+    class Effect(PlayerCardGameDeckEffect):
         def __init__(self, played_player: Player, right_player: Player):
             super().__init__(f"{monkey.name}: Draw card")
             self.played_player = played_player
@@ -598,10 +597,10 @@ class Monkey(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.Last
 
-        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> bool:
             return player is self.right_player
 
-        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
+        def handler(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> None:
             self.played_player.draw()
 
     def __init__(self):
@@ -616,7 +615,7 @@ class Monkey(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -709,7 +708,7 @@ class Outpost(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -763,7 +762,7 @@ class Pirate(ActionDuration):
 
             game.effect_registry.unregister_turn_start_effect(self.get_id())
 
-    class PlayEffect(GainEffect):
+    class PlayEffect(PlayerCardGameDeckEffect):
         def __init__(self, pirate_player: Player, card: Card):
             super().__init__(f"Pirate: {pirate_player.player_id} play")
             self.pirate_player = pirate_player
@@ -772,10 +771,10 @@ class Pirate(ActionDuration):
         def get_action(self) -> EffectAction:
             return EffectAction.HandRemoveCards
 
-        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> bool:
             return CardType.Treasure in card.type
 
-        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
+        def handler(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> None:
             play_card = self.pirate_player.decider.binary_decision(
                 "Would you like to play Pirate? y/n: ",
                 self.card,
@@ -801,7 +800,7 @@ class Pirate(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -843,21 +842,21 @@ class Sailor(ActionDuration):
 
     """
 
-    class PlayEffect(GainEffect):
-        def __init__(self, players: List[Player]):
+    class PlayEffect(PlayerCardGameDeckEffect):
+        def __init__(self, players: list[Player]):
             super().__init__("Sailor: Play Duration")
-            self.player_sailor_counts: Dict[str, int] = {}
+            self.player_sailor_counts: dict[str, int] = {}
             for player in players:
                 self.player_sailor_counts[player.player_id] = 0
 
         def get_action(self) -> EffectAction:
             return EffectAction.Other
 
-        def is_triggered(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> bool:
+        def is_triggered(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> bool:
             sailor_counts = self.player_sailor_counts.get(player.player_id, 0)
             return sailor_counts > 0 and CardType.Duration in card.type
 
-        def handler(self, player: Player, card: Card, game: "Game", destination: AbstractDeck) -> None:
+        def handler(self, player: Player, card: Card, game: "Game", deck: AbstractDeck) -> None:
             play = player.decider.binary_decision(
                 "Do you want to play your gained Duration card? y/n: ",
                 sailor,
@@ -869,7 +868,7 @@ class Sailor(ActionDuration):
             if not play:
                 return
 
-            destination.remove(card)
+            deck.remove(card)
             player.playmat.add(card)
             player.exact_play(card, game, generic_play=False)
 
@@ -929,7 +928,7 @@ class Sailor(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1011,7 +1010,7 @@ class Salvager(Action):
             assert len(trash_cards) == 1
             trash_card = trash_cards[0]
 
-        player.state.money += trash_card.get_cost(player, game)
+        player.state.money += trash_card.get_cost(player, game).money
 
         player.trash(trash_card, game)
 
@@ -1071,7 +1070,7 @@ class SeaWitch(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1096,7 +1095,7 @@ class Smugglers(Action):
         super().play(player, game, generic_play)
 
         right_player = game.get_right_player(player)
-        valid_cards: List[Card] = [
+        valid_cards: list[Card] = [
             card
             for _, card in right_player.last_turn_gains
             if card.get_cost(player, game) <= 6
@@ -1139,7 +1138,7 @@ class Tactician(ActionDuration):
         self,
         player: Player,
         game: "Game",
-        multi_play_card: Optional[Card],
+        multi_play_card: Card|None,
         count: int,
         generic_play: bool = True,
     ) -> None:
@@ -1273,8 +1272,7 @@ class Treasury(Action):
             )
 
             if topdeck:
-                player.playmat.remove(self.card)
-                player.deck.add(self.card)
+                player.topdeck(self.card, player.playmat)
 
     def __init__(self):
         super().__init__(
@@ -1389,7 +1387,7 @@ warehouse = Warehouse()
 wharf = Wharf()
 
 
-seaside_set: List[Card] = [
+seaside_set: list[Card] = [
     astrolabe,
     bazaar,
     blockade,

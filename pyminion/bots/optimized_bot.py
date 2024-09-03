@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, List, Literal, Optional, Tuple, Union, cast, overload
+from typing import TYPE_CHECKING, Iterable, Literal, cast, overload
 
 from pyminion.bots.bot import Bot, BotDecider
 from pyminion.core import Action, CardType, Card, DeckCounter, Treasure, Victory, get_action_cards, get_treasure_cards, get_victory_cards, get_score_cards
@@ -24,7 +24,7 @@ class OptimizedBotDecider(BotDecider):
     """
 
     @staticmethod
-    def get_best_victory_card(valid_cards: List[Card], player: Player) -> Union[Victory, None]:
+    def get_best_victory_card(valid_cards: list[Card], player: Player) -> Victory|None:
         """
         Get the victory card that has the highest score.
 
@@ -38,7 +38,7 @@ class OptimizedBotDecider(BotDecider):
         return best_victory
 
     @staticmethod
-    def sort_for_discard(cards: List[Card], actions: int, player: Player, game: "Game") -> List[Card]:
+    def sort_for_discard(cards: list[Card], actions: int, player: Player, game: "Game") -> list[Card]:
         """
         Sort list of cards from best discard candidate to worst discard candidate.
         First sort cards from lowest cost to highest cost. Then rearrange depending on remaining actions.
@@ -64,16 +64,17 @@ class OptimizedBotDecider(BotDecider):
             return score_cards + non_score_cards
 
     @staticmethod
-    def determine_set_aside_cards(cards: Iterable[Card], player: Player, game: "Game") -> List[Card]:
+    def determine_set_aside_cards(cards: Iterable[Card], player: Player, game: "Game") -> list[Card]:
         num_terminal = sum(1 for c in get_action_cards(cards) if c.actions == 0)
 
-        prioritized_cards: List[Tuple[int, Card]] = []
+        prioritized_cards: list[tuple[int, Card]] = []
         for card in cards:
+            cost = card.get_cost(player, game)
             # set aside terminal action cards if we don't have enough actions to play them
             if num_terminal > player.state.actions and CardType.Action in card.type and cast(Action, card).actions == 0:
-                priority = 100 + card.get_cost(player, game)
+                priority = 100 + cost.money + 2 * cost.potions
             else:
-                priority = 200 + card.get_cost(player, game)
+                priority = 200 + cost.money + 2 * cost.potions
 
             prioritized_cards.append((priority, card))
 
@@ -82,8 +83,8 @@ class OptimizedBotDecider(BotDecider):
         return set_aside_cards
 
     @staticmethod
-    def get_optional_discard(cards: List[Card], player: Player) -> List[Card]:
-        discard_cards: List[Card] = []
+    def get_optional_discard(cards: list[Card], player: Player) -> list[Card]:
+        discard_cards: list[Card] = []
         actions = player.state.actions
         for card in cards:
             if CardType.Treasure in card.type:
@@ -99,8 +100,8 @@ class OptimizedBotDecider(BotDecider):
 
     @staticmethod
     def determine_trash_cards(
-        valid_cards: List[Card], player: Player, game: "Game", required: bool = False
-    ) -> List[Card]:
+        valid_cards: list[Card], player: Player, game: "Game", required: bool = False
+    ) -> list[Card]:
         """
         Determine which cards should be trashed:
 
@@ -114,7 +115,7 @@ class OptimizedBotDecider(BotDecider):
         num_provinces = game.supply.pile_length("Province")
         deck_money = player.get_deck_money()
 
-        prioritized_cards: List[Tuple[int, Card]] = []
+        prioritized_cards: list[tuple[int, Card]] = []
         for card in valid_cards:
             if CardType.Curse in card.type:
                 priority = 1
@@ -124,7 +125,8 @@ class OptimizedBotDecider(BotDecider):
                 priority = 3
                 deck_money -= 1
             elif required:
-                priority = 100 + card.get_cost(player, game)
+                cost = card.get_cost(player, game)
+                priority = 100 + cost.money + 2 * cost.potions
             else:
                 priority = 0
 
@@ -141,7 +143,7 @@ class OptimizedBotDecider(BotDecider):
         card: Card,
         player: "Player",
         game: "Game",
-        relevant_cards: Optional[List[Card]] = None,
+        relevant_cards: list[Card]|None = None,
     ) -> bool:
         if card.name == "Moneylender":
             return self.moneylender(player=player, game=game)
@@ -167,18 +169,28 @@ class OptimizedBotDecider(BotDecider):
             return self.sailor_binary(prompt, player, game, relevant_cards)
         elif card.name == "Treasury":
             return self.treasury(prompt, player, game, relevant_cards)
+        elif card.name == "Alchemist":
+            return self.alchemist(player, game)
+        elif card.name == "Herbalist":
+            assert relevant_cards is not None
+            return self.herbalist(player, game, relevant_cards[0])
+        elif card.name == "Scrying Pool":
+            assert relevant_cards is not None
+            return self.scrying_pool(prompt, player, game, relevant_cards)
+        elif card.name == "University":
+            return self.university_binary(player, game, relevant_cards)
         else:
             return super().binary_decision(prompt, card, player, game, relevant_cards)
 
     def multiple_option_decision(
         self,
         card: "Card",
-        options: List[str],
+        options: list[str],
         player: "Player",
         game: "Game",
         num_choices: int = 1,
         unique: bool = True,
-    ) -> List[int]:
+    ) -> list[int]:
         if card.name == "Baron":
             ret = self.baron(player, game)
             return [ret]
@@ -204,6 +216,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Torturer":
             ret = self.torturer(player, game, options=True)
             return [ret]
+        elif card.name == "Golem":
+            ret = self.golem(player, game)
+            return [ret]
         else:
             return super().multiple_option_decision(card, options, player, game, num_choices, unique)
 
@@ -211,12 +226,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_discard: int = 0,
         max_num_discard: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Cellar":
             return self.cellar(player=player, game=game, valid_cards=valid_cards)
         elif card.name == "Poacher":
@@ -247,12 +262,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_trash: int = 0,
         max_num_trash: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Remodel":
             ret = self.remodel(player=player, game=game, valid_cards=valid_cards, trash=True)
             return [ret]
@@ -291,6 +306,12 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Salvager":
             ret = self.salvager(player, game, valid_cards)
             return [ret]
+        elif card.name == "Apprentice":
+            ret = self.apprentice(player, game, valid_cards)
+            return [ret]
+        elif card.name == "Transmute":
+            ret = self.transmute(player, game, valid_cards)
+            return [ret]
         else:
             return super().trash_decision(prompt, card, valid_cards, player, game, min_num_trash, max_num_trash)
 
@@ -298,12 +319,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_gain: int = 0,
         max_num_gain: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Artisan":
             ret = self.artisan(player=player, game=game, gain=True)
             return [ret]
@@ -340,6 +361,9 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Smugglers":
             ret = self.smugglers(player, game, valid_cards)
             return [ret]
+        elif card.name == "University":
+            ret = self.university_gain(player, game, valid_cards)
+            return [ret]
         else:
             return super().gain_decision(prompt, card, valid_cards, player, game, min_num_gain, max_num_gain)
 
@@ -347,12 +371,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_topdeck: int = 0,
         max_num_topdeck: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Artisan":
             ret = self.artisan(player=player, game=game, valid_cards=valid_cards, topdeck=True)
             return [ret]
@@ -370,6 +394,8 @@ class OptimizedBotDecider(BotDecider):
         elif card.name == "Secret Passage":
             ret = self.secret_passage(player, game, valid_cards=valid_cards, topdeck=True)
             return [ret]
+        elif card.name == "Apothecary":
+            return self.apothecary(player, game, valid_cards)
         else:
             return super().topdeck_decision(prompt, card, valid_cards, player, game, min_num_topdeck, max_num_topdeck)
 
@@ -390,12 +416,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_reveal: int = 0,
         max_num_reveal: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Courtier":
             ret = self.courtier(player, game, valid_cards=valid_cards, reveal=True)
             return [ret]
@@ -406,12 +432,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_pass: int = 0,
         max_num_pass: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Masquerade":
             ret = self.masquerade(player, game, valid_cards, pass_=True)
             return [ret]
@@ -422,12 +448,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_name: int = 0,
         max_num_name: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Wishing Well":
             ret = self.wishing_well(player, game)
             return [ret]
@@ -438,11 +464,11 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         required: bool = True,
-    ) -> Optional["Card"]:
+    ) -> Card|None:
         if card.name == "Throne Room":
             return self.throne_room(player=player, game=game, valid_cards=valid_cards)
         else:
@@ -452,12 +478,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         prompt: str,
         card: "Card",
-        valid_cards: List["Card"],
+        valid_cards: list["Card"],
         player: "Player",
         game: "Game",
         min_num_set_aside: int = 0,
         max_num_set_aside: int = -1,
-    ) -> List["Card"]:
+    ) -> list["Card"]:
         if card.name == "Haven":
             ret = self.haven(player, game, valid_cards)
             return [ret]
@@ -472,7 +498,7 @@ class OptimizedBotDecider(BotDecider):
     def moneylender(self, player: "Player", game: "Game") -> bool:
         return True
 
-    def vassal(self, player: "Player", game: "Game", relevant_cards: Optional[List[Card]]) -> bool:
+    def vassal(self, player: "Player", game: "Game", relevant_cards: list[Card]|None) -> bool:
         return True
 
     @overload
@@ -480,12 +506,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        relevant_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
+        relevant_cards: list[Card]|None = None,
         trash: Literal[True] = True,
         discard: Literal[False] = False,
         binary: Literal[False] = False,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     @overload
@@ -493,12 +519,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        relevant_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
+        relevant_cards: list[Card]|None = None,
         trash: Literal[False] = False,
         discard: Literal[True] = True,
         binary: Literal[False] = False,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     @overload
@@ -506,8 +532,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        relevant_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
+        relevant_cards: list[Card]|None = None,
         trash: Literal[False] = False,
         discard: Literal[False] = False,
         binary: Literal[True] = True,
@@ -518,12 +544,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
-        relevant_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
+        relevant_cards: list[Card]|None = None,
         trash: bool = False,
         discard: bool = False,
         binary: bool = False,
-    ) -> Union[List[Card], bool]:
+    ) -> list[Card]|bool:
         if trash:
             if not valid_cards:
                 return []
@@ -547,25 +573,25 @@ class OptimizedBotDecider(BotDecider):
             "Either gain, topdeck or binary must be true when playing sentry"
         )
 
-    def library(self, player: "Player", game: "Game", relevant_cards: Optional[List[Card]]) -> bool:
+    def library(self, player: "Player", game: "Game", relevant_cards: list[Card]|None) -> bool:
         if player.state.actions == 0:
             return True
         else:
             return False
 
-    def cellar(self, player: "Player", game: "Game", valid_cards: List[Card]) -> List[Card]:
+    def cellar(self, player: "Player", game: "Game", valid_cards: list[Card]) -> list[Card]:
         return [
             card
             for card in valid_cards
             if card.name == "Copper" or CardType.Victory in card.type or CardType.Curse in card.type
         ]
 
-    def moat(self, player: "Player", game: "Game", relevant_cards: Optional[List[Card]]) -> bool:
+    def moat(self, player: "Player", game: "Game", relevant_cards: list[Card]|None) -> bool:
         return True
 
     def poacher(
-        self, player: "Player", game: "Game", valid_cards: List[Card], num_discard: Optional[int]
-    ) -> List[Card]:
+        self, player: "Player", game: "Game", valid_cards: list[Card], num_discard: int|None
+    ) -> list[Card]:
         if not num_discard:
             return []
         discard_order = self.sort_for_discard(
@@ -574,8 +600,8 @@ class OptimizedBotDecider(BotDecider):
         return discard_order[:num_discard]
 
     def militia(
-        self, player: "Player", game: "Game", valid_cards: List[Card], num_discard: Optional[int]
-    ) -> List[Card]:
+        self, player: "Player", game: "Game", valid_cards: list[Card], num_discard: int|None
+    ) -> list[Card]:
         if not num_discard:
             return []
         discard_order = self.sort_for_discard(
@@ -584,7 +610,7 @@ class OptimizedBotDecider(BotDecider):
         return discard_order[:num_discard]
 
     def remodel(
-        self, player: "Player", game: "Game", valid_cards: List[Card], trash: bool = False, gain: bool = False
+        self, player: "Player", game: "Game", valid_cards: list[Card], trash: bool = False, gain: bool = False
     ) -> Card:
         if trash:
             min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
@@ -599,7 +625,7 @@ class OptimizedBotDecider(BotDecider):
         )
 
     def mine(
-        self, player: "Player", game: "Game", valid_cards: List[Card], trash: bool = False, gain: bool = False
+        self, player: "Player", game: "Game", valid_cards: list[Card], trash: bool = False, gain: bool = False
     ) -> Card:
         if trash:
             min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
@@ -613,7 +639,7 @@ class OptimizedBotDecider(BotDecider):
             "Either gain or trash must be true when playing mine"
         )
 
-    def chapel(self, player: "Player", game: "Game", valid_cards: List[Card]) -> List[Card]:
+    def chapel(self, player: "Player", game: "Game", valid_cards: list[Card]) -> list[Card]:
         trash_cards = self.determine_trash_cards(
             valid_cards=valid_cards, player=player, game=game
         )
@@ -624,7 +650,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         gain: bool = False,
         topdeck: bool = False,
     ) -> Card:
@@ -658,8 +684,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
-    ) -> Optional[Card]:
+        valid_cards: list[Card],
+    ) -> Card|None:
         # Do not topdeck victory cards
         best_topdeck = [card for card in valid_cards if CardType.Victory not in card.type]
         if not best_topdeck:
@@ -675,12 +701,12 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         sorted_cards = sorted(valid_cards, key=lambda card: card.get_cost(player, game))
         return sorted_cards[0]
 
-    def throne_room(self, player: "Player", game: "Game", valid_cards: List[Card]) -> Card:
+    def throne_room(self, player: "Player", game: "Game", valid_cards: list[Card]) -> Card:
         # Double play most expensive card
         max_price_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
         return max_price_card
@@ -689,7 +715,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         min_price_card = min(valid_cards, key=lambda card: card.get_cost(player, game))
         return min_price_card
@@ -706,7 +732,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_choices: int = 0,
         reveal: Literal[True] = True,
         options: Literal[False] = False,
@@ -718,22 +744,22 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_choices: int = 0,
         reveal: Literal[False] = False,
         options: Literal[True] = True,
-    ) -> List[int]:
+    ) -> list[int]:
         ...
 
     def courtier(
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_choices: int = 0,
         reveal: bool = False,
         options: bool = False,
-    ) -> Union[Card, List[int]]:
+    ) -> Card|list[int]:
         if reveal:
             assert valid_cards is not None
             # find the card with the most types
@@ -751,7 +777,7 @@ class OptimizedBotDecider(BotDecider):
             has_actions = any(CardType.Action in c.type for c in player.hand.cards)
 
             # prioritize choices
-            choices: List[int] = []
+            choices: list[int] = []
             if has_actions:
                 choices.append(Courtier.Choice.Action)
             if gold_count < 4:
@@ -774,7 +800,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         if player.state.actions == 0:
             for card in valid_cards:
@@ -788,7 +814,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = 0,
         binary: Literal[True] = True,
         discard: Literal[False] = False,
@@ -800,22 +826,22 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = 0,
         binary: Literal[False] = False,
         discard: Literal[True] = True,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     def diplomat(
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = 0,
         binary: bool = False,
         discard: bool = False,
-    ) -> Union[bool, List[Card]]:
+    ) -> bool|list[Card]:
         if binary:
             return True
         elif discard:
@@ -833,7 +859,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         best_victory = self.get_best_victory_card(valid_cards, player)
         if game.supply.pile_length(pile_name="Province") < 3 and best_victory is not None:
@@ -846,7 +872,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         options: Literal[True] = True,
         trash: Literal[False] = False,
         gain: Literal[False] = False,
@@ -858,7 +884,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         options: Literal[False] = False,
         trash: Literal[True] = True,
         gain: Literal[False] = False,
@@ -870,7 +896,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         options: Literal[False] = False,
         trash: Literal[False] = False,
         gain: Literal[True] = True,
@@ -881,11 +907,11 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Union[List[Card], None] = None,
+        valid_cards: list[Card]|None = None,
         options: bool = False,
         trash: bool = False,
         gain: bool = False,
-    ) -> Union[int, Card]:
+    ) -> int|Card:
         if options:
             if any(CardType.Action in c.type for c in game.trash.cards):
                 return Lurker.Choice.GainAction
@@ -905,7 +931,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         pass_: Literal[True] = True,
         binary: Literal[False] = False,
         trash: Literal[False] = False,
@@ -917,7 +943,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         pass_: Literal[False] = False,
         binary: Literal[True] = True,
         trash: Literal[False] = False,
@@ -929,7 +955,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         pass_: Literal[False] = False,
         binary: Literal[False] = False,
         trash: Literal[True] = True,
@@ -940,11 +966,11 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         pass_: bool = False,
         binary: bool = False,
         trash: bool = False,
-    ) -> Union[bool, Card]:
+    ) -> bool|Card:
         if pass_:
             assert valid_cards is not None
             cards = self.determine_trash_cards(valid_cards, player, game, required=True)
@@ -978,7 +1004,7 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         binary: Literal[False] = False,
         discard: Literal[True] = True,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     def mill(
@@ -987,7 +1013,7 @@ class OptimizedBotDecider(BotDecider):
         game: "Game",
         binary: bool = False,
         discard: bool = False,
-    ) -> Union[bool, List[Card]]:
+    ) -> bool|list[Card]:
         actions = player.state.actions
         cards = self.sort_for_discard(player.hand.cards, actions, player, game)
         cards = cards[:2]
@@ -1047,8 +1073,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
-    ) -> List[Card]:
+        valid_cards: list[Card],
+    ) -> list[Card]:
         cards = sorted(
             valid_cards,
             key=lambda card: card.get_cost(player, game),
@@ -1059,7 +1085,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-    ) -> List[int]:
+    ) -> list[int]:
         action_card_count = 0
         total_money = player.state.money
         for card in player.hand.cards:
@@ -1069,7 +1095,7 @@ class OptimizedBotDecider(BotDecider):
                 assert isinstance(card, Treasure)
                 total_money += card.money
 
-        choices: List[int] = []
+        choices: list[int] = []
         if action_card_count > player.state.actions:
             choices.append(Pawn.Choice.Action)
 
@@ -1089,7 +1115,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
         trash: bool = False,
         gain: bool = False,
     ) -> Card:
@@ -1137,7 +1163,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_deck_cards: int = -1,
         topdeck: Literal[True] = True,
         pos: Literal[False] = False,
@@ -1149,7 +1175,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_deck_cards: int = -1,
         topdeck: Literal[False] = False,
         pos: Literal[True] = True,
@@ -1160,11 +1186,11 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_deck_cards: int = -1,
         topdeck: bool = False,
         pos: bool = False,
-    ) -> Union[Card, int]:
+    ) -> Card|int:
         if topdeck:
             assert valid_cards is not None
             return valid_cards[-1]
@@ -1182,7 +1208,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         options: Literal[True] = True,
         trash: Literal[False] = False,
     ) -> int:
@@ -1193,20 +1219,20 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         options: Literal[False] = False,
         trash: Literal[True] = True,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     def steward(
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         options: bool = False,
         trash: bool = False,
-    ) -> Union[int, List[Card]]:
+    ) -> int|list[Card]:
         if options:
             trash_cards = self.determine_trash_cards(player.hand.cards, player, game, required=False)
             if player.state.actions > 0:
@@ -1229,10 +1255,10 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         # prioritize cards
-        prioritized_cards: List[Tuple[int, Card]] = []
+        prioritized_cards: list[tuple[int, Card]] = []
         for card in valid_cards:
             if card.name == "Curse":
                 # prioritize giving opponents curses first
@@ -1255,7 +1281,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = -1,
         options: Literal[True] = True,
         discard: Literal[False] = False,
@@ -1267,22 +1293,22 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = -1,
         options: Literal[False] = False,
         discard: Literal[True] = True,
-    ) -> List[Card]:
+    ) -> list[Card]:
         ...
 
     def torturer(
         self,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]] = None,
+        valid_cards: list[Card]|None = None,
         num_discard: int = -1,
         options: bool = False,
         discard: bool = False,
-    ) -> Union[int, List[Card]]:
+    ) -> int|list[Card]:
         if options:
             if game.supply.pile_length("Curse") == 0:
                 return Torturer.Choice.GainCurse
@@ -1313,8 +1339,8 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
-    ) -> List[Card]:
+        valid_cards: list[Card],
+    ) -> list[Card]:
         trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
         return trash_cards[:2]
 
@@ -1322,7 +1348,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
         trash: bool = False,
         gain: bool = False,
     ) -> Card:
@@ -1349,7 +1375,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         best_victory = self.get_best_victory_card(valid_cards, player)
         if game.supply.pile_length(pile_name="Province") < 3 and best_victory is not None:
@@ -1360,7 +1386,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         cards = self.determine_set_aside_cards(valid_cards, player, game)
         return cards[0]
@@ -1369,11 +1395,11 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         deck_money = player.get_deck_money()
 
-        prioritized_cards: List[Tuple[int, Card]] = []
+        prioritized_cards: list[tuple[int, Card]] = []
         for card in valid_cards:
             if len(card.type) == 1 and card.type[0] == CardType.Victory:
                 priority = 1
@@ -1382,7 +1408,7 @@ class OptimizedBotDecider(BotDecider):
             elif card.name == "Curse":
                 priority = 3
             else:
-                priority = 100 + card.get_cost(player, game)
+                priority = 100 + card.get_cost(player, game).money
 
             prioritized_cards.append((priority, card))
 
@@ -1393,7 +1419,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
         trash: bool = False,
         discard: bool = False,
     ) -> Card:
@@ -1435,7 +1461,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: Player,
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         most_expensive_card = max(valid_cards, key=lambda card: card.get_cost(player, game))
         return most_expensive_card
@@ -1445,7 +1471,7 @@ class OptimizedBotDecider(BotDecider):
         prompt: str,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]],
+        valid_cards: list[Card]|None,
     ) -> bool:
         if "trash" in prompt:
             assert valid_cards is not None
@@ -1460,7 +1486,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         trash_cards = self.determine_trash_cards(valid_cards, player, game, required=False)
         return trash_cards[0]
@@ -1469,7 +1495,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
         return trash_cards[0]
@@ -1478,9 +1504,9 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
         num_discard: int,
-    ) -> List[Card]:
+    ) -> list[Card]:
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
@@ -1489,7 +1515,7 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
     ) -> Card:
         card = max(valid_cards, key=lambda card: card.get_cost(player, game))
         return card
@@ -1498,9 +1524,9 @@ class OptimizedBotDecider(BotDecider):
             self,
             player: "Player",
             game: "Game",
-            valid_cards: List[Card],
+            valid_cards: list[Card],
             num_discard: int,
-    ) -> List[Card]:
+    ) -> list[Card]:
         actions = player.state.actions
         cards = self.sort_for_discard(valid_cards, actions, player, game)
         cards = cards[:num_discard]
@@ -1511,7 +1537,7 @@ class OptimizedBotDecider(BotDecider):
         prompt: str,
         player: "Player",
         game: "Game",
-        valid_cards: Optional[List[Card]],
+        valid_cards: list[Card]|None,
     ) -> bool:
         return True
 
@@ -1519,12 +1545,97 @@ class OptimizedBotDecider(BotDecider):
         self,
         player: "Player",
         game: "Game",
-        valid_cards: List[Card],
+        valid_cards: list[Card],
         num_discard: int,
-    ) -> List[Card]:
+    ) -> list[Card]:
         cards = self.sort_for_discard(valid_cards, player.state.actions, player, game)
         cards = cards[:num_discard]
         return cards
+
+    def alchemist(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> bool:
+        return True
+
+    def apothecary(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: list[Card],
+    ) -> list[Card]:
+        cards = sorted(
+            valid_cards,
+            key=lambda card: card.get_cost(player, game),
+        )
+        return cards
+
+    def apprentice(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: list[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+        return trash_cards[0]
+
+    def golem(
+        self,
+        player: "Player",
+        game: "Game",
+    ) -> int:
+        return 0
+
+    def herbalist(
+        self,
+        player: "Player",
+        game: "Game",
+        card: Card,
+    ) -> bool:
+        return card.name != "Copper"
+
+    def scrying_pool(
+        self,
+        prompt: str,
+        player: "Player",
+        game: "Game",
+        relevant_cards: list[Card],
+    ) -> bool:
+        card = relevant_cards[0]
+        if "your" in prompt:
+            return CardType.Action not in card.type
+        else:
+            return not (
+                (CardType.Victory in card.type and len(card.type) == 1) or
+                card.name in {"Copper", "Curse"}
+            )
+
+    def transmute(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: list[Card],
+    ) -> Card:
+        trash_cards = self.determine_trash_cards(valid_cards, player, game, required=True)
+        return trash_cards[0]
+
+    def university_binary(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: list[Card]|None,
+    ) -> bool:
+        return True
+
+    def university_gain(
+        self,
+        player: "Player",
+        game: "Game",
+        valid_cards: list[Card],
+    ) -> Card:
+        card = max(valid_cards, key=lambda c: c.get_cost(player, game))
+        return card
 
 
 class OptimizedBot(Bot):
@@ -1535,7 +1646,7 @@ class OptimizedBot(Bot):
 
     def __init__(
         self,
-        decider: Optional[Decider] = None,
+        decider: Decider|None = None,
         player_id: str = "bot",
     ):
         decider = decider if decider else OptimizedBotDecider()

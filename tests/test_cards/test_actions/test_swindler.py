@@ -12,6 +12,7 @@ from pyminion.expansions.base import (
     witch,
 )
 from pyminion.expansions.intrigue import Swindler, intrigue_set, swindler
+from pyminion.expansions.alchemy import alchemy_set, familiar, philosophers_stone
 from pyminion.game import Game
 import pytest
 
@@ -94,3 +95,30 @@ def test_swindler_no_gain(multiplayer_game: Game, monkeypatch):
 
     assert len(multiplayer_game.trash) == 1
     assert multiplayer_game.trash.cards[0].name == "Smithy"
+
+
+@pytest.mark.expansions([alchemy_set])
+@pytest.mark.kingdom_cards([familiar, philosophers_stone])
+def test_swindler_potion_cost(multiplayer_game: Game, monkeypatch):
+    players = multiplayer_game.players
+    p1 = players[0]
+    p2 = players[1]
+
+    p1.hand.add(swindler)
+    p2.deck.add(familiar)
+
+    responses = ["Philosopher's Stone"]
+    monkeypatch.setattr("builtins.input", lambda _: responses.pop(0))
+
+    p1.play(swindler, multiplayer_game)
+    assert len(p1.hand) == 5
+    assert len(p1.playmat) == 1
+    assert type(p1.playmat.cards[0]) is Swindler
+    assert p1.state.actions == 0
+    assert p1.state.money == 2
+
+    assert len(p2.discard_pile) > 0
+    assert p2.discard_pile.cards[-1].name == "Philosopher's Stone"
+
+    assert len(multiplayer_game.trash) == 1
+    assert multiplayer_game.trash.cards[0].name == "Familiar"

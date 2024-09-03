@@ -1,6 +1,5 @@
 from pyminion.core import AbstractDeck, Card, Deck
 from pyminion.expansions.base import Copper, Estate, copper, estate
-from typing import List
 
 NUM_COPPER = 7
 NUM_ESTATE = 3
@@ -35,7 +34,7 @@ def test_abstract_deck_move_to():
 
 
 def test_abstract_deck_on_add():
-    cards: List[Card] = []
+    cards: list[Card] = []
     deck = AbstractDeck(
         on_add=lambda c: cards.append(c)
     )
@@ -50,7 +49,7 @@ def test_abstract_deck_on_add():
 
 
 def test_abstract_deck_on_remove():
-    cards: List[Card] = []
+    cards: list[Card] = []
     deck = AbstractDeck(
         cards=[copper, estate, copper],
         on_remove=lambda c: cards.append(c)
@@ -66,8 +65,8 @@ def test_abstract_deck_on_remove():
 
 
 def test_abstract_deck_move_to_handlers():
-    added_cards: List[Card] = []
-    removed_cards: List[Card] = []
+    added_cards: list[Card] = []
+    removed_cards: list[Card] = []
     deck_1 = AbstractDeck(
         cards=[copper, copper],
         on_remove=lambda c: removed_cards.append(c),
@@ -91,7 +90,7 @@ def test_abstract_deck_move_to_handlers():
 
 
 def test_create_deck():
-    start_cards: List[Card] = []
+    start_cards: list[Card] = []
     start_cards += [copper for x in range(NUM_COPPER)] + [
         estate for x in range(NUM_ESTATE)
     ]
@@ -133,7 +132,7 @@ def test_deck_remove(deck: Deck):
 
 
 def test_deck_draw_on_remove():
-    cards: List[Card] = []
+    cards: list[Card] = []
     deck = Deck(
         cards=[copper, estate, copper],
         on_remove=lambda c: cards.append(c)
@@ -149,7 +148,7 @@ def test_deck_draw_on_remove():
 
 
 def test_deck_on_shuffle():
-    shuffles: List[None] = []
+    shuffles: list[None] = []
     deck = Deck(
         on_shuffle=lambda: shuffles.append(None)
     )

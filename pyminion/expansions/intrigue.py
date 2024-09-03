@@ -1,6 +1,6 @@
 from enum import IntEnum, unique
 import logging
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 
 from pyminion.core import AbstractDeck, Action, Card, CardType, Treasure, Victory, get_score_cards
 from pyminion.player import Player
@@ -206,8 +206,7 @@ class Courtyard(Action):
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
 
-        player.hand.remove(topdeck_card)
-        player.deck.add(topdeck_card)
+        player.topdeck(topdeck_card, player.hand)
 
 
 class Diplomat(Action):
@@ -483,7 +482,7 @@ class Masquerade(Action):
         valid_players = [p for p in game.players if len(p.hand) > 0]
 
         # prompt each player to choose a card to pass
-        passed_cards: List[Card] = []
+        passed_cards: list[Card] = []
         for p in valid_players:
             pass_cards = p.decider.pass_decision(
                 prompt="Pick a card to pass to the player on your left: ",
@@ -655,7 +654,7 @@ class Minion(Action):
         super().play(player, game, generic_play)
 
         # opponents react to the card before the choice is made
-        is_attacked: List[bool] = []
+        is_attacked: list[bool] = []
         for opponent in game.get_opponents(player):
             ret = opponent.is_attacked(player, self, game)
             is_attacked.append(ret)
@@ -762,8 +761,12 @@ class Patrol(Action):
             player.hand.add(revealed.remove(card))
 
         num_topdeck = len(revealed.cards)
+
+        if num_topdeck > 0:
+            logger.info(f"Cards to topdeck: {revealed}")
+
         if num_topdeck <= 1:
-            topdeck_cards = revealed.cards
+            topdeck_cards = revealed.cards[:]
         else:
             topdeck_cards = player.decider.topdeck_decision(
                 prompt="Enter the cards in the order you would like to topdeck: ",
@@ -775,8 +778,7 @@ class Patrol(Action):
                 max_num_topdeck=num_topdeck,
             )
 
-        for card in topdeck_cards:
-            player.deck.add(card)
+        player.topdeck(topdeck_cards, revealed)
 
 
 class Pawn(Action):
@@ -885,6 +887,7 @@ class Replace(Action):
 
         if CardType.Action in gain_card.type or CardType.Treasure in gain_card.type:
             player.gain(gain_card, game, destination=player.deck)
+            logger.info(f"{player} topdecks {gain_card}")
         else:
             player.gain(gain_card, game)
 
@@ -1015,7 +1018,7 @@ class Steward(Action):
         else:
             raise ValueError(f"Unknown steward choice '{choice}'")
 
-    def _get_trash_cards(self, player: Player, game: "Game") -> List[Card]:
+    def _get_trash_cards(self, player: Player, game: "Game") -> list[Card]:
 
         if len(player.hand) <= 2:
             return player.hand.cards[:]
@@ -1323,7 +1326,7 @@ upgrade = Upgrade()
 wishing_well = WishingWell()
 
 
-intrigue_set: List[Card] = [
+intrigue_set: list[Card] = [
     baron,
     bridge,
     conspirator,

@@ -2,11 +2,10 @@ import pytest
 from pyminion.core import Card, Pile
 from pyminion.exceptions import EmptyPile
 from pyminion.expansions.base import copper, estate
-from typing import List
 
 
 def test_make_pile():
-    estates: List[Card] = [estate for x in range(8)]
+    estates: list[Card] = [estate for x in range(8)]
     estate_pile = Pile(estates)
     assert len(estate_pile) == 8
     assert estate_pile.name == "Estate"

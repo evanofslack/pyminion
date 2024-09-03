@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from pyminion.core import AbstractDeck, CardType, Action, Card, ScoreCard, Treasure, Victory, plural
 from pyminion.effects import AttackEffect, EffectAction, FuncPlayerCardGameEffect, FuncPlayerGameEffect, PlayerCardGameEffect
@@ -18,7 +18,7 @@ class Copper(Treasure):
         self,
         name: str = "Copper",
         cost: int = 0,
-        type: Tuple[CardType, ...] = (CardType.Treasure,),
+        type: tuple[CardType, ...] = (CardType.Treasure,),
         money: int = 1,
     ):
         super().__init__(name, cost, type, money)
@@ -33,7 +33,7 @@ class Silver(Treasure):
         self,
         name: str = "Silver",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Treasure,),
+        type: tuple[CardType, ...] = (CardType.Treasure,),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money)
@@ -47,7 +47,7 @@ class Gold(Treasure):
         self,
         name: str = "Gold",
         cost: int = 6,
-        type: Tuple[CardType, ...] = (CardType.Treasure,),
+        type: tuple[CardType, ...] = (CardType.Treasure,),
         money: int = 3,
     ):
         super().__init__(name, cost, type, money)
@@ -61,7 +61,7 @@ class Estate(Victory):
         self,
         name: str = "Estate",
         cost: int = 2,
-        type: Tuple[CardType, ...] = (CardType.Victory,),
+        type: tuple[CardType, ...] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -75,7 +75,7 @@ class Duchy(Victory):
         self,
         name: str = "Duchy",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Victory,),
+        type: tuple[CardType, ...] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -89,7 +89,7 @@ class Province(Victory):
         self,
         name: str = "Province",
         cost: int = 8,
-        type: Tuple[CardType, ...] = (CardType.Victory,),
+        type: tuple[CardType, ...] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -103,7 +103,7 @@ class Curse(ScoreCard):
         self,
         name: str = "Curse",
         cost: int = 0,
-        type: Tuple[CardType, ...] = (CardType.Curse,),
+        type: tuple[CardType, ...] = (CardType.Curse,),
     ):
         super().__init__(name, cost, type)
 
@@ -133,7 +133,7 @@ class Gardens(Victory):
         self,
         name: str = "Gardens",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Victory,),
+        type: tuple[CardType, ...] = (CardType.Victory,),
     ):
         super().__init__(name, cost, type)
 
@@ -153,7 +153,7 @@ class Smithy(Action):
         self,
         name: str = "Smithy",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         draw: int = 3,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -169,7 +169,7 @@ class Village(Action):
         self,
         name: str = "Village",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 2,
         draw: int = 1,
     ):
@@ -186,7 +186,7 @@ class Laboratory(Action):
         self,
         name: str = "Laboratory",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 2,
     ):
@@ -203,7 +203,7 @@ class Market(Action):
         self,
         name: str = "Market",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -222,7 +222,7 @@ class Moneylender(Action):
         self,
         name: str = "Moneylender",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -262,7 +262,7 @@ class Cellar(Action):
         self,
         name: str = "Cellar",
         cost: int = 2,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
     ):
         super().__init__(name, cost, type, actions=actions)
@@ -302,7 +302,7 @@ class Chapel(Action):
         self,
         name: str = "Chapel",
         cost: int = 2,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -340,7 +340,7 @@ class Workshop(Action):
         self,
         name: str = "Workshop",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -376,7 +376,7 @@ class Festival(Action):
         self,
         name: str = "Festival",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 2,
         money: int = 2,
         buys: int = 1,
@@ -396,7 +396,7 @@ class Harbinger(Action):
         self,
         name: str = "Harbinger",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -426,7 +426,7 @@ class Harbinger(Action):
 
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
-        player.deck.add(player.discard_pile.remove(topdeck_card))
+        player.topdeck(topdeck_card, player.discard_pile)
 
 
 class Vassal(Action):
@@ -441,7 +441,7 @@ class Vassal(Action):
         self,
         name: str = "Vassal",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money=money)
@@ -492,7 +492,7 @@ class Artisan(Action):
         self,
         name: str = "Artisan",
         cost: int = 6,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -531,10 +531,7 @@ class Artisan(Action):
         assert len(topdeck_cards) == 1
         topdeck_card = topdeck_cards[0]
 
-        for card in player.hand.cards:
-            if card == topdeck_card:
-                player.deck.add(player.hand.remove(card))
-                return
+        player.topdeck(topdeck_card, player.hand)
 
 
 class Poacher(Action):
@@ -549,7 +546,7 @@ class Poacher(Action):
         self,
         name: str = "Poacher",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
         money: int = 1,
@@ -596,7 +593,7 @@ class CouncilRoom(Action):
         self,
         name: str = "Council Room",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         draw: int = 4,
         buys: int = 1,
     ):
@@ -624,7 +621,7 @@ class Witch(Action):
         self,
         name: str = "Witch",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action, CardType.Attack),
+        type: tuple[CardType, ...] = (CardType.Action, CardType.Attack),
         draw: int = 2,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -673,7 +670,7 @@ class Moat(Action):
         self,
         name: str = "Moat",
         cost: int = 2,
-        type: Tuple[CardType, ...] = (CardType.Action, CardType.Reaction),
+        type: tuple[CardType, ...] = (CardType.Action, CardType.Reaction),
         draw: int = 2,
     ):
         super().__init__(name, cost, type, draw=draw)
@@ -729,7 +726,7 @@ class Merchant(Action):
         self,
         name: str = "Merchant",
         cost: int = 3,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -766,7 +763,7 @@ class Bandit(Action):
         self,
         name: str = "Bandit",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action, CardType.Attack),
+        type: tuple[CardType, ...] = (CardType.Action, CardType.Attack),
     ):
         super().__init__(name, cost, type)
 
@@ -793,7 +790,7 @@ class Bandit(Action):
                     if CardType.Treasure in card.type and card.name != "Copper"
                 ]
 
-                trash_card: Optional[Card] = None
+                trash_card: Card|None = None
                 if len(non_copper_treasures) == 1:
                     trash_card = non_copper_treasures[0]
                 elif len(non_copper_treasures) > 1:
@@ -828,7 +825,7 @@ class Bureaucrat(Action):
         self,
         name: str = "Bureaucrat",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action, CardType.Attack),
+        type: tuple[CardType, ...] = (CardType.Action, CardType.Attack),
     ):
         super().__init__(name, cost, type)
 
@@ -846,10 +843,11 @@ class Bureaucrat(Action):
                 attacking_player=player, attack_card=self, game=game
             ):
 
-                victory_cards = []
-                for card in opponent.hand.cards:
-                    if CardType.Victory in card.type:
-                        victory_cards.append(card)
+                victory_cards = [
+                    card
+                    for card in opponent.hand.cards
+                    if CardType.Victory in card.type
+                ]
 
                 if not victory_cards:
                     opponent.reveal(opponent.hand.cards, game, f"{opponent} reveals hand: ")
@@ -867,8 +865,8 @@ class Bureaucrat(Action):
                 assert len(topdeck_cards) == 1
                 topdeck_card = topdeck_cards[0]
 
-                opponent.deck.add(opponent.hand.remove(topdeck_card))
-                opponent.reveal(topdeck_card, game, f"{opponent} reveals and topdecks ")
+                opponent.reveal(topdeck_card, game)
+                opponent.topdeck(topdeck_card, opponent.hand)
 
 
 class ThroneRoom(Action):
@@ -881,7 +879,7 @@ class ThroneRoom(Action):
         self,
         name: str = "Throne Room",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -925,7 +923,7 @@ class Remodel(Action):
         self,
         name: str = "Remodel",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -985,7 +983,7 @@ class Mine(Action):
         self,
         name: str = "Mine",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1051,7 +1049,7 @@ class Militia(Action):
         self,
         name: str = "Militia",
         cost: int = 4,
-        type: Tuple[CardType, ...] = (CardType.Action, CardType.Attack),
+        type: tuple[CardType, ...] = (CardType.Action, CardType.Attack),
         money: int = 2,
     ):
         super().__init__(name, cost, type, money=money)
@@ -1098,7 +1096,7 @@ class Sentry(Action):
         self,
         name: str = "Sentry",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
         actions: int = 1,
         draw: int = 1,
     ):
@@ -1113,7 +1111,7 @@ class Sentry(Action):
         looked_at = AbstractDeck()
         player.draw(num_cards=2, destination=looked_at, silent=True)
 
-        trash_cards: List[Card] = []
+        trash_cards: list[Card] = []
         if len(looked_at) > 0:
             s = plural("card", len(looked_at))
             logger.info(f"Sentry {s}: {looked_at}")
@@ -1130,7 +1128,7 @@ class Sentry(Action):
             for card in trash_cards:
                 looked_at.remove(card)
 
-        discard_cards: List[Card] = []
+        discard_cards: list[Card] = []
         if len(looked_at) > 0:
             s = plural("card", len(looked_at))
             logger.info(f"Sentry {s}: {looked_at}")
@@ -1165,14 +1163,10 @@ class Sentry(Action):
             player.discard(game, card, to_discard)
 
         if looked_at.cards:
-            if reorder:
-                for card in looked_at.cards:
-                    player.deck.add(card)
-            else:
-                for card in reversed(looked_at.cards):
-                    player.deck.add(card)
-            s = plural("card", len(looked_at))
-            logger.info(f"{player} topdecks {len(looked_at)} {s}")
+            topdeck_cards = looked_at.cards[:]
+            if not reorder:
+                topdeck_cards.reverse()
+            player.topdeck(topdeck_cards, looked_at)
 
 
 class Library(Action):
@@ -1185,7 +1179,7 @@ class Library(Action):
         self,
         name: str = "Library",
         cost: int = 5,
-        type: Tuple[CardType, ...] = (CardType.Action,),
+        type: tuple[CardType, ...] = (CardType.Action,),
     ):
         super().__init__(name, cost, type)
 
@@ -1258,7 +1252,7 @@ witch = Witch()
 workshop = Workshop()
 
 
-base_set: List[Card] = [
+base_set: list[Card] = [
     artisan,
     bandit,
     bureaucrat,

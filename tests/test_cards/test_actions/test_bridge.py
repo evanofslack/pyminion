@@ -1,4 +1,6 @@
 from pyminion.expansions.base import copper, silver
+from pyminion.expansions.alchemy import apothecary
+from pyminion.core import Cost
 from pyminion.core import DeckCounter
 from pyminion.expansions.intrigue import Bridge, bridge, shanty_town
 from pyminion.game import Game
@@ -10,6 +12,7 @@ def test_one_bridge(player: Player, game: Game):
 
     assert copper.get_cost(player, game) == 0
     assert silver.get_cost(player, game) == 3
+    assert apothecary.get_cost(player, game) == Cost(2, 1)
 
     player.play(bridge, game)
     assert len(player.hand) == 0
@@ -22,6 +25,7 @@ def test_one_bridge(player: Player, game: Game):
 
     assert copper.get_cost(player, game) == 0
     assert silver.get_cost(player, game) == 2
+    assert apothecary.get_cost(player, game) == Cost(1, 1)
 
 
 def test_two_bridges(player: Player, game: Game):

@@ -1,13 +1,14 @@
 from enum import IntEnum, unique
 import logging
 import random
-from typing import Iterator, List, Optional
+from typing import Iterator
 
 from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
 from pyminion.effects import EffectRegistry
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (copper, curse, duchy, estate, gold,
                                       province, silver)
+from pyminion.expansions.alchemy import potion
 from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
 
@@ -39,10 +40,10 @@ class Game:
 
     def __init__(
         self,
-        players: List[Player],
-        expansions: List[List[Card]],
-        kingdom_cards: Optional[List[Card]] = None,
-        start_deck: Optional[List[Card]] = None,
+        players: list[Player],
+        expansions: list[list[Card]],
+        kingdom_cards: list[Card]|None = None,
+        start_deck: list[Card]|None = None,
         random_order: bool = True,
         log_stdout: bool = True,
         log_file: bool = False,
@@ -57,7 +58,7 @@ class Game:
         self.current_player = self.players[0]
         self.expansions = expansions
         self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
-        self.all_game_cards: List[Card] = []
+        self.all_game_cards: list[Card] = []
         self.card_cost_reduction = 0
         self.start_deck = start_deck
         self.random_order = random_order
@@ -82,13 +83,13 @@ class Game:
             f_handler.setFormatter(f_format)
             logger.addHandler(f_handler)
 
-    def _create_basic_score_piles(self) -> List[Pile]:
+    def _create_basic_score_piles(self) -> list[Pile]:
         """
         Create the basic victory and curse piles that are applicable to almost all games of Dominion.
 
         """
 
-        basic_cards: List[Card] = [
+        basic_cards: list[Card] = [
             estate,
             duchy,
             province,
@@ -102,17 +103,22 @@ class Game:
 
         return basic_piles
 
-    def _create_basic_treasure_piles(self) -> List[Pile]:
+    def _create_basic_treasure_piles(self, kingdom_piles: list[Pile]) -> list[Pile]:
         """
         Create the basic treasure piles that are applicable to almost all games of Dominion.
 
         """
 
-        basic_cards: List[Card] = [
+        basic_cards: list[Card] = [
             copper,
             silver,
             gold,
         ]
+
+        for pile in kingdom_piles:
+            if pile.cards[0].base_cost.potions > 0:
+                basic_cards.insert(0, potion)
+                break
 
         basic_piles = [
             Pile([card] * card.get_pile_starting_count(self))
@@ -121,7 +127,7 @@ class Game:
 
         return basic_piles
 
-    def _create_kingdom_piles(self) -> List[Pile]:
+    def _create_kingdom_piles(self) -> list[Pile]:
         """
         Create the kingdom piles that vary from kingdom to kingdom.
         This should be 10 piles each with 10 cards.
@@ -159,8 +165,12 @@ class Game:
 
         piles = chosen_piles + random_piles
 
+        def pile_sort(pile: Pile) -> tuple[int, int, str]:
+            cost = pile.cards[0].base_cost
+            return (cost.money, cost.potions, pile.name)
+
         # sort piles by cost and name
-        piles.sort(key=lambda pile: (pile.cards[0].get_cost(self.players[0], self), pile.name))
+        piles.sort(key=pile_sort)
 
         return piles
 
@@ -172,9 +182,9 @@ class Game:
 
         """
 
-        basic_score_piles = self._create_basic_score_piles()
-        basic_treasure_piles = self._create_basic_treasure_piles()
         kingdom_piles = self._create_kingdom_piles()
+        basic_score_piles = self._create_basic_score_piles()
+        basic_treasure_piles = self._create_basic_treasure_piles(kingdom_piles)
         all_piles = basic_score_piles + basic_treasure_piles + kingdom_piles
         self.all_game_cards = [pile.cards[0] for pile in all_piles]
         return Supply(basic_score_piles, basic_treasure_piles, kingdom_piles)
@@ -182,6 +192,7 @@ class Game:
     def start(self) -> None:
         logger.info("\nStarting Game...\n")
 
+        self.trash.cards.clear()
         self.effect_registry.reset()
 
         self.supply = self._create_supply()
@@ -232,6 +243,14 @@ class Game:
         return False
 
     def play_turn(self, player: Player) -> None:
+        # if player played Possession while being possessed, take the extra turn
+        # before their main turn
+        if player.take_possession_turn:
+            player.possess(self)
+            self.card_cost_reduction = 0
+            if self.is_over():
+                return
+
         extra_turn_count = 0
         take_turn = True
         while take_turn:
@@ -246,7 +265,14 @@ class Game:
             extra_turn_count += 1
             take_turn = player.take_extra_turn and extra_turn_count < 2
 
-        # reset extra turn flag
+        # if player just played Possession, take the extra turn after their main turn
+        if player.take_possession_turn:
+            player.possess(self)
+            self.card_cost_reduction = 0
+            if self.is_over():
+                return
+
+        # reset extra turn flags
         player.take_extra_turn = False
 
     def play(self) -> GameResult:
@@ -303,7 +329,7 @@ class Game:
                 # attempt to gain a curse. if curse pile is empty, proceed
                 opponent.try_gain(curse, self)
 
-    def get_winners(self) -> List[Player]:
+    def get_winners(self) -> list[Player]:
         """
         The player with the most victory points wins.
         If the highest scores are tied at the end of the game,
