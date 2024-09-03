@@ -35,8 +35,7 @@ a human and a bot and assign them as players. Alternatively, games can be
 created between multiple humans or multiple bots.
 
 ```python
-from pyminion.expansions.base import base_set
-from pyminion.expansions.intrigue import intrigue_set
+from pyminion.expansions import base, intrigue, seaside, alchemy
 from pyminion.game import Game
 from pyminion.bots.examples import BigMoney
 from pyminion.human import Human
@@ -46,7 +45,7 @@ human = Human()
 bot = BigMoney()
 
 # Setup the game
-game = Game(players=[human, bot], expansions=[base_set, intrigue_set])
+game = Game(players=[human, bot], expansions=[base.base_set, intrigue.intrigue_set, seaside.seaside_set, alchemy.alchemy_set])
 
 # Play game
 game.play()
