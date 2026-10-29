@@ -50,13 +50,13 @@ class Astrolabe(Treasure):
 
         player.state.buys += 1
 
-        effect = BasicNextTurnEffect(player, self, money=1, buys=1)
-        game.effect_registry.register_turn_start_effect(effect)
+        next_turn_effect = BasicNextTurnEffect(player, self, money=1, buys=1)
+        game.effect_registry.register_turn_start_effect(next_turn_effect)
 
         player.add_playmat_persistent_card(self)
 
-        effect = RemovePersistentCardsEffect(player, [self])
-        game.effect_registry.register_turn_start_effect(effect)
+        remove_effect = RemovePersistentCardsEffect(player, [self])
+        game.effect_registry.register_turn_start_effect(remove_effect)
 
 
 class Bazaar(Action):

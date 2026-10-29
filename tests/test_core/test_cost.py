@@ -257,3 +257,10 @@ def test_examples():
         assert not 3 <= Cost(m, 1) <= 6
     assert not 3 <= Cost(7) <= 6
     assert not 3 <= Cost(7, 1) <= 6
+
+
+def test_cost_compare_other_types():
+    assert not Cost(1) == None
+    assert Cost(1) != None
+    assert Cost(1) != "1"
+    assert Cost(1) not in [None, "1"]

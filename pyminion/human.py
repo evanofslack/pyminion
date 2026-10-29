@@ -565,7 +565,7 @@ class HumanDecider:
 
         if required and result is None:
             raise InvalidSingleCardInput(
-                f"Invalid response, you must name a valid card"
+                "Invalid response, you must name a valid card"
             )
 
         return result
