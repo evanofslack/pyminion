@@ -5,7 +5,7 @@ from pyminion.game import Game
 from pyminion.player import Player
 from pyminion.result import GameResult, PlayerSimulatorResult, SimulatorResult
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_percent(occurrence: int, total: int) -> float:
