@@ -1,5 +1,8 @@
+import logging
+
 import pytest
 
+from pyminion.bots.examples import BigMoney
 from pyminion.core import CardType, Card, Supply, Trash
 from pyminion.exceptions import InvalidGameSetup, InvalidPlayerCount
 from pyminion.expansions.base import (base_set, curse, duchy, estate, gold, province,
@@ -240,3 +243,33 @@ def test_include_potions(decider):
     )
     game_potions.start()
     assert any(pile.name == "Potion" for pile in game_potions.supply.piles)
+
+
+def test_logging_does_not_touch_root_logger():
+    root = logging.getLogger()
+    root_level = root.level
+    root_handlers = root.handlers[:]
+
+    game = Game(players=[BigMoney(), BigMoney()], expansions=[base_set])
+    game.play()
+
+    assert root.level == root_level
+    assert root.handlers == root_handlers
+
+
+def test_logging_handlers_not_leaked(tmp_path):
+    package_logger = logging.getLogger("pyminion")
+    num_handlers = len(package_logger.handlers)
+
+    for _ in range(3):
+        game = Game(
+            players=[BigMoney(), BigMoney()],
+            expansions=[base_set],
+            log_stdout=True,
+            log_file=True,
+            log_file_name=str(tmp_path / "game.log"),
+        )
+        game.play()
+
+    assert len(package_logger.handlers) == num_handlers
+    assert (tmp_path / "game.log").read_text()

@@ -7,7 +7,7 @@ from pyminion.expansions.base import duchy, estate, gold, province, silver, smit
 from pyminion.player import Player
 from pyminion.game import Game
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class BigMoneyUltimateDecider(BotDecider):

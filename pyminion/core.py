@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from pyminion.player import Player
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Cost:

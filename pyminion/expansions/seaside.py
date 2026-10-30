@@ -31,7 +31,7 @@ from pyminion.game import Game
 from pyminion.player import Player
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Astrolabe(Treasure):

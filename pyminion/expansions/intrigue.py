@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from pyminion.game import Game
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Baron(Action):

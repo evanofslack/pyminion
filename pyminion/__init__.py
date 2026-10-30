@@ -3,8 +3,8 @@ __author__ = "Evan Slack"
 
 import logging
 
-# initialize logger with no handler.
-# handlers are added in the `Game` init
-logger = logging.getLogger()
-logger.setLevel((logging.INFO))
+# initialize the package logger with no handler.
+# handlers are attached by `Game.play`
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 logger.addHandler(logging.NullHandler())

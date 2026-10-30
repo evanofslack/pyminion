@@ -13,7 +13,7 @@ from pyminion.player import Player
 from pyminion.result import GameOutcome, GameResult, PlayerSummary
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Game:
@@ -67,21 +67,24 @@ class Game:
 
         self.effect_registry = EffectRegistry()
 
+        # handlers are attached to the package logger only while the game is played
+        self._log_handlers: list[logging.Handler] = []
+
         if log_stdout:
             # Set up a handler that logs to stdout
             c_handler = logging.StreamHandler()
             c_handler.setLevel(logging.INFO)
             c_format = logging.Formatter("%(message)s")
             c_handler.setFormatter(c_format)
-            logger.addHandler(c_handler)
+            self._log_handlers.append(c_handler)
 
         if log_file:
             # Set up a handler that dumps the log to a file
-            f_handler = logging.FileHandler(log_file_name, mode="w")
+            f_handler = logging.FileHandler(log_file_name, mode="w", delay=True)
             f_handler.setLevel(logging.INFO)
             f_format = logging.Formatter("%(message)s")
             f_handler.setFormatter(f_format)
-            logger.addHandler(f_handler)
+            self._log_handlers.append(f_handler)
 
     def _create_basic_score_piles(self) -> list[Pile]:
         """
@@ -276,16 +279,24 @@ class Game:
         player.take_extra_turn = False
 
     def play(self) -> GameResult:
-        self.start()
-        while True:
-            for player in self.players:
-                self.current_player = player
-                self.play_turn(player)
+        package_logger = logging.getLogger("pyminion")
+        for handler in self._log_handlers:
+            package_logger.addHandler(handler)
 
-                if self.is_over():
-                    result = self.summarize_game()
-                    logging.info(f"\n{result}")
-                    return result
+        try:
+            self.start()
+            while True:
+                for player in self.players:
+                    self.current_player = player
+                    self.play_turn(player)
+
+                    if self.is_over():
+                        result = self.summarize_game()
+                        logger.info(f"\n{result}")
+                        return result
+        finally:
+            for handler in self._log_handlers:
+                package_logger.removeHandler(handler)
 
     def get_left_player(self, player: Player) -> Player:
         """
