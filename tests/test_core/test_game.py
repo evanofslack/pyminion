@@ -273,3 +273,40 @@ def test_logging_handlers_not_leaked(tmp_path):
 
     assert len(package_logger.handlers) == num_handlers
     assert (tmp_path / "game.log").read_text()
+
+
+def test_play_does_not_mutate_player_list(decider):
+    players = [Player(decider, player_id=str(i)) for i in range(4)]
+    original = players[:]
+    game = Game(players=players, expansions=[base_set], random_order=True)
+    game.start()
+    assert players == original
+
+
+def test_setup_duplicate_kingdom_cards(human):
+    game = Game(
+        players=[human],
+        expansions=[base_set],
+        kingdom_cards=[smithy, smithy],
+    )
+    with pytest.raises(InvalidGameSetup):
+        game.supply = game._create_supply()
+
+
+def test_setup_too_many_kingdom_cards(human):
+    game = Game(
+        players=[human],
+        expansions=[base_set],
+        kingdom_cards=base_set[:11],
+    )
+    with pytest.raises(InvalidGameSetup):
+        game.supply = game._create_supply()
+
+
+def test_setup_too_few_expansion_cards(human):
+    game = Game(
+        players=[human],
+        expansions=[base_set[:9]],
+    )
+    with pytest.raises(InvalidGameSetup):
+        game.supply = game._create_supply()

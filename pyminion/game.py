@@ -54,7 +54,8 @@ class Game:
             raise InvalidPlayerCount("Game must have at least one player")
         if len(players) > 4:
             raise InvalidPlayerCount("Game can have at most four players")
-        self.players = players
+        # copy so that shuffling turn order does not mutate the caller's list
+        self.players = list(players)
         self.current_player = self.players[0]
         self.expansions = expansions
         self.kingdom_cards = [] if kingdom_cards is None else kingdom_cards
@@ -149,10 +150,25 @@ class Game:
                 raise InvalidGameSetup(
                     f"Invalid game setup: {invalid_cards} not in provided expansions"
                 )
+            if duplicate_cards := [
+                card for i, card in enumerate(self.kingdom_cards) if card in self.kingdom_cards[:i]
+            ]:
+                raise InvalidGameSetup(
+                    f"Invalid game setup: {duplicate_cards} chosen more than once"
+                )
             chosen_cards = len(self.kingdom_cards)
+            if chosen_cards > KINGDOM_PILES:
+                raise InvalidGameSetup(
+                    f"Invalid game setup: {chosen_cards} kingdom cards chosen, at most {KINGDOM_PILES} allowed"
+                )
 
         else:
             chosen_cards = 0
+
+        if len(kingdom_options) < KINGDOM_PILES:
+            raise InvalidGameSetup(
+                f"Invalid game setup: provided expansions have {len(kingdom_options)} kingdom cards, at least {KINGDOM_PILES} required"
+            )
 
         chosen_piles = (
             [Pile([card] * card.get_pile_starting_count(self)) for card in self.kingdom_cards]
