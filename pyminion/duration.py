@@ -97,7 +97,7 @@ class BasicNextTurnEffect(PlayerGameEffect):
 
 class RemovePersistentCardsEffect(PlayerGameEffect):
     def __init__(self, player: Player, cards: list[Card]):
-        name = f"Remove Persistent Cards: " + ", ".join(c.name for c in cards)
+        name = "Remove Persistent Cards: " + ", ".join(c.name for c in cards)
         super().__init__(name)
         self.player = player
         self.cards = cards

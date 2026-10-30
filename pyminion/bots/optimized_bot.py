@@ -381,8 +381,8 @@ class OptimizedBotDecider(BotDecider):
             ret = self.artisan(player=player, game=game, valid_cards=valid_cards, topdeck=True)
             return [ret]
         elif card.name == "Harbinger":
-            ret = self.harbinger(player=player, game=game, valid_cards=valid_cards)
-            return [] if ret is None else [ret]
+            harbinger_card = self.harbinger(player=player, game=game, valid_cards=valid_cards)
+            return [] if harbinger_card is None else [harbinger_card]
         elif card.name == "Bureaucrat":
             ret = self.bureaucrat(player=player, game=game, valid_cards=valid_cards)
             return [ret]
@@ -785,9 +785,9 @@ class OptimizedBotDecider(BotDecider):
             choices.append(Courtier.Choice.Money)
 
             # add remaining choices
-            for c in Courtier.Choice:
-                if c.value not in choices:
-                    choices.append(c.value)
+            for choice in Courtier.Choice:
+                if choice.value not in choices:
+                    choices.append(choice.value)
 
             choices = choices[:num_choices]
             return choices

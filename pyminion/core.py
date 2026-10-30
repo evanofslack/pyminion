@@ -51,17 +51,19 @@ class Cost:
             return (obj, 0)
         return (obj._money, obj._potions)
 
-    def __eq__(self, other: "int|Cost") -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, int):
             return self._money == other and self._potions == 0
-        else:
+        elif isinstance(other, Cost):
             return self._money == other._money and self._potions == other._potions
+        return NotImplemented
 
-    def __ne__(self, other: "int|Cost") -> bool:
+    def __ne__(self, other: object) -> bool:
         if isinstance(other, int):
             return self._money != other or self._potions != 0
-        else:
+        elif isinstance(other, Cost):
             return self._money != other._money or self._potions != other._potions
+        return NotImplemented
 
     def __lt__(self, other: "int|Cost") -> bool:
         other_money, other_potions = self._to_tuple(other)
