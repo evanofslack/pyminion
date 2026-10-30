@@ -87,6 +87,21 @@ class Game:
             f_handler.setFormatter(f_format)
             self._log_handlers.append(f_handler)
 
+    def __copy__(self) -> "Game":
+        """
+        Create a copy of the game that shares players and configuration
+        but has its own turn order, trash, and effect registry.
+        Used by the simulator to play the same setup multiple times.
+
+        """
+        game = Game.__new__(Game)
+        game.__dict__.update(self.__dict__)
+        game.players = list(self.players)
+        game.kingdom_cards = list(self.kingdom_cards)
+        game.trash = Trash()
+        game.effect_registry = EffectRegistry()
+        return game
+
     def _create_basic_score_piles(self) -> list[Pile]:
         """
         Create the basic victory and curse piles that are applicable to almost all games of Dominion.
