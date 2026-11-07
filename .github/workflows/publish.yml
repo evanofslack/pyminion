@@ -1,0 +1,54 @@
+name: publish
+
+on:
+    release:
+        types: [published]
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v10.3.3
+
+            - name: Check release tag matches package version
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  version="$(uv version --short)"
+                  if [ "${TAG#v}" != "$version" ]; then
+                      echo "::error::Release tag $TAG does not match package version $version"
+                      exit 1
+                  fi
+
+            - name: Build package
+              run: uv build
+
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: dist
+                  path: dist/
+
+    publish:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+            name: pypi
+            url: https://pypi.org/project/pyminion/
+        permissions:
+            id-token: write
+
+        steps:
+            - uses: actions/download-artifact@v8
+              with:
+                  name: dist
+                  path: dist/
+
+            - name: Publish to PyPI
+              uses: pypa/gh-action-pypi-publish@v1.14.3
