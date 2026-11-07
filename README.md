@@ -93,7 +93,7 @@ class BigMoneySmithy(Bot):
         super().__init__(decider=BigMoneySmithyDecider(), player_id=player_id)
 ```
 
-To see other bot implementations with more advanced decision trees, see [/bots](https://github.com/evanofslack/pyminion/tree/master/pyminion/bots)
+To see other bot implementations with more advanced decision trees, see [/bots](https://github.com/evanofslack/pyminion/tree/main/pyminion/bots)
 
 ### Running Simulations
 
@@ -125,7 +125,7 @@ big_money won 110, lost 676, tied 214
 big_money_smithy won 676, lost 110, tied 214
 ```
 
-Please see [/examples](https://github.com/evanofslack/pyminion/tree/master/examples) to see demo scripts.
+Please see [/examples](https://github.com/evanofslack/pyminion/tree/main/examples) to see demo scripts.
 
 ## Support
 
@@ -152,6 +152,6 @@ uv run mypy pyminion    # type check
 
 ### Releasing
 
-Bump the version with `uv version <new-version>` and merge it to master,
+Bump the version with `uv version <new-version>` and merge it to main,
 then publish a GitHub release tagged `v<new-version>`. The release
 workflow builds the package and uploads it to PyPI.
