@@ -1,6 +1,6 @@
 [project]
 name = "pyminion"
-version = "0.5.0"
+version = "0.6.0"
 description = "Dominion but make it python"
 readme = "README.md"
 requires-python = ">=3.12"
