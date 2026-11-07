@@ -1,6 +1,7 @@
 from enum import IntEnum, unique
 import logging
 import random
+import sys
 from typing import Iterator
 
 from pyminion.core import Card, DeckCounter, DiscardPile, Pile, Supply, Trash
@@ -73,7 +74,7 @@ class Game:
 
         if log_stdout:
             # Set up a handler that logs to stdout
-            c_handler = logging.StreamHandler()
+            c_handler = logging.StreamHandler(sys.stdout)
             c_handler.setLevel(logging.INFO)
             c_format = logging.Formatter("%(message)s")
             c_handler.setFormatter(c_format)
